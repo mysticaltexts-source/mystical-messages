@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <title>Create Message - Mystical Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body data-page="message-create">
+    <div class="container pb-nav">
+        <!-- Header -->
+        <div class="header">
+            <a href="/dashboard" style="font-size: 1.25rem;">← Back</a>
+            <h3 style="margin: 0;">Create Message</h3>
+            <div style="width: 40px;"></div>
+        </div>
+
+        <!-- Step Indicator -->
+        <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+            <div class="step-dot active" data-step="1" style="width: 30px; height: 4px; background: var(--primary-color); border-radius: 2px;"></div>
+            <div class="step-dot" data-step="2" style="width: 30px; height: 4px; background: var(--border-color); border-radius: 2px;"></div>
+            <div class="step-dot" data-step="3" style="width: 30px; height: 4px; background: var(--border-color); border-radius: 2px;"></div>
+        </div>
+
+        <!-- Step 1: Character Selection -->
+        <div id="step-1" class="step-content">
+            <div class="card">
+                <h3 style="text-align: center; margin-bottom: 1rem;">Choose a Character</h3>
+                <div id="character-grid" class="character-grid">
+                    <!-- Characters loaded dynamically -->
+                </div>
+            </div>
+            
+            <button id="step1-next" class="btn btn-primary btn-block btn-lg mt-2" disabled onclick="goToStep(2)">
+                Continue
+            </button>
+        </div>
+
+        <!-- Step 2: Message Builder -->
+        <div id="step-2" class="step-content" style="display: none;">
+            <div class="card">
+                <div class="tabs">
+                    <div class="tab active" data-mode="preset" onclick="switchMode('preset')">Quick Preset</div>
+                    <div class="tab" data-mode="custom" onclick="switchMode('custom')">Custom Message</div>
+                </div>
+
+                <div class="form-group mt-2">
+                    <label class="form-label">Child's Name</label>
+                    <input type="text" class="form-input" id="child-name" placeholder="Enter child's name">
+                </div>
+
+                <!-- Preset Mode -->
+                <div id="preset-mode">
+                    <div class="form-group">
+                        <label class="form-label">Select Template</label>
+                        <select class="form-select" id="template-select">
+                            <option value="">Choose a template...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Preview</label>
+                        <div class="message-preview" id="message-preview">
+                            <p class="text-center" style="color: var(--text-light);">Select a template to preview</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Mode -->
+                <div id="custom-mode" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Your Message (from child)</label>
+                        <textarea class="form-input form-textarea" id="outgoing-message" 
+                                  placeholder="What will your child say? (optional)"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Character's Response</label>
+                        <textarea class="form-input form-textarea" id="response-message" 
+                                  placeholder="What should the character say?"></textarea>
+                        <p class="form-helper">Use {child_name} to personalize</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="goToStep(3)">Continue</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Scheduling & Send -->
+        <div id="step-3" class="step-content" style="display: none;">
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;">When should we send it?</h3>
+                
+                <div class="quick-actions">
+                    <button class="quick-action-btn selected" data-send="immediate" onclick="selectSendMode('immediate')">
+                        <div class="quick-action-icon">⚡</div>
+                        <div class="quick-action-content">
+                            <div class="quick-action-title">Send Now</div>
+                            <div class="quick-action-desc">Deliver immediately</div>
+                        </div>
+                    </button>
+                    
+                    <button class="quick-action-btn" data-send="delayed" onclick="selectSendMode('delayed')">
+                        <div class="quick-action-icon">⏱️</div>
+                        <div class="quick-action-content">
+                            <div class="quick-action-title">With Delay</div>
+                            <div class="quick-action-desc">Add realistic delay</div>
+                        </div>
+                    </button>
+                    
+                    <button class="quick-action-btn" data-send="scheduled" onclick="selectSendMode('scheduled')">
+                        <div class="quick-action-icon">📅</div>
+                        <div class="quick-action-content">
+                            <div class="quick-action-title">Schedule</div>
+                            <div class="quick-action-desc">Pick a specific time</div>
+                        </div>
+                    </button>
+                </div>
+
+                <div id="delay-options" style="display: none; margin-top: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Delay</label>
+                        <select class="form-select" id="delay-select">
+                            <option value="1">1 minute</option>
+                            <option value="5">5 minutes</option>
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60">1 hour</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="schedule-options" style="display: none; margin-top: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Schedule Date & Time</label>
+                        <input type="datetime-local" class="form-input" id="schedule-time">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+                <button class="btn btn-magic" style="flex: 1;" onclick="sendMessage()">
+                    ✨ Send Magic Message
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // State
+        let characters = [];
+        let templates = [];
+        let children = [];
+        let selectedCharacterId = null;
+        let currentStep = 1;
+        let currentMode = 'preset';
+        let sendMode = 'immediate';
+        
+        // Load initial data
+        async function loadData() {
+            try {
+                const response = await fetch('/messages/create/data');
+                const data = await response.json();
+                characters = data.characters || [];
+                templates = data.templates || [];
+                children = data.children || [];
+                
+                renderCharacters();
+                
+                // Pre-fill child name if available
+                if (children.length > 0) {
+                    document.getElementById('child-name').value = children[0].name;
+                }
+            } catch (error) {
+                console.error('Failed to load data:', error);
+                showToast('Failed to load data', 'error');
+            }
+        }
+        
+        function renderCharacters() {
+            const grid = document.getElementById('character-grid');
+            grid.innerHTML = characters.map(char => `
+                <div class="character-card ${char.is_premium ? 'premium' : ''}" 
+                     data-id="${char.id}" onclick="selectCharacter(${char.id})">
+                    <div class="character-avatar ${char.name.replace('_', '-')}">
+                        ${getEmoji(char.name)}
+                    </div>
+                    <div class="character-name">${char.display_name}</div>
+                </div>
+            `).join('');
+        }
+        
+        function getEmoji(name) {
+            const emojis = {
+                'santa_claus': '🎅',
+                'tooth_fairy': '🧚',
+                'easter_bunny': '🐰',
+                'custom': '⭐'
+            };
+            return emojis[name] || '✨';
+        }
+        
+        function selectCharacter(id) {
+            const char = characters.find(c => c.id === id);
+            
+            if (char?.is_premium) {
+                showToast('Premium subscription required', 'error');
+                return;
+            }
+            
+            selectedCharacterId = id;
+            
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`.character-card[data-id="${id}"]`).classList.add('selected');
+            
+            document.getElementById('step1-next').disabled = false;
+            
+            // Load templates for this character
+            loadTemplates(id);
+        }
+        
+        function loadTemplates(characterId) {
+            const select = document.getElementById('template-select');
+            const filtered = templates.filter(t => t.character_id === characterId);
+            
+            select.innerHTML = '<option value="">Choose a template...</option>' +
+                filtered.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+        }
+        
+        function goToStep(step) {
+            currentStep = step;
+            
+            // Update step dots
+            document.querySelectorAll('.step-dot').forEach((dot, i) => {
+                dot.style.background = i < step ? 'var(--primary-color)' : 'var(--border-color)';
+            });
+            
+            // Show/hide content
+            document.querySelectorAll('.step-content').forEach((content, i) => {
+                content.style.display = i + 1 === step ? 'block' : 'none';
+            });
+        }
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.mode === mode);
+            });
+            
+            document.getElementById('preset-mode').style.display = mode === 'preset' ? 'block' : 'none';
+            document.getElementById('custom-mode').style.display = mode === 'custom' ? 'block' : 'none';
+        }
+        
+        // Template preview
+        document.getElementById('template-select').addEventListener('change', function() {
+            const templateId = parseInt(this.value);
+            const template = templates.find(t => t.id === templateId);
+            const childName = document.getElementById('child-name').value || 'little one';
+            
+            const preview = document.getElementById('message-preview');
+            
+            if (template) {
+                let content = template.content.replace(/{child_name}/g, childName);
+                content = content.replace(/{behavior}/g, 'good');
+                content = content.replace(/{encouragement}/g, 'great work');
+                
+                preview.innerHTML = `
+                    <div class="message-bubble incoming">
+                        ${content}
+                        <div class="message-meta">${template.tone} tone</div>
+                    </div>
+                `;
+            } else {
+                preview.innerHTML = '<p class="text-center" style="color: var(--text-light);">Select a template to preview</p>';
+            }
+        });
+        
+        function selectSendMode(mode) {
+            sendMode = mode;
+            
+            document.querySelectorAll('.quick-action-btn[data-send]').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.send === mode);
+            });
+            
+            document.getElementById('delay-options').style.display = mode === 'delayed' ? 'block' : 'none';
+            document.getElementById('schedule-options').style.display = mode === 'scheduled' ? 'block' : 'none';
+            
+            // Set default schedule time
+            if (mode === 'scheduled') {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + 30);
+                document.getElementById('schedule-time').value = now.toISOString().slice(0, 16);
+                document.getElementById('schedule-time').min = new Date().toISOString().slice(0, 16);
+            }
+        }
+        
+        async function sendMessage() {
+            const childName = document.getElementById('child-name').value;
+            
+            let messageData = {
+                characterId: selectedCharacterId,
+                childName,
+                sendMode,
+                delayMinutes: sendMode === 'delayed' ? parseInt(document.getElementById('delay-select').value) : null,
+                scheduledAt: sendMode === 'scheduled' ? document.getElementById('schedule-time').value : null
+            };
+            
+            if (currentMode === 'preset') {
+                const templateId = document.getElementById('template-select').value;
+                const template = templates.find(t => t.id === parseInt(templateId));
+                
+                if (!template) {
+                    showToast('Please select a template', 'error');
+                    return;
+                }
+                
+                messageData.responseMessage = template.content;
+                messageData.scenarioType = template.scenario_type;
+                messageData.tone = template.tone;
+            } else {
+                messageData.outgoingMessage = document.getElementById('outgoing-message').value;
+                messageData.responseMessage = document.getElementById('response-message').value;
+                messageData.scenarioType = 'custom';
+                messageData.tone = 'playful';
+                
+                if (!messageData.responseMessage) {
+                    showToast('Please write a response message', 'error');
+                    return;
+                }
+            }
+            
+            // Show loading
+            const btn = document.querySelector('.btn-magic');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            try {
+                const response = await fetch('/messages/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(messageData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message || 'Message sent!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 2000);
+                } else if (data.requiresPayment) {
+                    // Show payment modal
+                    showPaymentModal(data.amount);
+                } else {
+                    showToast(data.error || 'Failed to send', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✨ Send Magic Message';
+            }
+        }
+        
+        function showPaymentModal(amount) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>One-Time Payment</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                    </div>
+                    
+                    <div class="text-center mb-3">
+                        <div style="font-size: 3rem;">💳</div>
+                        <div style="font-size: 2rem; font-weight: 700;">$${amount}</div>
+                        <p style="color: var(--text-secondary);">One message credit</p>
+                    </div>
+                    
+                    <a href="/subscriptions/plans" class="btn btn-secondary btn-block mb-2">
+                        View Subscription Plans
+                    </a>
+                    
+                    <button class="btn btn-primary btn-block" onclick="processPayment(${amount})">
+                        Pay $${amount}
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        async function processPayment(amount) {
+            showToast('Payment processing not configured for demo', 'error');
+        }
+        
+        function showToast(message, type = 'success') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>

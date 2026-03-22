@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <meta name="description" content="Mystical Messages lets parents create magical, personalized text message experiences for their children from Santa Claus, the Tooth Fairy, the Easter Bunny and more. Delivered instantly via SMS.">
+    <title>Mystical Messages - Magical Text Messages for Kids</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+    <style>
+        .section-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 0.5rem 0;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .feature-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .feature-list li span.icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .pricing-row:last-child {
+            border-bottom: none;
+        }
+        .pricing-tier {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .pricing-price {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--primary-color);
+        }
+        .pricing-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.1rem;
+        }
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+        }
+        .faq-item {
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        .faq-question {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.35rem;
+        }
+        .faq-answer {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .trust-row {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            padding: 0.5rem 0;
+        }
+        .trust-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .trust-icon {
+            font-size: 1.6rem;
+        }
+        .trust-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body data-page="landing">
+    <div class="container">
+
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="hero-logo">✨</div>
+            <h1 class="hero-title">Mystical Messages</h1>
+            <p class="hero-subtitle">Magical text messages for your children — from Santa, the Tooth Fairy, the Easter Bunny & more</p>
+            <a href="/auth/signup" class="btn btn-primary btn-lg" style="margin-top: 1rem; display: inline-block;">
+                Start the Magic 🎉
+            </a>
+        </div>
+
+        <!-- What Is It -->
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 0.75rem;">What is Mystical Messages?</h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; text-align: center; margin-bottom: 1rem;">
+                Mystical Messages is a subscription service for parents that makes childhood magic real. Send personalized SMS text messages to your child that appear to come directly from their favorite magical characters — Santa Claus, the Tooth Fairy, the Easter Bunny, and more.
+            </p>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; text-align: center;">
+                Choose from dozens of pre-written message templates or write your own custom messages. Schedule them in advance for holidays, or send one instantly in an emergency moment — like when your child unexpectedly loses a tooth!
+            </p>
+        </div>
+
+        <!-- How It Works -->
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 1rem;">How It Works</h3>
+            <div class="quick-actions">
+                <div class="quick-action-btn" style="cursor: default;">
+                    <div class="quick-action-icon">1️⃣</div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Create Your Account</div>
+                        <div class="quick-action-desc">Sign up as a parent and add your child's name and phone number</div>
+                    </div>
+                </div>
+                <div class="quick-action-btn" style="cursor: default;">
+                    <div class="quick-action-icon">🎭</div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Choose a Character</div>
+                        <div class="quick-action-desc">Pick from Santa Claus, Tooth Fairy, Easter Bunny, or create a custom character</div>
+                    </div>
+                </div>
+                <div class="quick-action-btn" style="cursor: default;">
+                    <div class="quick-action-icon">📝</div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Craft Your Message</div>
+                        <div class="quick-action-desc">Use one of our magical templates or write a personalized custom message</div>
+                    </div>
+                </div>
+                <div class="quick-action-btn" style="cursor: default;">
+                    <div class="quick-action-icon">📱</div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">Deliver the Magic</div>
+                        <div class="quick-action-desc">Send instantly, schedule for later, or save scripts for future use</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Characters -->
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 0.5rem;">Meet the Characters</h3>
+            <p style="text-align: center; color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">Each character has their own unique voice, tone, and message templates</p>
+            <div class="character-grid">
+                <div class="character-card" style="cursor: default;">
+                    <div class="character-avatar santa">🎅</div>
+                    <div class="character-name">Santa Claus</div>
+                </div>
+                <div class="character-card" style="cursor: default;">
+                    <div class="character-avatar tooth-fairy">🧚</div>
+                    <div class="character-name">Tooth Fairy</div>
+                </div>
+                <div class="character-card" style="cursor: default;">
+                    <div class="character-avatar easter-bunny">🐰</div>
+                    <div class="character-name">Easter Bunny</div>
+                </div>
+                <div class="character-card premium" style="cursor: default;">
+                    <div class="character-avatar custom">⭐</div>
+                    <div class="character-name">Custom <span class="badge">Premium</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features List -->
+        <div class="card">
+            <h3 style="margin-bottom: 1rem;">Everything You Get</h3>
+            <ul class="feature-list">
+                <li><span class="icon">💬</span> Personalized SMS messages delivered to any US phone number</li>
+                <li><span class="icon">📚</span> Library of 30+ pre-written magical message templates</li>
+                <li><span class="icon">✏️</span> Custom message builder — write anything in your own words</li>
+                <li><span class="icon">⏰</span> Schedule messages for specific dates and times</li>
+                <li><span class="icon">🚨</span> Oh-Crap!! Buttons — instant emergency messages for unplanned moments</li>
+                <li><span class="icon">💾</span> Save your favorite scripts to reuse year after year</li>
+                <li><span class="icon">📖</span> Full message history to revisit every magical moment</li>
+                <li><span class="icon">⭐</span> Custom character creation (Premium)</li>
+                <li><span class="icon">👨‍👩‍👧</span> Support for multiple children on one account</li>
+            </ul>
+        </div>
+
+        <!-- Oh Crap Buttons Highlight -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(107,70,193,0.08), rgba(246,135,179,0.08)); border: 1px solid rgba(107,70,193,0.2);">
+            <h3 style="margin-bottom: 0.5rem;">🚨 Oh-Crap!! Buttons</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem;">
+                Every parent knows the feeling — your child asks "Did Santa get my letter?" or loses a tooth at 9pm with no coins in the house. Our Oh-Crap!! Buttons let you send a perfectly crafted magical message in seconds, no preparation needed.
+            </p>
+            <ul class="feature-list">
+                <li><span class="icon">🦷</span> Lost Tooth Emergency — Tooth Fairy is on her way!</li>
+                <li><span class="icon">🎅</span> Naughty/Nice Check — Santa is watching right now</li>
+                <li><span class="icon">🐰</span> Easter Visit Alert — Easter Bunny sends a message</li>
+                <li><span class="icon">🎁</span> Gift Confirmation — Santa confirms he received the wish list</li>
+            </ul>
+        </div>
+
+        <!-- Pricing -->
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 0.25rem;">Simple, Transparent Pricing</h3>
+            <p style="text-align: center; color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">No hidden fees. Cancel anytime.</p>
+
+            <div class="pricing-row">
+                <div>
+                    <div class="pricing-tier">✨ Try It Once</div>
+                    <div class="pricing-desc">One single magical message, no commitment</div>
+                </div>
+                <div class="pricing-price">$0.99</div>
+            </div>
+
+            <div class="pricing-row">
+                <div>
+                    <div class="pricing-tier">🌟 Basic</div>
+                    <div class="pricing-desc">1 character · Limited templates · Basic scheduling</div>
+                </div>
+                <div class="pricing-price">$4.99/mo</div>
+            </div>
+
+            <div class="pricing-row">
+                <div>
+                    <div class="pricing-tier">🌠 Standard</div>
+                    <div class="pricing-desc">All 3 characters · Full template library · Message history</div>
+                </div>
+                <div class="pricing-price">$9.99/mo</div>
+            </div>
+
+            <div class="pricing-row">
+                <div>
+                    <div class="pricing-tier">👑 Premium <span class="badge">Best Value</span></div>
+                    <div class="pricing-desc">Everything + custom characters · Unlimited scripts · Priority support</div>
+                </div>
+                <div class="pricing-price">$14.99/mo</div>
+            </div>
+
+            <a href="/auth/signup" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.25rem;">
+                Get Started — Try for $0.99
+            </a>
+            <p style="text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.75rem;">
+                Subscriptions billed monthly. Cancel anytime from your account settings.
+            </p>
+        </div>
+
+        <!-- Trust Signals -->
+        <div class="card">
+            <div class="trust-row">
+                <div class="trust-item">
+                    <div class="trust-icon">🔒</div>
+                    <div class="trust-label">Secure Payments<br>via Stripe</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">📱</div>
+                    <div class="trust-label">SMS Delivery<br>via Twilio</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">❌</div>
+                    <div class="trust-label">Cancel<br>Anytime</div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">👨‍👩‍👧</div>
+                    <div class="trust-label">Built for<br>Families</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Child Safety & Mission Statement -->
+        <div class="card" style="border: 1.5px solid rgba(107,70,193,0.25); background: linear-gradient(135deg, rgba(107,70,193,0.04), rgba(246,135,179,0.04));">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div style="font-size: 2rem; margin-bottom: 0.4rem;">🛡️</div>
+                <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">Our Mission & Child Safety Promise</div>
+                <div style="width: 40px; height: 3px; background: linear-gradient(135deg, #6B46C1, #F687B3); border-radius: 2px; margin: 0.5rem auto 0;"></div>
+            </div>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.7; text-align: center; margin-bottom: 1rem;">
+                Mystical Messages was built by parents, for parents — to help families create moments of pure childhood wonder that last a lifetime. Our mission is simple: make magic accessible, safe, and completely under your control.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem;">
+                <div style="background: var(--surface-color); border-radius: var(--radius); padding: 0.85rem; border: 1px solid var(--border-color);">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">👨‍👩‍👧</div>
+                    <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;">Adults Only Platform</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">Accounts are restricted to adults 18+. Children never have access to the app or account.</div>
+                </div>
+                <div style="background: var(--surface-color); border-radius: var(--radius); padding: 0.85rem; border: 1px solid var(--border-color);">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">📱</div>
+                    <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;">Adult Phone Required</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">Messages are always delivered to the parent's registered phone. Never to a child's device.</div>
+                </div>
+                <div style="background: var(--surface-color); border-radius: var(--radius); padding: 0.85rem; border: 1px solid var(--border-color);">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">✍️</div>
+                    <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;">You Write Every Word</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">No message sends automatically. Every message is scripted, reviewed, and triggered by you.</div>
+                </div>
+                <div style="background: var(--surface-color); border-radius: var(--radius); padding: 0.85rem; border: 1px solid var(--border-color);">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">🔒</div>
+                    <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem;">No Child Data Stored</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">We only store a child's first name for personalization. No phone numbers, emails, or profiles of minors.</div>
+                </div>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-light); text-align: center; line-height: 1.6;">
+                Read our full commitments in our
+                <a href="/privacy" style="color: var(--primary-color);">Privacy Policy</a> ·
+                <a href="/terms" style="color: var(--primary-color);">Terms of Service</a> ·
+                <a href="/refund" style="color: var(--primary-color);">Refund Policy</a>
+            </p>
+        </div>
+
+        <!-- FAQ -->
+        <div class="card">
+            <h3 style="margin-bottom: 0.75rem;">Frequently Asked Questions</h3>
+
+            <div class="faq-item">
+                <div class="faq-question">What exactly is Mystical Messages?</div>
+                <div class="faq-answer">Mystical Messages is a web-based service that lets parents send SMS text messages to their children that appear to come from magical characters like Santa Claus, the Tooth Fairy, or the Easter Bunny. All messages are parent-controlled and fully customizable.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How are messages delivered?</div>
+                <div class="faq-answer">Messages are delivered as standard SMS text messages to any US mobile phone number. The message appears to come from the magical character's number, making it feel real and special to your child.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Can I write my own messages?</div>
+                <div class="faq-answer">Absolutely! While we provide 30+ pre-written templates for every occasion, you can always write completely custom messages in your own words using any character's voice.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How do I cancel my subscription?</div>
+                <div class="faq-answer">You can cancel your subscription at any time from your account settings page. Your subscription remains active until the end of the current billing period, and you will not be charged again after cancellation.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Is my payment information secure?</div>
+                <div class="faq-answer">Yes. All payments are processed securely through Stripe, a leading payment processor trusted by millions of businesses worldwide. We never store your credit card details on our servers.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">What is the $0.99 trial?</div>
+                <div class="faq-answer">The $0.99 trial lets you send a single magical message to try the service before committing to a monthly subscription. It's a one-time charge with no automatic renewal.</div>
+            </div>
+        </div>
+
+        <!-- Final CTA -->
+        <div class="card" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎄🧚🐰</div>
+            <h3 style="color: white; margin-bottom: 0.5rem;">Make the Magic Real Today</h3>
+            <p style="color: rgba(255,255,255,0.85); font-size: 0.9rem; margin-bottom: 1.25rem;">
+                Join thousands of parents creating unforgettable childhood memories with Mystical Messages.
+            </p>
+            <a href="/auth/signup" class="btn" style="background: white; color: var(--primary-color); font-weight: 700; display: block;">
+                Create Your Free Account ✨
+            </a>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-top: 0.75rem;">
+                Already have an account? <a href="/auth/login" style="color: white; font-weight: 600;">Log in here</a>
+            </p>
+        </div>
+
+        <!-- Legal Footer -->
+        <div style="text-align: center; padding: 1.5rem 0 2rem; color: var(--text-secondary); font-size: 0.78rem; line-height: 1.6;">
+            <p>© 2025 Mystical Messages. All rights reserved.</p>
+            <p style="margin-top: 0.25rem;">
+                Mystical Messages is a digital subscription service. All sales are for digital content delivered via SMS.
+                Subscriptions renew monthly and can be cancelled at any time.
+                Payments are processed securely by <strong>Stripe</strong>.
+            </p>
+            <p style="margin-top: 0.5rem;">
+                <a href="/auth/signup" style="color: var(--primary-color);">Sign Up</a> ·
+                <a href="/auth/login" style="color: var(--primary-color);">Log In</a> ·
+                <a href="/subscriptions/plans" style="color: var(--primary-color);">Pricing</a> ·
+                <a href="/terms" style="color: var(--primary-color);">Terms of Service</a> ·
+                <a href="/privacy" style="color: var(--primary-color);">Privacy Policy</a> ·
+                <a href="/refund" style="color: var(--primary-color);">Refund Policy</a>
+            </p>
+        </div>
+
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

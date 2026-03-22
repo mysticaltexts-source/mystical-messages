@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <title>Saved Scripts - Mystical Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body data-page="scripts">
+    <div class="container pb-nav">
+        <!-- Header -->
+        <div class="header">
+            <a href="/dashboard" style="font-size: 1.25rem;">← Back</a>
+            <h3 style="margin: 0;">Saved Scripts</h3>
+            <button class="btn btn-sm btn-primary" onclick="showCreateScriptModal()">+ New</button>
+        </div>
+
+        <!-- Scripts List -->
+        <div id="scripts-list">
+            <!-- Loaded dynamically -->
+        </div>
+
+        <!-- Bottom Nav -->
+        <nav class="nav-bottom">
+            <a href="/dashboard" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                Home
+            </a>
+            <a href="/messages/create" class="nav-item">
+                <div class="nav-icon">✨</div>
+                Create
+            </a>
+            <div class="nav-item active">
+                <div class="nav-icon">📝</div>
+                Scripts
+            </div>
+            <a href="/dashboard/settings" class="nav-item">
+                <div class="nav-icon">⚙️</div>
+                Settings
+            </a>
+        </nav>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        async function loadScripts() {
+            try {
+                const response = await fetch('/messages/scripts/list');
+                const data = await response.json();
+                
+                const container = document.getElementById('scripts-list');
+                
+                if (!data.scripts || data.scripts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📝</div>
+                            <div class="empty-state-title">No saved scripts</div>
+                            <div class="empty-state-desc">Create reusable message templates</div>
+                            <button class="btn btn-primary" onclick="showCreateScriptModal()">Create Script</button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = data.scripts.map(script => `
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">${script.title}</div>
+                                <span class="badge badge-primary">${script.character_name}</span>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-sm btn-primary" onclick="useScript(${script.id})">Use</button>
+                                <button class="btn btn-sm btn-secondary" onclick="deleteScript(${script.id})">🗑️</button>
+                            </div>
+                        </div>
+                        ${script.outgoing_message ? `
+                            <div class="message-preview" style="margin-bottom: 0.5rem;">
+                                <div class="message-bubble outgoing">${script.outgoing_message}</div>
+                            </div>
+                        ` : ''}
+                        <div class="message-preview">
+                            <div class="message-bubble incoming">${script.response_message}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load scripts:', error);
+            }
+        }
+        
+        async function showCreateScriptModal() {
+            // Load characters for selection
+            const charResponse = await fetch('/characters');
+            const charData = await charResponse.json();
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Create Script</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Script Title</label>
+                        <input type="text" class="form-input" id="script-title" placeholder="e.g., Tooth Lost Excitement">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Character</label>
+                        <select class="form-select" id="script-character">
+                            <option value="">Select character...</option>
+                            ${charData.characters.filter(c => !c.is_premium).map(c => 
+                                `<option value="${c.id}">${c.display_name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Child's Message (optional)</label>
+                        <textarea class="form-input form-textarea" id="script-outgoing" 
+                                  placeholder="What the child says..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Character's Response</label>
+                        <textarea class="form-input form-textarea" id="script-response" 
+                                  placeholder="What the character says..."></textarea>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-block" onclick="createScript()">Save Script</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        async function createScript() {
+            const title = document.getElementById('script-title').value;
+            const characterId = document.getElementById('script-character').value;
+            const outgoingMessage = document.getElementById('script-outgoing').value;
+            const responseMessage = document.getElementById('script-response').value;
+            
+            if (!title || !characterId || !responseMessage) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/messages/scripts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        characterId: parseInt(characterId),
+                        outgoingMessage,
+                        responseMessage,
+                        scenarioType: 'custom',
+                        tone: 'playful'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.querySelector('.modal-overlay').remove();
+                    loadScripts();
+                    showToast('Script saved!', 'success');
+                } else {
+                    showToast(data.error || 'Failed to save', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
+        
+        function useScript(scriptId) {
+            // Redirect to message creation with script pre-loaded
+            window.location.href = `/messages/create?script=${scriptId}`;
+        }
+        
+        async function deleteScript(scriptId) {
+            if (!confirm('Delete this script?')) return;
+            
+            try {
+                const response = await fetch(`/messages/scripts/${scriptId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadScripts();
+                    showToast('Script deleted', 'success');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            }
+        }
+        
+        function showToast(message, type = 'success') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        // Initialize
+        loadScripts();
+    </script>
+</body>
+</html>

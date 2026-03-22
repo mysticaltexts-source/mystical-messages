@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <title>Conversation - Mystical Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+    <style>
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem 0;
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1.2rem;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .chat-bubble.character {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .chat-bubble.child {
+            background: var(--surface-color);
+            color: var(--text-primary);
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-sender {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .chat-sender.right {
+            text-align: right;
+        }
+
+        .chat-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.25rem;
+        }
+
+        .chat-time.right {
+            text-align: right;
+        }
+
+        .character-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+        }
+
+        .character-avatar-lg {
+            font-size: 2.5rem;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-sent { background: rgba(255,255,255,0.25); color: white; }
+        .status-pending { background: rgba(255,200,0,0.3); color: #ffd700; }
+        .status-failed { background: rgba(255,50,50,0.3); color: #ff6b6b; }
+    </style>
+</head>
+<body data-page="conversation">
+    <div class="container pb-nav" id="app">
+        <div class="loading-overlay" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading conversation...</div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Get conversation ID from URL
+        const conversationId = window.location.pathname.split('/').pop();
+
+        async function initConversation() {
+            try {
+                const response = await fetch(`/messages/conversation/${conversationId}/data`, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.status === 401 || !response.ok) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+
+                renderConversation(data.conversation);
+
+            } catch (error) {
+                console.error('Conversation load error:', error);
+                showError('Failed to load conversation');
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('loading').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">😕</div>
+                    <div class="empty-state-title">${msg}</div>
+                    <a href="/messages/history" class="btn btn-primary">Back to History</a>
+                </div>
+            `;
+        }
+
+        function getEmoji(name) {
+            const emojis = {
+                'Santa Claus': '🎅', 'Tooth Fairy': '🧚', 'Easter Bunny': '🐰',
+                'santa_claus': '🎅', 'tooth_fairy': '🧚', 'easter_bunny': '🐰', 'custom': '⭐'
+            };
+            return emojis[name] || '✨';
+        }
+
+        function formatTime(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleString('en-US', {
+                month: 'short', day: 'numeric',
+                hour: 'numeric', minute: '2-digit', hour12: true
+            });
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                'sent': '<span class="status-badge status-sent">✓ Sent</span>',
+                'pending': '<span class="status-badge status-pending">⏳ Pending</span>',
+                'failed': '<span class="status-badge status-failed">✗ Failed</span>',
+                'simulated': '<span class="status-badge status-sent">✓ Simulated</span>'
+            };
+            return map[status] || `<span class="status-badge status-sent">${status}</span>`;
+        }
+
+        function renderConversation(conv) {
+            const messages = conv.messages || [];
+            const characterName = conv.character_name || 'Character';
+            const childName = conv.child_name || 'Child';
+            const emoji = getEmoji(characterName);
+
+            const messagesHtml = messages.length === 0 ? `
+                <div class="empty-state" style="padding: 2rem 0;">
+                    <div class="empty-state-icon">💬</div>
+                    <div class="empty-state-title">No messages in this conversation</div>
+                </div>
+            ` : messages.map(msg => {
+                const isCharacter = msg.sender_type === 'character';
+                return `
+                    <div>
+                        <div class="chat-sender ${isCharacter ? '' : 'right'}">
+                            ${isCharacter ? emoji + ' ' + characterName : '👧 ' + childName}
+                        </div>
+                        <div class="chat-bubble ${isCharacter ? 'character' : 'child'}">
+                            ${msg.content}
+                            <div class="chat-time">${formatTime(msg.created_at)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="header">
+                    <a href="/messages/history" class="btn btn-sm btn-secondary">← Back</a>
+                    <div style="text-align: center;">
+                        <div class="header-title">Conversation</div>
+                        <div class="header-subtitle">${formatTime(conv.created_at)}</div>
+                    </div>
+                    <div style="width: 60px;"></div>
+                </div>
+
+                <div class="character-header">
+                    <div class="character-avatar-lg">${emoji}</div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.1rem;">${characterName}</div>
+                        <div style="font-size: 0.85rem; opacity: 0.85;">To: ${childName}</div>
+                        <div style="margin-top: 0.25rem;">${getStatusBadge(conv.status || 'sent')}</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="chat-container">
+                        ${messagesHtml}
+                    </div>
+                </div>
+
+                <div style="padding: 1rem 0; text-align: center;">
+                    <a href="/messages/create" class="btn btn-primary">✨ Send Another Message</a>
+                </div>
+
+                <nav class="nav-bottom">
+                    <a href="/dashboard" class="nav-item">
+                        <div class="nav-icon">🏠</div>
+                        Home
+                    </a>
+                    <a href="/messages/create" class="nav-item">
+                        <div class="nav-icon">✨</div>
+                        Create
+                    </a>
+                    <a href="/messages/scripts" class="nav-item">
+                        <div class="nav-icon">📝</div>
+                        Scripts
+                    </a>
+                    <a href="/dashboard/settings" class="nav-item">
+                        <div class="nav-icon">⚙️</div>
+                        Settings
+                    </a>
+                </nav>
+            `;
+        }
+
+        initConversation();
+    </script>
+</body>
+</html>

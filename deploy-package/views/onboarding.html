@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <title>Welcome - Mystical Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+    <style>
+        .onboarding-wrap {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 2rem;
+        }
+
+        /* Progress bar */
+        .progress-bar-wrap {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1.25rem 0 0.5rem;
+        }
+        .progress-dot {
+            width: 36px;
+            height: 5px;
+            border-radius: 3px;
+            background: var(--border-color);
+            transition: background 0.3s ease;
+        }
+        .progress-dot.active {
+            background: var(--primary-color);
+        }
+        .progress-dot.done {
+            background: var(--secondary-color);
+        }
+
+        /* Step transitions */
+        .step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .step.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Welcome step */
+        .welcome-hero {
+            text-align: center;
+            padding: 2rem 0 1rem;
+        }
+        .welcome-emoji {
+            font-size: 4rem;
+            margin-bottom: 0.75rem;
+            animation: bounce 1.5s ease infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Character cards */
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .char-card {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--surface-color);
+            position: relative;
+        }
+        .char-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(107, 70, 193, 0.05);
+        }
+        .char-card.selected {
+            border-color: var(--primary-color);
+            background: rgba(107, 70, 193, 0.08);
+        }
+        .char-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 0.4rem;
+            right: 0.6rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .char-card.premium-locked {
+            opacity: 0.65;
+        }
+        .char-card.premium-locked::before {
+            content: '👑 Premium';
+            position: absolute;
+            top: 0.4rem;
+            right: 0.4rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #f59e0b;
+            background: rgba(245,158,11,0.15);
+            padding: 0.1rem 0.4rem;
+            border-radius: 999px;
+        }
+        .char-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 0.4rem;
+        }
+        .char-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+        .char-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+        }
+
+        /* Step indicator text */
+        .step-indicator {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Success animation */
+        .success-wrap {
+            text-align: center;
+            padding: 1.5rem 0;
+        }
+        .success-emoji {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: pop 0.5s ease;
+        }
+        @keyframes pop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .character-preview {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .char-preview-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .char-preview-emoji {
+            font-size: 2rem;
+            width: 48px;
+            height: 48px;
+            background: rgba(107,70,193,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .char-preview-name {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body data-page="onboarding">
+<div class="container onboarding-wrap">
+
+    <!-- Progress Bar -->
+    <div class="progress-bar-wrap">
+        <div class="progress-dot active" id="dot-1"></div>
+        <div class="progress-dot" id="dot-2"></div>
+        <div class="progress-dot" id="dot-3"></div>
+        <div class="progress-dot" id="dot-4"></div>
+    </div>
+
+    <!-- ── STEP 1: Welcome ── -->
+    <div class="step active" id="step-1">
+        <div class="welcome-hero">
+            <div class="welcome-emoji">✨</div>
+            <h1 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Welcome to<br>Mystical Messages!</h1>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; max-width: 320px; margin: 0 auto;">
+                Let's set up your account in just a few steps so you can start creating magical moments for your child.
+            </p>
+        </div>
+
+        <div class="card" style="margin-top: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div style="font-size: 1.5rem; width: 36px; text-align: center;">🎭</div>
+                <div>
+                    <div style="font-weight: 600;">Choose Characters</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Pick who sends messages</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div style="font-size: 1.5rem; width: 36px; text-align: center;">👧</div>
+                <div>
+                    <div style="font-weight: 600;">Add Your Child</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Personalize the magic</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="font-size: 1.5rem; width: 36px; text-align: center;">🚀</div>
+                <div>
+                    <div style="font-weight: 600;">Start Sending Magic</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Create your first message</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-magic btn-block btn-lg" style="margin-top: 1.25rem;" onclick="goToStep(2)">
+            Let's Get Started! ✨
+        </button>
+    </div>
+
+    <!-- ── STEP 2: Character Selection ── -->
+    <div class="step" id="step-2">
+        <div class="step-indicator">Step 1 of 2</div>
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 0.35rem;">Choose Your Characters</h2>
+            <p style="text-align: center; color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem;">
+                Select the magical friends who will send messages to your child. You can change this any time.
+            </p>
+
+            <div class="character-grid" id="character-grid">
+                <!-- Loaded dynamically -->
+                <div style="grid-column: span 2; text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    <div class="spinner" style="margin: 0 auto 0.5rem;"></div>
+                    Loading characters...
+                </div>
+            </div>
+
+            <div id="char-error" class="form-error" style="display: none; margin-top: 0.75rem;"></div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+            <button class="btn btn-secondary" style="flex: 1;" onclick="goToStep(1)">← Back</button>
+            <button class="btn btn-primary" style="flex: 2;" id="char-next-btn" onclick="goToStep(3)" disabled>
+                Continue →
+            </button>
+        </div>
+    </div>
+
+    <!-- ── STEP 3: Child Info ── -->
+    <div class="step" id="step-3">
+        <div class="step-indicator">Step 2 of 2</div>
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 0.35rem;">Tell Us About Your Child</h2>
+            <p style="text-align: center; color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem;">
+                We'll use this to personalize messages with their name.
+            </p>
+
+            <div class="form-group">
+                <label class="form-label">Child's First Name <span style="color: var(--error-color);">*</span></label>
+                <input type="text" class="form-input" id="child-name" 
+                       placeholder="e.g. Emma" autocomplete="off"
+                       oninput="validateChildName()">
+                <p class="form-helper">Used to personalize every magical message</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Birthday <span style="color: var(--text-secondary); font-weight: 400;">(optional)</span></label>
+                <input type="date" class="form-input" id="child-birthday">
+                <p class="form-helper">Helps us send birthday surprises</p>
+            </div>
+
+            <div id="child-error" class="form-error" style="display: none; margin-top: 0.5rem;"></div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+            <button class="btn btn-secondary" style="flex: 1;" onclick="goToStep(2)">← Back</button>
+            <button class="btn btn-primary" style="flex: 2;" id="finish-btn" onclick="completeOnboarding()">
+                Complete Setup ✨
+            </button>
+        </div>
+
+        <p style="text-align: center; margin-top: 0.75rem;">
+            <a href="#" onclick="skipChildName()" style="font-size: 0.8rem; color: var(--text-secondary);">
+                Skip for now
+            </a>
+        </p>
+    </div>
+
+    <!-- ── STEP 4: Success ── -->
+    <div class="step" id="step-4">
+        <div class="success-wrap">
+            <div class="success-emoji">🎉</div>
+            <h2 style="font-size: 1.6rem; margin-bottom: 0.5rem;">You're All Set!</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.6;">
+                The magic is ready. Your chosen characters are standing by to create unforgettable moments for <strong id="child-display-name">your child</strong>!
+            </p>
+
+            <div class="character-preview" id="selected-chars-preview"></div>
+
+            <div class="card" style="text-align: left; margin: 1.25rem 0;">
+                <div style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem;">🚀 What to do next:</div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;">
+                    <div style="font-size: 1.2rem;">🚨</div>
+                    <div style="font-size: 0.875rem;">Try an <strong>Oh-Crap!! Button</strong> for an instant magical moment</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;">
+                    <div style="font-size: 1.2rem;">✉️</div>
+                    <div style="font-size: 0.875rem;"><strong>Create a message</strong> using one of our templates</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="font-size: 1.2rem;">⭐</div>
+                    <div style="font-size: 0.875rem;"><strong>Upgrade your plan</strong> to unlock all characters & features</div>
+                </div>
+            </div>
+
+            <a href="/dashboard" class="btn btn-magic btn-block btn-lg">
+                Go to Dashboard →
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+    let currentStep = 1;
+    let selectedCharacters = [];
+    let allCharacters = [];
+
+    // ── Step navigation ──
+    function goToStep(step) {
+        // Validate before moving forward
+        if (step === 3 && selectedCharacters.length === 0) {
+            showCharError('Please select at least one character to continue.');
+            return;
+        }
+
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById(`step-${step}`).classList.add('active');
+        currentStep = step;
+        updateProgress(step);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateProgress(step) {
+        for (let i = 1; i <= 4; i++) {
+            const dot = document.getElementById(`dot-${i}`);
+            dot.classList.remove('active', 'done');
+            if (i < step) dot.classList.add('done');
+            else if (i === step) dot.classList.add('active');
+        }
+    }
+
+    // ── Load characters ──
+    async function loadCharacters() {
+        try {
+            const response = await fetch('/characters', { credentials: 'same-origin' });
+            const data = await response.json();
+            allCharacters = data.characters || [];
+            renderCharacters();
+        } catch (error) {
+            console.error('Failed to load characters:', error);
+            document.getElementById('character-grid').innerHTML = `
+                <div style="grid-column: span 2; text-align: center; padding: 1rem; color: var(--error-color);">
+                    Failed to load characters. <a href="#" onclick="loadCharacters()">Try again</a>
+                </div>
+            `;
+        }
+    }
+
+    function getEmoji(name) {
+        const map = {
+            'santa_claus': '🎅', 'tooth_fairy': '🧚',
+            'easter_bunny': '🐰', 'custom': '⭐'
+        };
+        return map[name] || '✨';
+    }
+
+    function getCharDesc(name) {
+        const map = {
+            'santa_claus': 'Naughty & nice checks, wish lists & Christmas Eve updates',
+            'tooth_fairy': 'Lost teeth, collections & brushing reminders',
+            'easter_bunny': 'Egg hunts, Easter visits & spring messages',
+            'custom': 'Create your own magical character'
+        };
+        return map[name] || 'Magical messages for your child';
+    }
+
+    function renderCharacters() {
+        const grid = document.getElementById('character-grid');
+        grid.innerHTML = allCharacters.map(char => `
+            <div class="char-card ${char.is_premium ? 'premium-locked' : ''}" 
+                 id="char-${char.id}"
+                 onclick="toggleCharacter(${char.id}, ${char.is_premium ? 'true' : 'false'})">
+                <div class="char-emoji">${getEmoji(char.name)}</div>
+                <div class="char-name">${char.display_name}</div>
+                <div class="char-desc">${getCharDesc(char.name)}</div>
+            </div>
+        `).join('');
+    }
+
+    function toggleCharacter(id, isPremium) {
+        if (isPremium) {
+            showPremiumModal();
+            return;
+        }
+
+        const card = document.getElementById(`char-${id}`);
+        const idx = selectedCharacters.indexOf(id);
+
+        if (idx > -1) {
+            selectedCharacters.splice(idx, 1);
+            card.classList.remove('selected');
+        } else {
+            selectedCharacters.push(id);
+            card.classList.add('selected');
+        }
+
+        document.getElementById('char-next-btn').disabled = selectedCharacters.length === 0;
+        hideCharError();
+    }
+
+    function showPremiumModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay active';
+        modal.innerHTML = `
+            <div class="modal-content" style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.75rem;">👑</div>
+                <h3 style="margin-bottom: 0.5rem;">Premium Character</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.5;">
+                    Custom characters are available on the <strong>Premium plan ($14.99/month)</strong>. 
+                    You can always upgrade later from your settings.
+                </p>
+                <button class="btn btn-primary btn-block" onclick="this.closest('.modal-overlay').remove(); window.location.href='/subscriptions/plans'">
+                    View Premium Plans
+                </button>
+                <button class="btn btn-secondary btn-block" style="margin-top: 0.5rem;" onclick="this.closest('.modal-overlay').remove()">
+                    Continue Without Custom
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    function showCharError(msg) {
+        const el = document.getElementById('char-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function hideCharError() {
+        document.getElementById('char-error').style.display = 'none';
+    }
+
+    function validateChildName() {
+        const val = document.getElementById('child-name').value.trim();
+        const btn = document.getElementById('finish-btn');
+        btn.disabled = false; // always allow — name is recommended but not truly blocking
+    }
+
+    function skipChildName() {
+        document.getElementById('child-name').value = '';
+        completeOnboarding();
+    }
+
+    // ── Complete onboarding ──
+    async function completeOnboarding() {
+        const childName = document.getElementById('child-name').value.trim();
+        const childBirthday = document.getElementById('child-birthday').value;
+
+        const btn = document.getElementById('finish-btn');
+        btn.disabled = true;
+        btn.textContent = 'Setting up...';
+
+        try {
+            const response = await fetch('/auth/onboarding', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    characters: selectedCharacters,
+                    childName: childName || null,
+                    childBirthDate: childBirthday || null
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Show success step
+                if (childName) {
+                    document.getElementById('child-display-name').textContent = childName + '!';
+                }
+
+                // Show selected character previews
+                const preview = document.getElementById('selected-chars-preview');
+                preview.innerHTML = selectedCharacters.map(id => {
+                    const char = allCharacters.find(c => c.id === id);
+                    if (!char) return '';
+                    return `
+                        <div class="char-preview-item">
+                            <div class="char-preview-emoji">${getEmoji(char.name)}</div>
+                            <div class="char-preview-name">${char.display_name.split(' ')[0]}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                goToStep(4);
+            } else {
+                const errEl = document.getElementById('child-error');
+                errEl.textContent = data.error || 'Something went wrong. Please try again.';
+                errEl.style.display = 'block';
+            }
+        } catch (error) {
+            const errEl = document.getElementById('child-error');
+            errEl.textContent = 'Network error. Please try again.';
+            errEl.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Complete Setup ✨';
+        }
+    }
+
+    // Initialize
+    loadCharacters();
+</script>
+</body>
+</html>
