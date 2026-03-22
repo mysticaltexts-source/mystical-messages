@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <title>Settings - Mystical Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+    <style>
+        .settings-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 0.75rem;
+        }
+        .settings-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            margin: 1.25rem 0 0.5rem;
+            padding: 0 0.25rem;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1rem;
+            background: var(--surface-color);
+            border-radius: var(--radius);
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .settings-row:hover {
+            background: var(--background-color);
+        }
+        .settings-row-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .settings-row-icon {
+            font-size: 1.3rem;
+            width: 32px;
+            text-align: center;
+        }
+        .settings-row-text {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .settings-row-sub {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.1rem;
+        }
+        .settings-row-arrow {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+        .tier-badge {
+            display: inline-block;
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .tier-free { background: #e5e7eb; color: #6b7280; }
+        .tier-basic { background: #dbeafe; color: #1d4ed8; }
+        .tier-standard { background: #ede9fe; color: #7c3aed; }
+        .tier-premium { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; }
+
+        /* Edit panels */
+        .edit-panel {
+            display: none;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .edit-panel.active {
+            display: block;
+        }
+        .edit-panel-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .close-panel {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0;
+            line-height: 1;
+        }
+        .child-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .child-item:last-child { border-bottom: none; }
+        .child-info { display: flex; align-items: center; gap: 0.6rem; }
+        .child-emoji { font-size: 1.4rem; }
+        .child-name { font-weight: 500; font-size: 0.95rem; }
+        .child-bday { font-size: 0.8rem; color: var(--text-secondary); }
+    </style>
+</head>
+<body data-page="settings">
+    <div class="container pb-nav" id="app">
+
+        <!-- Header -->
+        <div class="header">
+            <a href="/dashboard" class="btn btn-sm btn-secondary">← Back</a>
+            <div class="header-title">Settings</div>
+            <div style="width: 60px;"></div>
+        </div>
+
+        <!-- Profile summary -->
+        <div class="card text-center" id="profile-summary">
+            <div class="settings-avatar">👤</div>
+            <div style="font-weight: 700; font-size: 1.1rem;" id="display-name">Loading...</div>
+            <div style="color: var(--text-secondary); font-size: 0.875rem;" id="display-email"></div>
+            <div style="margin-top: 0.5rem;" id="display-tier"></div>
+        </div>
+
+        <!-- Account Section -->
+        <div class="settings-section-title">Account</div>
+
+        <!-- Profile row -->
+        <div class="settings-row" onclick="togglePanel('profile-panel')">
+            <div class="settings-row-left">
+                <div class="settings-row-icon">👤</div>
+                <div>
+                    <div class="settings-row-text">Edit Profile</div>
+                    <div class="settings-row-sub">Name & phone number</div>
+                </div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+        </div>
+
+        <!-- Profile edit panel -->
+        <div class="edit-panel" id="profile-panel">
+            <div class="edit-panel-title">
+                Edit Profile
+                <button class="close-panel" onclick="togglePanel('profile-panel')">×</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-input" id="firstName" placeholder="First name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-input" id="lastName" placeholder="Last name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" id="email" disabled style="opacity: 0.6;">
+                <p class="form-helper">Contact support to change your email</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="tel" class="form-input" id="phone" placeholder="+1 (555) 000-0000">
+                <p class="form-helper">This is where magical messages are delivered</p>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="saveProfile()">
+                💾 Save Profile
+            </button>
+        </div>
+
+        <!-- Password row -->
+        <div class="settings-row" onclick="togglePanel('password-panel')">
+            <div class="settings-row-left">
+                <div class="settings-row-icon">🔒</div>
+                <div>
+                    <div class="settings-row-text">Change Password</div>
+                    <div class="settings-row-sub">Update your account password</div>
+                </div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+        </div>
+
+        <!-- Password edit panel -->
+        <div class="edit-panel" id="password-panel">
+            <div class="edit-panel-title">
+                Change Password
+                <button class="close-panel" onclick="togglePanel('password-panel')">×</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-input" id="currentPassword" placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-input" id="newPassword" placeholder="At least 8 characters">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" class="form-input" id="confirmPassword" placeholder="Repeat new password">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="changePassword()">
+                🔒 Update Password
+            </button>
+        </div>
+
+        <!-- Children Section -->
+        <div class="settings-section-title">Children</div>
+
+        <div class="settings-row" onclick="togglePanel('children-panel')">
+            <div class="settings-row-left">
+                <div class="settings-row-icon">👧</div>
+                <div>
+                    <div class="settings-row-text">Manage Children</div>
+                    <div class="settings-row-sub" id="children-count-label">Loading...</div>
+                </div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+        </div>
+
+        <!-- Children panel -->
+        <div class="edit-panel" id="children-panel">
+            <div class="edit-panel-title">
+                Children
+                <button class="close-panel" onclick="togglePanel('children-panel')">×</button>
+            </div>
+
+            <div id="children-list" style="margin-bottom: 1rem;"></div>
+
+            <hr style="border: none; border-top: 1px solid var(--border-color); margin-bottom: 1rem;">
+
+            <div style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9rem;">➕ Add a Child</div>
+            <div class="form-group">
+                <label class="form-label">Child's Name</label>
+                <input type="text" class="form-input" id="new-child-name" placeholder="Enter name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Birthday (optional)</label>
+                <input type="date" class="form-input" id="new-child-birthday">
+            </div>
+            <button class="btn btn-primary btn-block" onclick="addChild()">
+                Add Child
+            </button>
+        </div>
+
+        <!-- Subscription Section -->
+        <div class="settings-section-title">Subscription</div>
+
+        <div class="settings-row" onclick="window.location.href='/subscriptions/plans'">
+            <div class="settings-row-left">
+                <div class="settings-row-icon">⭐</div>
+                <div>
+                    <div class="settings-row-text">Subscription Plan</div>
+                    <div class="settings-row-sub" id="sub-label">Loading...</div>
+                </div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+        </div>
+
+        <!-- Logout -->
+        <div class="settings-section-title">Account Actions</div>
+
+        <div class="settings-row" onclick="logout()" style="color: var(--primary-color);">
+            <div class="settings-row-left">
+                <div class="settings-row-icon">🚪</div>
+                <div>
+                    <div class="settings-row-text" style="color: var(--primary-color);">Log Out</div>
+                    <div class="settings-row-sub">Sign out of your account</div>
+                </div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-section-title" style="color: var(--error-color);">Danger Zone</div>
+
+        <div class="settings-row" onclick="deleteAccount()" style="border-color: var(--error-color);">
+            <div class="settings-row-left">
+                <div class="settings-row-icon">🗑️</div>
+                <div>
+                    <div class="settings-row-text" style="color: var(--error-color);">Delete Account</div>
+                    <div class="settings-row-sub">Permanently remove your account and data</div>
+                </div>
+            </div>
+            <div class="settings-row-arrow" style="color: var(--error-color);">›</div>
+        </div>
+
+        <div style="height: 1rem;"></div>
+
+        <!-- Bottom Nav -->
+        <nav class="nav-bottom">
+            <a href="/dashboard" class="nav-item">
+                <div class="nav-icon">🏠</div>
+                Home
+            </a>
+            <a href="/messages/create" class="nav-item">
+                <div class="nav-icon">✨</div>
+                Create
+            </a>
+            <a href="/messages/scripts" class="nav-item">
+                <div class="nav-icon">📝</div>
+                Scripts
+            </a>
+            <div class="nav-item active">
+                <div class="nav-icon">⚙️</div>
+                Settings
+            </div>
+        </nav>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        let userData = null;
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/profile', {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.status === 401) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+
+                userData = await response.json();
+
+                // Update profile summary
+                const fullName = [userData.firstName, userData.lastName].filter(Boolean).join(' ') || 'Your Account';
+                document.getElementById('display-name').textContent = fullName;
+                document.getElementById('display-email').textContent = userData.email || '';
+
+                const tierMap = {
+                    free: ['Free', 'tier-free'],
+                    basic: ['Basic', 'tier-basic'],
+                    standard: ['Standard', 'tier-standard'],
+                    premium: ['Premium 👑', 'tier-premium']
+                };
+                const [tierName, tierClass] = tierMap[userData.subscriptionTier] || ['Free', 'tier-free'];
+                document.getElementById('display-tier').innerHTML = `<span class="tier-badge ${tierClass}">${tierName}</span>`;
+
+                // Fill profile form
+                document.getElementById('firstName').value = userData.firstName || '';
+                document.getElementById('lastName').value = userData.lastName || '';
+                document.getElementById('email').value = userData.email || '';
+                document.getElementById('phone').value = userData.phone || '';
+
+                // Subscription label
+                const subLabels = {
+                    free: 'Free plan — Upgrade to unlock more',
+                    basic: 'Basic plan — $4.99/month',
+                    standard: 'Standard plan — $9.99/month',
+                    premium: 'Premium plan — $14.99/month'
+                };
+                document.getElementById('sub-label').textContent = subLabels[userData.subscriptionTier] || 'Free plan';
+
+                // Load children
+                await loadChildren();
+
+            } catch (error) {
+                console.error('Failed to load settings:', error);
+                showToast('Failed to load settings', 'error');
+            }
+        }
+
+        async function loadChildren() {
+            try {
+                const response = await fetch('/api/children', { credentials: 'same-origin' });
+                const data = await response.json();
+                const children = data.children || [];
+
+                document.getElementById('children-count-label').textContent =
+                    children.length === 0 ? 'No children added yet' :
+                    `${children.length} child${children.length !== 1 ? 'ren' : ''} added`;
+
+                const container = document.getElementById('children-list');
+                if (children.length === 0) {
+                    container.innerHTML = '<p class="form-helper" style="text-align:center; padding: 0.5rem 0;">No children added yet</p>';
+                    return;
+                }
+
+                container.innerHTML = children.map(child => `
+                    <div class="child-item">
+                        <div class="child-info">
+                            <div class="child-emoji">👧</div>
+                            <div>
+                                <div class="child-name">${child.name}</div>
+                                ${child.birth_date ? `<div class="child-bday">🎂 ${new Date(child.birth_date).toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}</div>` : ''}
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="deleteChild(${child.id}, '${child.name}')">Remove</button>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Failed to load children:', error);
+            }
+        }
+
+        function togglePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            const isActive = panel.classList.contains('active');
+
+            // Close all panels
+            document.querySelectorAll('.edit-panel').forEach(p => p.classList.remove('active'));
+
+            // Open clicked panel if it was closed
+            if (!isActive) {
+                panel.classList.add('active');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        async function saveProfile() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!firstName) {
+                showToast('First name is required', 'error');
+                return;
+            }
+            if (!phone) {
+                showToast('Phone number is required', 'error');
+                return;
+            }
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ firstName, lastName, phone })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('✅ Profile saved!', 'success');
+                    // Update display name
+                    const fullName = [firstName, lastName].filter(Boolean).join(' ');
+                    document.getElementById('display-name').textContent = fullName;
+                    togglePanel('profile-panel');
+                } else {
+                    showToast(data.error || 'Failed to save', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Save Profile';
+            }
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showToast('All password fields are required', 'error');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showToast('New passwords do not match', 'error');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                showToast('New password must be at least 8 characters', 'error');
+                return;
+            }
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            try {
+                const response = await fetch('/api/password', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('✅ Password updated!', 'success');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                    togglePanel('password-panel');
+                } else {
+                    showToast(data.error || 'Failed to update password', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔒 Update Password';
+            }
+        }
+
+        async function addChild() {
+            const name = document.getElementById('new-child-name').value.trim();
+            const birthDate = document.getElementById('new-child-birthday').value;
+
+            if (!name) {
+                showToast('Please enter a name', 'error');
+                return;
+            }
+
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+
+            try {
+                const response = await fetch('/api/children', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ name, birthDate })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('new-child-name').value = '';
+                    document.getElementById('new-child-birthday').value = '';
+                    await loadChildren();
+                    showToast(`✅ ${name} added!`, 'success');
+                } else {
+                    showToast(data.error || 'Failed to add child', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add Child';
+            }
+        }
+
+        async function deleteChild(childId, childName) {
+            if (!confirm(`Remove ${childName} from your account?`)) return;
+
+            try {
+                const response = await fetch(`/api/children/${childId}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    await loadChildren();
+                    showToast(`${childName} removed`, 'success');
+                } else {
+                    showToast(data.error || 'Failed to remove', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please try again.', 'error');
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
+            } catch(e) {}
+            window.location.href = '/';
+        }
+
+        function deleteAccount() {
+            if (confirm('Are you absolutely sure you want to delete your account? All your data, messages, and scripts will be permanently removed. This cannot be undone.')) {
+                showToast('Please contact support to delete your account.', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        // Initialize
+        loadSettings();
+    </script>
+</body>
+</html>

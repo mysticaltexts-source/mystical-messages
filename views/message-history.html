@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <title>Message History - Mystical Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body data-page="history">
+    <div class="container pb-nav" id="app">
+        <div class="loading-overlay" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading message history...</div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        async function initHistory() {
+            try {
+                const response = await fetch('/messages/history/data', {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (response.status === 401 || !response.ok) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+
+                const data = await response.json();
+                renderHistory(data.conversations || []);
+
+            } catch (error) {
+                console.error('History load error:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">😕</div>
+                        <div class="empty-state-title">Something went wrong</div>
+                        <button class="btn btn-primary" onclick="location.reload()">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+
+        function getEmoji(name) {
+            const emojis = {
+                'Santa Claus': '🎅', 'Tooth Fairy': '🧚', 'Easter Bunny': '🐰',
+                'santa_claus': '🎅', 'tooth_fairy': '🧚', 'easter_bunny': '🐰', 'custom': '⭐'
+            };
+            return emojis[name] || '✨';
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            const now = new Date();
+            const diff = now - d;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            if (days === 0) return 'Today';
+            if (days === 1) return 'Yesterday';
+            if (days < 7) return `${days} days ago`;
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function renderHistory(conversations) {
+            const app = document.getElementById('app');
+
+            const convosHtml = conversations.length === 0 ? `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <div class="empty-state-title">No messages yet</div>
+                    <div class="empty-state-desc">Your magical conversations will appear here</div>
+                    <a href="/messages/create" class="btn btn-primary">Create First Message</a>
+                </div>
+            ` : conversations.map(conv => `
+                <div class="quick-action-btn" onclick="window.location.href='/messages/conversation/${conv.id}'" style="margin-bottom: 0.75rem; cursor: pointer;">
+                    <div class="quick-action-icon" style="font-size: 2rem;">${getEmoji(conv.character_name)}</div>
+                    <div class="quick-action-content">
+                        <div class="quick-action-title">${conv.character_name || 'Unknown Character'}</div>
+                        <div class="quick-action-desc">
+                            ${conv.child_name ? `To: ${conv.child_name} · ` : ''}${formatDate(conv.created_at)}
+                        </div>
+                        ${conv.messages && conv.messages.length > 0 ? `
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px;">
+                                "${conv.messages[0].content}"
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 1.2rem;">›</div>
+                </div>
+            `).join('');
+
+            app.innerHTML = `
+                <div class="header">
+                    <div>
+                        <a href="/dashboard" style="font-size: 1.5rem; text-decoration: none;">✨</a>
+                    </div>
+                    <div>
+                        <div class="header-title">Message History</div>
+                        <div class="header-subtitle">${conversations.length} conversation${conversations.length !== 1 ? 's' : ''}</div>
+                    </div>
+                    <a href="/messages/create" class="btn btn-sm btn-primary">+ New</a>
+                </div>
+
+                <div class="card">
+                    ${convosHtml}
+                </div>
+
+                <nav class="nav-bottom">
+                    <a href="/dashboard" class="nav-item">
+                        <div class="nav-icon">🏠</div>
+                        Home
+                    </a>
+                    <a href="/messages/create" class="nav-item">
+                        <div class="nav-icon">✨</div>
+                        Create
+                    </a>
+                    <a href="/messages/scripts" class="nav-item">
+                        <div class="nav-icon">📝</div>
+                        Scripts
+                    </a>
+                    <a href="/dashboard/settings" class="nav-item">
+                        <div class="nav-icon">⚙️</div>
+                        Settings
+                    </a>
+                </nav>
+            `;
+        }
+
+        initHistory();
+    </script>
+</body>
+</html>

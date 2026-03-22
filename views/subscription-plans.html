@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <title>Subscription Plans - Mystical Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body data-page="plans">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="/dashboard" style="font-size: 1.25rem;">← Back</a>
+            <h3 style="margin: 0;">Choose Plan</h3>
+            <div style="width: 40px;"></div>
+        </div>
+
+        <!-- Hero -->
+        <div class="text-center mb-3">
+            <div style="font-size: 3rem;">⭐</div>
+            <h2>Unlock the Magic</h2>
+            <p style="color: var(--text-secondary);">Choose the perfect plan for your family</p>
+        </div>
+
+        <!-- Trial Offer -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(107, 70, 193, 0.1), rgba(246, 135, 179, 0.1)); text-align: center;">
+            <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">Try it once</p>
+            <div style="font-size: 2rem; font-weight: 700;">$0.99</div>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">One-time message</p>
+            <button class="btn btn-secondary btn-block" onclick="buyTrial()">
+                Buy Trial Message
+            </button>
+        </div>
+
+        <!-- Subscription Plans -->
+        <div class="mt-3">
+            <!-- Basic Plan -->
+            <div class="pricing-card">
+                <div class="pricing-tier">Basic</div>
+                <div class="pricing-price">$4.99<span>/month</span></div>
+                <ul class="pricing-features">
+                    <li>Access to 1 character</li>
+                    <li>Limited message templates</li>
+                    <li>Basic scheduling</li>
+                    <li>Email support</li>
+                </ul>
+                <button class="btn btn-secondary btn-block" onclick="subscribe('basic')">
+                    Choose Basic
+                </button>
+            </div>
+
+            <!-- Standard Plan -->
+            <div class="pricing-card featured">
+                <div class="pricing-tier">Standard</div>
+                <div class="pricing-price">$9.99<span>/month</span></div>
+                <ul class="pricing-features">
+                    <li>All 3 main characters</li>
+                    <li>Full template library</li>
+                    <li>Advanced scheduling</li>
+                    <li>Message history</li>
+                    <li>Priority support</li>
+                </ul>
+                <button class="btn btn-primary btn-block" onclick="subscribe('standard')">
+                    Choose Standard
+                </button>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="pricing-card">
+                <div class="pricing-tier">Premium</div>
+                <div class="pricing-price">$14.99<span>/month</span></div>
+                <ul class="pricing-features">
+                    <li>Unlimited custom messages</li>
+                    <li>Custom character creation</li>
+                    <li>Advanced scheduling</li>
+                    <li>Save unlimited scripts</li>
+                    <li>Priority support</li>
+                    <li>Early access to new features</li>
+                </ul>
+                <button class="btn btn-magic btn-block" onclick="subscribe('premium')">
+                    Choose Premium
+                </button>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="card mt-3">
+            <h4 class="card-title">Frequently Asked Questions</h4>
+            
+            <details style="margin-bottom: 1rem;">
+                <summary style="cursor: pointer; font-weight: 500;">Can I cancel anytime?</summary>
+                <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                    Yes! You can cancel your subscription at any time. You'll continue to have access until the end of your billing period.
+                </p>
+            </details>
+            
+            <details style="margin-bottom: 1rem;">
+                <summary style="cursor: pointer; font-weight: 500;">How do messages work?</summary>
+                <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                    You create messages through our app, and they're sent to your phone as if they came from the magical character. You control everything!
+                </p>
+            </details>
+            
+            <details>
+                <summary style="cursor: pointer; font-weight: 500;">Is my payment secure?</summary>
+                <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                    Absolutely! We use Stripe for payment processing, which is trusted by millions of businesses worldwide.
+                </p>
+            </details>
+        </div>
+
+        <!-- Back Link -->
+        <p class="text-center mt-3" style="color: var(--text-secondary);">
+            <a href="/dashboard">← Back to Dashboard</a>
+        </p>
+
+        <!-- Legal footer -->
+        <p style="text-align: center; font-size: 0.75rem; color: var(--text-light); margin-top: 2rem; padding-bottom: 1rem; line-height: 1.6;">
+            Subscriptions renew automatically. Cancel anytime from your account settings.<br>
+            By subscribing you agree to our
+            <a href="/terms" target="_blank" style="color: var(--primary-color);">Terms of Service</a>,
+            <a href="/privacy" target="_blank" style="color: var(--primary-color);">Privacy Policy</a>, and
+            <a href="/refund" target="_blank" style="color: var(--primary-color);">Refund Policy</a>.
+        </p>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        async function buyTrial() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            try {
+                const response = await fetch('/subscriptions/one-time', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+
+                if (data.demoMode) {
+                    showToast('✨ ' + data.message, 'success');
+                    setTimeout(() => window.location.href = '/dashboard', 2000);
+                } else if (data.clientSecret) {
+                    // Real Stripe payment - redirect to checkout
+                    showToast('Redirecting to payment...', 'success');
+                    window.location.href = '/subscriptions/checkout-form';
+                } else {
+                    showToast(data.error || 'Failed to process trial', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Try for $0.99';
+            }
+        }
+        
+        async function subscribe(tier) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            
+            try {
+                const response = await fetch('/subscriptions/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tier }),
+                    credentials: 'same-origin'
+                });
+                
+                const data = await response.json();
+                
+                if (data.demoMode) {
+                    // Demo mode: show success and redirect to dashboard
+                    showToast('✨ ' + data.message, 'success');
+                    setTimeout(() => window.location.href = '/dashboard', 2000);
+                } else if (data.checkoutUrl) {
+                    // Real Stripe: redirect to Stripe checkout
+                    window.location.href = data.checkoutUrl;
+                } else {
+                    showToast(data.error || 'Failed to start checkout', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = `Choose ${tier.charAt(0).toUpperCase() + tier.slice(1)}`;
+            }
+        }
+        
+        function showToast(message, type = 'success') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

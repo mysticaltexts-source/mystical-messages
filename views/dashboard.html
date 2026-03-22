@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6B46C1">
+    <title>Dashboard - Mystical Messages</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body data-page="dashboard">
+    <div id="app" class="container pb-nav">
+        <!-- Loading state -->
+        <div class="loading-overlay" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading your magical dashboard...</div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Dashboard initialization
+        let dashboardData = null;
+        
+        async function initDashboard() {
+            try {
+                const response = await fetch('/dashboard/data', {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.status === 401 || !response.ok) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                dashboardData = await response.json();
+                
+                if (dashboardData.error) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                renderDashboard();
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">😕</div>
+                        <div class="empty-state-title">Something went wrong</div>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;">Please try refreshing the page</p>
+                        <button class="btn btn-primary" onclick="location.reload()">Try Again</button>
+                        <a href="/auth/login" class="btn btn-secondary" style="margin-top: 0.5rem;">Back to Login</a>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderDashboard() {
+            const app = document.getElementById('app');
+            const user = dashboardData.user;
+            
+            app.innerHTML = `
+                <div class="header">
+                    <div>
+                        <div class="header-title">✨ Mystical Messages</div>
+                        <div class="header-subtitle">Hello, ${user.firstName || 'there'}!</div>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="logout()">Logout</button>
+                </div>
+                
+                ${renderQuickActions()}
+                
+                ${renderSubscriptionBanner()}
+                
+                ${renderCharacters()}
+                
+                ${renderRecentMessages()}
+                
+                ${renderBottomNav()}
+            `;
+        }
+        
+        function renderQuickActions() {
+            return `
+                <div class="card">
+                    <h3 class="card-title">🚨 Oh-Crap!! Buttons 👇</h3>
+                    <p class="form-helper mb-2">Emergency moments solved instantly</p>
+                    
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="quickSend('lost_tooth')">
+                            <div class="quick-action-icon">🦷</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Lost Tooth Emergency</div>
+                                <div class="quick-action-desc">Child lost a tooth and you're not prepared</div>
+                            </div>
+                        </button>
+                        
+                        <button class="quick-action-btn" onclick="quickSend('santa_check')">
+                            <div class="quick-action-icon">🎅</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Naughty/Nice Check</div>
+                                <div class="quick-action-desc">Kid asking about Santa's list RIGHT NOW</div>
+                            </div>
+                        </button>
+                        
+                        <button class="quick-action-btn" onclick="quickSend('easter_ready')">
+                            <div class="quick-action-icon">🐰</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Easter Visit Alert</div>
+                                <div class="quick-action-desc">Easter Bunny needs to send a message</div>
+                            </div>
+                        </button>
+                        
+                        <button class="quick-action-btn" onclick="quickSend('gift_confirm')">
+                            <div class="quick-action-icon">🎁</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">Gift Confirmation</div>
+                                <div class="quick-action-desc">Confirm a gift request was received</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderSubscriptionBanner() {
+            if (dashboardData.user.subscriptionTier === 'free') {
+                return `
+                    <div class="card" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white;">
+                        <h3>⭐ Upgrade to Premium</h3>
+                        <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0;">Unlock all characters, custom messages & more!</p>
+                        <a href="/subscriptions/plans" class="btn" style="background: white; color: var(--primary-color); margin-top: 0.5rem;">
+                            View Plans
+                        </a>
+                    </div>
+                `;
+            }
+            return '';
+        }
+        
+        function renderCharacters() {
+            const chars = dashboardData.characters || [];
+            
+            if (chars.length === 0) {
+                return `
+                    <div class="card">
+                        <h4 class="card-title">Your Characters</h4>
+                        <p class="form-helper">No characters selected. 
+                            <a href="#" onclick="showCharacterSelect()">Choose your characters</a>
+                        </p>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="card">
+                    <h4 class="card-title">Your Characters</h4>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        ${chars.map(char => `
+                            <div class="text-center">
+                                <div class="character-avatar ${char.name.replace('_', '-')}" style="width: 48px; height: 48px; font-size: 1.5rem;">
+                                    ${getEmoji(char.name)}
+                                </div>
+                                <div style="font-size: 0.75rem; margin-top: 0.25rem;">
+                                    ${char.display_name}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderRecentMessages() {
+            const convos = dashboardData.conversations || [];
+            
+            if (convos.length === 0) {
+                return `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <div class="empty-state-title">No messages yet</div>
+                        <div class="empty-state-desc">Start your first magical conversation!</div>
+                        <a href="/messages/create" class="btn btn-primary">
+                            Create Message
+                        </a>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Recent Messages</h4>
+                        <a href="/messages/history" style="font-size: 0.875rem;">View All</a>
+                    </div>
+                    ${convos.slice(0, 5).map(conv => `
+                        <div class="quick-action-btn" style="margin-bottom: 0.5rem; cursor: pointer;" 
+                             onclick="viewConversation(${conv.id})">
+                            <div class="quick-action-icon">${getEmoji(conv.character_name)}</div>
+                            <div class="quick-action-content">
+                                <div class="quick-action-title">${conv.character_name}</div>
+                                <div class="quick-action-desc">${new Date(conv.created_at).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        function renderBottomNav() {
+            return `
+                <nav class="nav-bottom">
+                    <div class="nav-item active">
+                        <div class="nav-icon">🏠</div>
+                        Home
+                    </div>
+                    <a href="/messages/create" class="nav-item">
+                        <div class="nav-icon">✨</div>
+                        Create
+                    </a>
+                    <a href="/messages/scripts" class="nav-item">
+                        <div class="nav-icon">📝</div>
+                        Scripts
+                    </a>
+                    <a href="/dashboard/settings" class="nav-item">
+                        <div class="nav-icon">⚙️</div>
+                        Settings
+                    </a>
+                </nav>
+            `;
+        }
+        
+        function getEmoji(name) {
+            const emojis = {
+                'Santa Claus': '🎅',
+                'Tooth Fairy': '🧚',
+                'Easter Bunny': '🐰',
+                'santa_claus': '🎅',
+                'tooth_fairy': '🧚',
+                'easter_bunny': '🐰',
+                'custom': '⭐'
+            };
+            return emojis[name] || '✨';
+        }
+        
+        function quickSend(actionId) {
+            const childName = dashboardData.children?.[0]?.name || '';
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Quick Send</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Child's Name</label>
+                        <input type="text" class="form-input" id="quick-child-name" 
+                               placeholder="Enter child's name" value="${childName}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Custom Message (optional)</label>
+                        <textarea class="form-input form-textarea" id="quick-custom-message" 
+                                  placeholder="Leave blank to use default message"></textarea>
+                    </div>
+                    
+                    <button class="btn btn-magic btn-block btn-lg" onclick="sendQuickMessage('${actionId}')">
+                        ✨ Send Magic Message
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        async function sendQuickMessage(actionId) {
+            const childName = document.getElementById('quick-child-name').value;
+            const customMessage = document.getElementById('quick-custom-message').value;
+            
+            const btn = document.querySelector('.btn-magic');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            try {
+                const response = await fetch('/messages/quick-send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ actionId, childName, customMessage })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.querySelector('.modal-overlay').remove();
+                    showToast(data.message || 'Message sent!', 'success');
+                } else {
+                    showToast(data.error || 'Failed to send', 'error');
+                }
+            } catch (error) {
+                showToast('Network error', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✨ Send Magic Message';
+            }
+        }
+        
+        function showToast(message, type = 'success') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        async function logout() {
+            await fetch('/auth/logout', { method: 'POST' });
+            window.location.href = '/';
+        }
+        
+        function viewConversation(id) {
+            window.location.href = `/messages/conversation/${id}`;
+        }
+        
+        function showCharacterSelect() {
+            // Could show a modal with character selection
+            window.location.href = '/characters/select';
+        }
+        
+        // Initialize
+        initDashboard();
+    </script>
+</body>
+</html>
