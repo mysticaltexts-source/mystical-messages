@@ -1,0 +1,73 @@
+# Mystical Messages - Environment Variables Template
+# Copy this file and fill in your actual values
+
+# ============================================
+# SECURITY & APP CONFIGURATION
+# ============================================
+SESSION_SECRET=generate_with_node_crypto_randomBytes_32_toString_hex
+NODE_ENV=production
+PORT=3000
+APP_URL=https://your-app-name.up.railway.app
+
+# ============================================
+# TWILIO CONFIGURATION (for SMS)
+# ============================================
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
+TWILIO_PHONE_NUMBER=+1234567890
+
+# ============================================
+# STRIPE CONFIGURATION (for payments)
+# ============================================
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxxxxx
+
+# ============================================
+# EMAIL CONFIGURATION (for notifications)
+# ============================================
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_16_char_gmail_app_password_here
+
+# ============================================
+# HCAPTCHA CONFIGURATION (for bot protection)
+# ============================================
+HCAPTCHA_SITE_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+HCAPTCHA_SECRET_KEY=0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# ============================================
+# HOW TO GET EACH VALUE:
+# ============================================
+
+# SESSION_SECRET:
+# Run: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# TWILIO_CREDENTIALS:
+# 1. Go to https://console.twilio.com
+# 2. Sign up for free trial
+# 3. Get Account SID from Dashboard
+# 4. Get Auth Token (click "Show" to reveal)
+# 5. Buy/Get a free trial phone number in E.164 format
+
+# STRIPE_KEYS:
+# 1. Go to https://dashboard.stripe.com/apikeys
+# 2. Find Publishable key (pk_test_...)
+# 3. Find Secret key (sk_test_...)
+# 4. Set up webhook at /api/stripe/webhook
+# 5. Copy webhook signing secret (whsec_...)
+
+# EMAIL_CREDENTIALS:
+# 1. Enable 2FA on Gmail
+# 2. Go to https://myaccount.google.com/apppasswords
+# 3. Create app password for "Mail"
+# 4. Use the 16-char password (not your regular password)
+
+# HCAPTCHA_KEYS:
+# 1. Go to https://dashboard.hcaptcha.com
+# 2. Register a new site
+# 3. Copy Site Key and Secret Key
+
+# APP_URL:
+# After deploying to Railway, copy your app URL and paste here
