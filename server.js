@@ -70,14 +70,14 @@ app.use(helmet({
                 "'self'",
                 "https://hcaptcha.com",
                 "https://api.hcaptcha.com",
-                "https://api.stripe.com"
+                "https://api.stripe.com",
                 "https://newassets.hcaptcha.com"
             ],
             frameSrc: [
                 "https://js.hcaptcha.com",
                 "https://hcaptcha.com",
                 "https://js.stripe.com",
-                "https://hooks.stripe.com"
+                "https://hooks.stripe.com",
                 "https://newassets.hcaptcha.com"
             ],
             objectSrc: ["'none'"],
