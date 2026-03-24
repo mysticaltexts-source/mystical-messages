@@ -93,7 +93,7 @@ async function verifyHcaptcha(token, ip) {
             response: token,
             remoteip: ip
         });
-        const resp = await fetch(`https://hcaptcha.com/siteverify`, {
+        const resp = await fetch(`https://api.hcaptcha.com/siteverify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params.toString()
