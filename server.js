@@ -48,8 +48,6 @@ app.use(helmet({
             scriptSrc: [
                 "'self'",
                 "'unsafe-inline'",          // needed for inline JS in HTML files
-                "https://js.hcaptcha.com",
-                "https://hcaptcha.com",
                 "https://js.stripe.com"
             ],
             styleSrc: [
@@ -68,23 +66,17 @@ app.use(helmet({
             ],
             connectSrc: [
                 "'self'",
-                "https://hcaptcha.com",
-                "https://api.hcaptcha.com",
-                "https://api.stripe.com",
-                "https://newassets.hcaptcha.com"
+                "https://api.stripe.com"
             ],
             frameSrc: [
-                "https://js.hcaptcha.com",
-                "https://hcaptcha.com",
                 "https://js.stripe.com",
-                "https://hooks.stripe.com",
-                "https://newassets.hcaptcha.com"
+                "https://hooks.stripe.com"
             ],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: []
         }
     },
-    // Allow iframes from Stripe / hCaptcha
+    // Allow iframes from Stripe
     frameguard: { action: 'sameorigin' },
     // HSTS: 1 year + include subdomains
     hsts: {
@@ -226,4 +218,5 @@ db.initialize().then(() => {
     process.exit(1);
 });
 
+module.exports = app;
 module.exports = app;
