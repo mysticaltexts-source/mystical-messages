@@ -219,4 +219,3 @@ db.initialize().then(() => {
 });
 
 module.exports = app;
-module.exports = app;
