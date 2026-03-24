@@ -178,7 +178,7 @@
                 <input type="tel" class="form-input" id="phone" placeholder="+1 (555) 000-0000">
                 <p class="form-helper">This is where magical messages are delivered</p>
             </div>
-            <button class="btn btn-primary btn-block" onclick="saveProfile()">
+            <button class="btn btn-primary btn-block" onclick="saveProfile(this)">
                 💾 Save Profile
             </button>
         </div>
@@ -213,7 +213,7 @@
                 <label class="form-label">Confirm New Password</label>
                 <input type="password" class="form-input" id="confirmPassword" placeholder="Repeat new password">
             </div>
-            <button class="btn btn-primary btn-block" onclick="changePassword()">
+            <button class="btn btn-primary btn-block" onclick="changePassword(this)">
                 🔒 Update Password
             </button>
         </div>
@@ -252,7 +252,7 @@
                 <label class="form-label">Birthday (optional)</label>
                 <input type="date" class="form-input" id="new-child-birthday">
             </div>
-            <button class="btn btn-primary btn-block" onclick="addChild()">
+            <button class="btn btn-primary btn-block" onclick="addChild(this)">
                 Add Child
             </button>
         </div>
@@ -426,7 +426,7 @@
             }
         }
 
-        async function saveProfile() {
+        async function saveProfile(btn) {
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
             const phone = document.getElementById('phone').value.trim();
@@ -440,7 +440,6 @@
                 return;
             }
 
-            const btn = event.target;
             btn.disabled = true;
             btn.textContent = 'Saving...';
 
@@ -471,7 +470,7 @@
             }
         }
 
-        async function changePassword() {
+        async function changePassword(btn) {
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
@@ -491,7 +490,6 @@
                 return;
             }
 
-            const btn = event.target;
             btn.disabled = true;
             btn.textContent = 'Updating...';
 
@@ -522,7 +520,7 @@
             }
         }
 
-        async function addChild() {
+        async function addChild(btn) {
             const name = document.getElementById('new-child-name').value.trim();
             const birthDate = document.getElementById('new-child-birthday').value;
 
@@ -531,7 +529,6 @@
                 return;
             }
 
-            const btn = event.target;
             btn.disabled = true;
             btn.textContent = 'Adding...';
 
