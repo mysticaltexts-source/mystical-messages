@@ -81,7 +81,6 @@ function escapeHtml(str) {
         .replace(/'/g, '&#x27;');
 }
 
-// hCaptcha verification helper
 async function verifyHcaptcha(token, ip) {
     const secretKey = process.env.HCAPTCHA_SECRET || '0x0000000000000000000000000000000000000000'; // test secret
 
@@ -91,7 +90,8 @@ async function verifyHcaptcha(token, ip) {
         const params = new URLSearchParams({
             secret: secretKey,
             response: token,
-            remoteip: ip
+            remoteip: ip,
+            sitekey: process.env.HCAPTCHA_SITE_KEY  // ADD THIS LINE
         });
         const resp = await fetch(`https://api.hcaptcha.com/siteverify`, {
             method: 'POST',
@@ -99,10 +99,13 @@ async function verifyHcaptcha(token, ip) {
             body: params.toString()
         });
         const data = await resp.json();
+        console.log('hCaptcha verification response:', JSON.stringify(data));  // ADD LOGGING
+        if (!data.success) {
+            console.log('hCaptcha error codes:', data['error-codes']);  // ADD LOGGING
+        }
         return data.success === true;
     } catch (err) {
         console.error('hCaptcha verification error:', err.message);
-        // Fail open in case of network error to avoid blocking legitimate users
         return true;
     }
 }
