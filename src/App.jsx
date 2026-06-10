@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase, callFunction } from "./lib/supabase.js";
+import About from './pages/About';
+import Terms from './pages/Terms';
 
 /* ─── STRIPE PRICE IDs ─── */
 const STRIPE_PRICES = {
