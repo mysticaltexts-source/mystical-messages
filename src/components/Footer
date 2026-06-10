@@ -1,0 +1,15 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+export default function Footer() {
+  return (
+    <footer className="text-center text-purple-400 text-sm py-8 border-t border-purple-900 mt-16">
+      <p className="mb-3">© 2026 Mystical Texts LLC. All rights reserved.</p>
+      <div className="flex justify-center gap-6">
+        <Link to="/about" className="hover:text-purple-200 underline">About</Link>
+        <Link to="/terms" className="hover:text-purple-200 underline">Terms of Service</Link>
+        <a href="mailto:hello@mysticaltexts.com" className="hover:text-purple-200 underline">Contact</a>
+      </div>
+    </footer>
+  );
+}
