@@ -1,0 +1,67 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+export default function Terms() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-indigo-950 to-purple-950 text-white px-6 py-16 max-w-3xl mx-auto">
+      <h1 className="text-4xl font-bold mb-6 text-center">Terms of Service</h1>
+      <p className="text-purple-300 mb-8 text-center text-sm">Last updated: June 2026</p>
+
+      <p className="text-purple-200 mb-6">
+        These Terms of Service govern your use of Mystical Messages, a service provided by{' '}
+        <strong>Mystical Texts LLC</strong>. By creating an account or using our service, you agree to these terms.
+      </p>
+
+      <h2 className="text-xl font-semibold mb-3 mt-8">1. The Service</h2>
+      <p className="text-purple-200 mb-6">
+        Mystical Messages delivers SMS messages from fictional characters to phone numbers you provide. All
+        messages are sent to parents or guardians — never directly to minors. You are responsible for ensuring
+        the phone number you register is your own.
+      </p>
+
+      <h2 className="text-xl font-semibold mb-3 mt-8">2. Your Account</h2>
+      <p className="text-purple-200 mb-6">
+        You must provide accurate information when creating an account. You are responsible for all activity
+        under your account. Mystical Texts LLC reserves the right to suspend accounts that violate these terms.
+      </p>
+
+      <h2 className="text-xl font-semibold mb-3 mt-8">3. SMS Messaging & Consent</h2>
+      <p className="text-purple-200 mb-6">
+        By subscribing, you consent to receive SMS messages from Mystical Texts LLC via our platform. Message
+        and data rates may apply. You can opt out at any time by replying STOP to any message or canceling
+        your account. This service is provided for personal, non-commercial use only.
+      </p>
+
+      <h2 className="text-xl font-semibold mb-3 mt-8">4. Payments & Refunds</h2>
+      <p className="text-purple-200 mb-6">
+        Subscriptions are billed monthly or as stated at checkout. Mystical Texts LLC does not offer refunds
+        for partial billing periods. You may cancel your subscription at any time and retain access through
+        the end of your paid period.
+      </p>
+
+      <h2 className="text-xl font-semibold mb-3 mt-8">5. Prohibited Use</h2>
+      <p className="text-purple-200 mb-6">
+        You may not use Mystical Messages to send messages to phone numbers you do not own or have permission
+        to message. You may not use the service for commercial solicitation, harassment, or any unlawful purpose.
+      </p>
+
+      <h2 className="text-xl font-semibold mb-3 mt-8">6. Limitation of Liability</h2>
+      <p className="text-purple-200 mb-6">
+        Mystical Texts LLC is not liable for message delivery failures caused by carrier filtering, network
+        issues, or factors outside our control. The service is provided as-is.
+      </p>
+
+      <h2 className="text-xl font-semibold mb-3 mt-8">7. Contact</h2>
+      <p className="text-purple-200 mb-8">
+        Mystical Texts LLC —{' '}
+        <a href="mailto:hello@mysticaltexts.com" className="underline text-purple-300">
+          hello@mysticaltexts.com
+        </a>
+      </p>
+
+      <div className="text-center">
+        <Link to="/" className="text-purple-400 underline">← Back to Home</Link>
+      </div>
+    </div>
+  );
+}
