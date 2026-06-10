@@ -1,0 +1,38 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+export default function About() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-indigo-950 to-purple-950 text-white px-6 py-16 max-w-3xl mx-auto">
+      <h1 className="text-4xl font-bold mb-6 text-center">About Mystical Messages</h1>
+
+      <p className="text-lg text-purple-200 mb-6">
+        Mystical Messages is a service operated by <strong>Mystical Texts LLC</strong>, a company dedicated to
+        creating magical, memorable moments for families through the power of storytelling and imagination.
+      </p>
+
+      <p className="text-purple-200 mb-6">
+        Our platform lets parents arrange SMS messages from beloved characters — Santa Claus, the Tooth Fairy,
+        the Easter Bunny, and more — delivered straight to their own phones to share with their children.
+        Messages are always parent-controlled and never sent directly to kids, keeping the magic safe and in
+        your hands.
+      </p>
+
+      <p className="text-purple-200 mb-6">
+        Founded with a simple belief: childhood is short, and wonder is worth protecting. Mystical Messages
+        helps you be the architect of your child's most magical memories.
+      </p>
+
+      <p className="text-purple-200 mb-8">
+        Questions? Reach us at{' '}
+        <a href="mailto:hello@mysticaltexts.com" className="underline text-purple-300">
+          hello@mysticaltexts.com
+        </a>.
+      </p>
+
+      <div className="text-center">
+        <Link to="/" className="text-purple-400 underline">← Back to Home</Link>
+      </div>
+    </div>
+  );
+}
