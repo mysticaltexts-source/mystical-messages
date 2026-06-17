@@ -272,13 +272,13 @@ const FB_POSTS = [
     id: "wonder",
     image: "/post-wonder.png",
     caption: "Kids today fact-check Santa. They ask Alexa if the Tooth Fairy is real. Keeping the magic alive has never been harder — but we'd argue it's never been more important. Mystical Messages is built to use technology for magic, for once.",
-    link: "https://www.facebook.com/share/p/1BqkiArUGc/?mibextid=wwXIfr",
+    link: "https://www.facebook.com/share/p/16vvK9BoNG/?mibextid=wwXIfr",
   },
   {
     id: "schedule",
     image: "/post-schedule.png",
     caption: "You don't have to wait for a crisis moment. Schedule a Santa message for Christmas Eve at 8pm. Set up a Tooth Fairy note the moment that first wobbly tooth appears. The magic is always ready — even when you're not.",
-    link: "https://www.facebook.com/share/p/16vvK9BoNG/?mibextid=wwXIfr",
+    link: "https://www.facebook.com/share/p/1BqkiArUGc/?mibextid=wwXIfr",
   },
   {
     id: "toothfairy",
