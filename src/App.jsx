@@ -1038,6 +1038,9 @@ function BillingScreen({ profile, session, onBack }) {
   const [notifyPhone, setNotifyPhone]   = useState(profile?.phone_number || "");
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [notifyDone, setNotifyDone]     = useState(false);
+  const [codeInput, setCodeInput]       = useState("");
+  const [codeLoading, setCodeLoading]   = useState(false);
+  const [codeError, setCodeError]       = useState(null);
 
   const currentPlan = profile?.plan || "free";
 
@@ -1078,6 +1081,29 @@ function BillingScreen({ profile, session, onBack }) {
     } catch (_) { /* silently succeed even if update fails */ }
     setNotifyLoading(false);
     setNotifyDone(true);
+  }
+
+  async function redeemCode() {
+    const code = codeInput.trim().toUpperCase();
+    if (!code) return;
+    setCodeLoading(true);
+    setCodeError(null);
+    try {
+      const { data: result, error } = await supabase.rpc("redeem_invite_code", {
+        p_code: code,
+        p_user_id: session.user.id,
+      });
+      if (error) throw error;
+      if (result === "invalid")   { setCodeError("That code doesn't look right — double-check and try again."); return; }
+      if (result === "exhausted") { setCodeError("That code has already been fully redeemed. Reach out if you think this is a mistake."); return; }
+      if (result === "expired")   { setCodeError("That code has expired. Reach out if you need a fresh one."); return; }
+      setToast(`✨ Welcome to ${result.charAt(0).toUpperCase() + result.slice(1)}! Refreshing…`);
+      setTimeout(() => window.location.reload(), 1600);
+    } catch (err) {
+      setCodeError("Something went wrong — try again in a moment.");
+    } finally {
+      setCodeLoading(false);
+    }
   }
 
   const selectedPlanLabel = prelaunch ? PLANS.find(p => p.id === prelaunch)?.tier : "";
@@ -1189,6 +1215,34 @@ function BillingScreen({ profile, session, onBack }) {
           </div>
         </div>
 
+        {/* ── Invite code ── */}
+        <div className="fade-up-3" style={{ marginBottom:40 }}>
+          <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
+            <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to unlock your preview access — no payment needed.</p>
+            <div style={{ display:"flex", gap:10 }}>
+              <input
+                type="text"
+                value={codeInput}
+                onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(null); }}
+                onKeyDown={e => e.key === "Enter" && redeemCode()}
+                placeholder="ENTER CODE"
+                style={{ flex:1, padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.25)`, background:T.parchment, fontSize:14, fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.08em", outline:"none", color:T.ink }}
+              />
+              <button
+                onClick={redeemCode}
+                disabled={!codeInput.trim() || codeLoading}
+                style={{ padding:"11px 20px", borderRadius:8, background: codeInput.trim() ? T.gold : "rgba(201,147,58,0.15)", color: codeInput.trim() ? T.midnight : "rgba(201,147,58,0.4)", border:"none", fontSize:13, fontWeight:600, cursor: codeInput.trim() ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6, transition:"all 0.2s", whiteSpace:"nowrap" }}
+              >
+                {codeLoading ? <Spinner/> : "Redeem ✦"}
+              </button>
+            </div>
+            {codeError && (
+              <p style={{ fontSize:13, color:T.danger, marginTop:10, fontFamily:"'Lora',serif", lineHeight:1.6 }}>{codeError}</p>
+            )}
+          </div>
+        </div>
+
         <div style={{ textAlign:"center", display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
           {["🔒 Stripe Secure","❌ Cancel anytime","📱 Messages to your phone only"].map(t => (
             <span key={t} style={{ fontSize:12, color:T.muted }}>{t}</span>
@@ -1276,6 +1330,28 @@ function BillingScreen({ profile, session, onBack }) {
                   >
                     {notifyLoading ? <Spinner/> : "Notify me when you're live ✨"}
                   </button>
+
+                  <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:16, display:"flex", flexDirection:"column", gap:8 }}>
+                    <p style={{ fontSize:11, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.1em", fontWeight:600 }}>Already have an invite code?</p>
+                    <div style={{ display:"flex", gap:8 }}>
+                      <input
+                        type="text"
+                        value={codeInput}
+                        onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(null); }}
+                        onKeyDown={e => e.key === "Enter" && redeemCode()}
+                        placeholder="ENTER CODE"
+                        style={{ flex:1, padding:"10px 12px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.25)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:13, fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.08em", outline:"none" }}
+                      />
+                      <button
+                        onClick={redeemCode}
+                        disabled={!codeInput.trim() || codeLoading}
+                        style={{ padding:"10px 14px", borderRadius:8, background: codeInput.trim() ? T.gold : "rgba(201,147,58,0.15)", color: codeInput.trim() ? T.midnight : "rgba(201,147,58,0.4)", border:"none", fontSize:12, fontWeight:600, cursor: codeInput.trim() ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:4, whiteSpace:"nowrap" }}
+                      >
+                        {codeLoading ? <Spinner/> : "Redeem"}
+                      </button>
+                    </div>
+                    {codeError && <p style={{ fontSize:12, color:"#e8795a", fontFamily:"'Lora',serif", lineHeight:1.5 }}>{codeError}</p>}
+                  </div>
 
                   <button onClick={() => setPrelaunch(null)} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", fontSize:13, cursor:"pointer", padding:"4px 0", fontFamily:"'DM Sans',sans-serif" }}>
                     I'll keep an eye out myself
