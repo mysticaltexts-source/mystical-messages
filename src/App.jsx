@@ -53,6 +53,10 @@ const G = `
     .badge-carousel::-webkit-scrollbar { display:none; }
     .badge-item { scroll-snap-align:start; flex-shrink:0; width:80vw; }
   }
+  .post-carousel { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:20px; padding-bottom:16px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .post-carousel::-webkit-scrollbar { display:none; }
+  .post-card { scroll-snap-align:start; flex-shrink:0; width:300px; }
+  @media (min-width:900px) { .post-card { width:calc(33.33% - 14px); } }
 `;
 
 /* ══════════════════════════════════════
@@ -263,6 +267,27 @@ function Footer({ onGoToAbout, onGoToTerms }) {
 /* ══════════════════════════════════════
    SCREEN: ABOUT
 ══════════════════════════════════════ */
+const FB_POSTS = [
+  {
+    id: "wonder",
+    image: "/post-wonder.png",
+    caption: "Kids today fact-check Santa. They ask Alexa if the Tooth Fairy is real. Keeping the magic alive has never been harder — but we'd argue it's never been more important. Mystical Messages is built to use technology for magic, for once.",
+    link: "https://www.facebook.com/share/p/1BqkiArUGc/?mibextid=wwXIfr",
+  },
+  {
+    id: "schedule",
+    image: "/post-schedule.png",
+    caption: "You don't have to wait for a crisis moment. Schedule a Santa message for Christmas Eve at 8pm. Set up a Tooth Fairy note the moment that first wobbly tooth appears. The magic is always ready — even when you're not.",
+    link: "https://www.facebook.com/share/p/16vvK9BoNG/?mibextid=wwXIfr",
+  },
+  {
+    id: "toothfairy",
+    image: "/post-toothfairy.png",
+    caption: "My daughter lost her tooth on a Tuesday night. No cash. Not a single dollar bill in the house. All I kept thinking was: I wish the Tooth Fairy could just send her a message. That one moment planted a seed — and from it, Mystical Messages grew.",
+    link: "https://www.facebook.com/share/p/1QtV28Hhxp/?mibextid=wwXIfr",
+  },
+];
+
 function AboutScreen({ onBack }) {
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
@@ -298,6 +323,51 @@ function AboutScreen({ onBack }) {
             <p style={{ fontSize:13, color:T.muted, marginTop:8 }}>Mystical Texts LLC · mysticaltexts.com</p>
           </div>
         </div>
+
+        {/* ── Facebook post carousel ── */}
+        <div className="fade-up-2" style={{ marginTop:56 }}>
+          <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:24 }}>
+            <div>
+              <SectionLabel>From our community</SectionLabel>
+              <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.ink }}>Magic in the making</h3>
+            </div>
+            <a
+              href="https://www.facebook.com/share/1BZD8axBSD/?mibextid=wwXIfr"
+              target="_blank" rel="noopener noreferrer"
+              style={{ fontSize:13, color:T.gold, textDecoration:"none", whiteSpace:"nowrap" }}
+            >
+              Follow us on Facebook →
+            </a>
+          </div>
+
+          <div className="post-carousel">
+            {FB_POSTS.map(post => (
+              <div key={post.id} className="post-card">
+                <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.18)`, borderRadius:16, overflow:"hidden", display:"flex", flexDirection:"column", height:"100%" }}>
+                  <img
+                    src={post.image}
+                    alt=""
+                    style={{ width:"100%", aspectRatio:"4/3", objectFit:"cover", display:"block" }}
+                  />
+                  <div style={{ padding:"20px 20px 16px", display:"flex", flexDirection:"column", flex:1, gap:14 }}>
+                    <div style={{ fontSize:36, lineHeight:1, color:T.gold, fontFamily:"Georgia,serif", marginBottom:-8 }}>"</div>
+                    <p style={{ fontFamily:"'Lora',serif", fontSize:13, color:T.body, lineHeight:1.8, flex:1 }}>
+                      {post.caption}
+                    </p>
+                    <a
+                      href={post.link}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize:12, color:T.gold, textDecoration:"none", fontWeight:500, alignSelf:"flex-start" }}
+                    >
+                      See full post →
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
