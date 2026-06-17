@@ -612,7 +612,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     localStorage.removeItem("mm_pending_share");
     setShowMomentModal(false);
     setShowCommunityModal(false);
-    window.open("https://www.facebook.com/groups/mysticaltexts", "_blank", "noopener,noreferrer");
+    window.open("https://www.facebook.com/share/g/198dX4RHmA/?mibextid=wwXIfr", "_blank", "noopener,noreferrer");
   }
 
   function handleDismissMoment() {
