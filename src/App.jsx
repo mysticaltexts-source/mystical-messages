@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase, callFunction } from "./lib/supabase.js";
 
+/* ─── TEST MODE ─── */
+// Set VITE_TEST_MODE=true in .env to skip Edge Function calls (no Twilio charges).
+// Remove or set to false once Twilio brand/10DLC approval is received.
+const TEST_MODE = import.meta.env.VITE_TEST_MODE === "true";
+
 /* ─── STRIPE PRICE IDs ─── */
 const STRIPE_PRICES = {
   trial:    "price_1Tf7SKJwbJqhqSCz6V76Rv14",
@@ -639,10 +644,12 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
     setOhCrapSending(btn.id);
     try {
-      await callFunction("send-message", {
-        character_id: char.id, body, child_id: selectedChild?.id || null, is_ohcrap: true,
-      });
-      setToast(`${btn.emoji} ${btn.label} message sent to your phone!`);
+      if (!TEST_MODE) {
+        await callFunction("send-message", {
+          character_id: char.id, body, child_id: selectedChild?.id || null, is_ohcrap: true,
+        });
+      }
+      setToast(TEST_MODE ? `[TEST] ${btn.emoji} ${btn.label} — no SMS sent` : `${btn.emoji} ${btn.label} message sent to your phone!`);
       localStorage.setItem("mm_pending_share", "true");
       setShowMomentModal(true);
       loadData();
@@ -657,11 +664,13 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     if (!msgText.trim() || !activeChar) return;
     setSending(true);
     try {
-      await callFunction("send-message", {
-        character_id: activeChar.id, body: msgText,
-        child_id: selectedChild?.id || null, is_ohcrap: false,
-      });
-      setToast(`${activeChar.emoji} Message sent to your phone!`);
+      if (!TEST_MODE) {
+        await callFunction("send-message", {
+          character_id: activeChar.id, body: msgText,
+          child_id: selectedChild?.id || null, is_ohcrap: false,
+        });
+      }
+      setToast(TEST_MODE ? `[TEST] ${activeChar.emoji} Message simulated — no SMS sent` : `${activeChar.emoji} Message sent to your phone!`);
       setMsgText(""); setComposing(false); setActiveChar(null);
       localStorage.setItem("mm_pending_share", "true");
       setShowMomentModal(true);

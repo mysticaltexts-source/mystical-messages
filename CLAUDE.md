@@ -24,6 +24,20 @@ VITE_SUPABASE_ANON_KEY=...
 
 These are consumed by `src/lib/supabase.js` via `import.meta.env`.
 
+Add `VITE_TEST_MODE=true` to skip Twilio SMS calls entirely during development (no charges). Remove it once Twilio brand/10DLC approval is received.
+
+## Twilio Go-Live Checklist
+
+The `send-message` Edge Function sends SMS via Twilio. SMS is currently suppressed via `VITE_TEST_MODE`. When Twilio brand/10DLC approval arrives, do the following:
+
+1. **Remove `VITE_TEST_MODE=true`** from `.env` (and from any Vercel environment variables if it was set there)
+2. **Verify Supabase Edge Function env vars** in the Supabase dashboard → Project Settings → Edge Functions:
+   - `TWILIO_ACCOUNT_SID` — production Account SID (starts with `AC`)
+   - `TWILIO_AUTH_TOKEN` — production Auth Token
+   - `TWILIO_PHONE_NUMBER` — the approved, brand-registered FROM number (e.g. `+1XXXXXXXXXX`)
+3. **Redeploy** the `send-message` Edge Function if any env vars changed
+4. Send a test message from the dashboard to confirm delivery
+
 ## Architecture
 
 **Mystical Messages** lets parents send SMS messages from fictional characters (Santa, Tooth Fairy, Easter Bunny) to their own phone number.
