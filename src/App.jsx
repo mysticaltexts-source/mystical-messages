@@ -999,6 +999,15 @@ function BillingScreen({ profile, onBack }) {
           <SectionLabel>Account & Billing</SectionLabel>
           <DisplayTitle>Your subscription</DisplayTitle>
 
+          {currentPlan === "free" && (
+            <div style={{ marginTop:20, background:"rgba(201,147,58,0.07)", border:`1.5px solid rgba(201,147,58,0.25)`, borderRadius:16, padding:"18px 22px", display:"flex", alignItems:"center", gap:14 }}>
+              <div style={{ fontSize:28, flexShrink:0 }}>✨</div>
+              <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:T.body, lineHeight:1.7, margin:0 }}>
+                To send your first message, choose any plan below — even one message is pure magic. The badges up ahead will help you find your fit.
+              </p>
+            </div>
+          )}
+
           {currentPlan !== "free" && (
             <div style={{ marginTop:20, background:T.warmWhite, border:`1.5px solid ${T.gold}`, borderRadius:16, padding:"20px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
