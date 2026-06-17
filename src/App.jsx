@@ -1027,11 +1027,17 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
   );
 }
 
-function BillingScreen({ profile, onBack }) {
-  const [toast, setToast]           = useState(null);
+function BillingScreen({ profile, session, onBack }) {
+  const [toast, setToast]               = useState(null);
   const [cancelConfirm, setCancelConfirm] = useState(false);
-  const [loadingPlan, setLoadingPlan] = useState(null);
-  const [flippedCard, setFlippedCard] = useState(null);
+  const [loadingPlan, setLoadingPlan]   = useState(null);
+  const [flippedCard, setFlippedCard]   = useState(null);
+  const [prelaunch, setPrelaunch]       = useState(null); // planId or null
+  const [notifyEmail, setNotifyEmail]   = useState(profile?.email || session?.user?.email || "");
+  const [textOptIn, setTextOptIn]       = useState(false);
+  const [notifyPhone, setNotifyPhone]   = useState(profile?.phone_number || "");
+  const [notifyLoading, setNotifyLoading] = useState(false);
+  const [notifyDone, setNotifyDone]     = useState(false);
 
   const currentPlan = profile?.plan || "free";
 
@@ -1040,6 +1046,8 @@ function BillingScreen({ profile, onBack }) {
   }
 
   async function checkout(planId) {
+    setPrelaunch(planId);
+    return; // prelaunch intercept — remove this block when payments go live
     setLoadingPlan(planId);
     try {
       const { url } = await callFunction("create-checkout-session", {
@@ -1059,6 +1067,20 @@ function BillingScreen({ profile, onBack }) {
     setToast("To cancel, please email support@mysticaltexts.com and we'll process it within 24 hours.");
     setCancelConfirm(false);
   }
+
+  async function saveNotify() {
+    setNotifyLoading(true);
+    try {
+      await supabase.from("profiles").update({
+        notify_when_live: true,
+        ...(textOptIn && notifyPhone ? { notify_phone: notifyPhone } : {}),
+      }).eq("id", session.user.id);
+    } catch (_) { /* silently succeed even if update fails */ }
+    setNotifyLoading(false);
+    setNotifyDone(true);
+  }
+
+  const selectedPlanLabel = prelaunch ? PLANS.find(p => p.id === prelaunch)?.tier : "";
 
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
@@ -1184,6 +1206,83 @@ function BillingScreen({ profile, onBack }) {
               <Btn variant="danger" onClick={cancelSubscription}>Yes, cancel</Btn>
               <Btn onClick={() => setCancelConfirm(false)}>Keep the magic</Btn>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Prelaunch modal ── */}
+      {prelaunch && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(13,27,42,0.82)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:300, padding:24 }} onClick={() => { if (!notifyDone) setPrelaunch(null); }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:T.midnight, border:`1.5px solid rgba(201,147,58,0.3)`, borderRadius:24, padding:"40px 32px", maxWidth:420, width:"100%", animation:"fadeUp 0.35s ease", boxShadow:"0 24px 64px rgba(0,0,0,0.4)" }}>
+
+            {notifyDone ? (
+              /* ── Thank you state ── */
+              <div style={{ textAlign:"center" }}>
+                <div style={{ fontSize:52, marginBottom:16 }}>✨</div>
+                <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:700, color:T.warmWhite, marginBottom:14, lineHeight:1.3 }}>You're on the list.</h2>
+                <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.8, marginBottom:28 }}>
+                  We'll reach out the moment we open the doors. Good things coming — we promise it'll be worth the wait.
+                </p>
+                <button onClick={() => { setPrelaunch(null); setNotifyDone(false); }} style={{ background:"transparent", border:`1.5px solid rgba(201,147,58,0.4)`, color:"#e8b96a", borderRadius:8, padding:"10px 24px", fontSize:13, fontWeight:500, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+                  Keep browsing →
+                </button>
+              </div>
+            ) : (
+              /* ── Opt-in form ── */
+              <>
+                <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>🔮</div>
+                <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.warmWhite, marginBottom:12, lineHeight:1.3, textAlign:"center" }}>
+                  Almost time — but not quite yet.
+                </h2>
+                <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
+                  We're in prelaunch and not yet taking payments, but you clearly have great taste in plans. Let us give you a heads up the moment we open the doors — {selectedPlanLabel} will be waiting for you.
+                </p>
+
+                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                  <div>
+                    <label style={{ fontSize:11, fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(255,255,255,0.45)", display:"block", marginBottom:6 }}>Your email</label>
+                    <input
+                      type="email"
+                      value={notifyEmail}
+                      onChange={e => setNotifyEmail(e.target.value)}
+                      style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => setTextOptIn(v => !v)}
+                    style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:10, padding:"4px 0", textAlign:"left" }}
+                  >
+                    <div style={{ width:20, height:20, borderRadius:4, border:`1.5px solid rgba(201,147,58,0.5)`, background: textOptIn ? T.gold : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.2s" }}>
+                      {textOptIn && <span style={{ fontSize:11, color:T.midnight, fontWeight:700 }}>✓</span>}
+                    </div>
+                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"rgba(255,255,255,0.65)" }}>Also text me when you're live</span>
+                  </button>
+
+                  {textOptIn && (
+                    <input
+                      type="tel"
+                      value={notifyPhone}
+                      onChange={e => setNotifyPhone(e.target.value)}
+                      placeholder="Your phone number"
+                      style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
+                    />
+                  )}
+
+                  <button
+                    onClick={saveNotify}
+                    disabled={!notifyEmail || notifyLoading}
+                    style={{ marginTop:4, width:"100%", padding:"13px 0", borderRadius:8, background: notifyEmail ? T.gold : "rgba(201,147,58,0.2)", color: notifyEmail ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: notifyEmail ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
+                  >
+                    {notifyLoading ? <Spinner/> : "Notify me when you're live ✨"}
+                  </button>
+
+                  <button onClick={() => setPrelaunch(null)} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", fontSize:13, cursor:"pointer", padding:"4px 0", fontFamily:"'DM Sans',sans-serif" }}>
+                    I'll keep an eye out myself
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1813,7 +1912,7 @@ export default function App() {
       )}
 
       {screen === "billing" && (
-        <BillingScreen profile={profile} onBack={() => setScreen("dashboard")}/>
+        <BillingScreen profile={profile} session={session} onBack={() => setScreen("dashboard")}/>
       )}
 
       {screen === "profiles" && session && (
