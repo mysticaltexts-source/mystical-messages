@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase, callFunction } from "./lib/supabase.js";
 
 /* ─── TEST MODE ─── */
-// Set VITE_TEST_MODE=true in .env to skip Edge Function calls (no Twilio charges).
-// Remove or set to false once Twilio brand/10DLC approval is received.
-const TEST_MODE = import.meta.env.VITE_TEST_MODE === "true";
+// Set VITE_TEST_MODE to any non-empty value in Vercel env vars to skip Twilio charges.
+// Delete the variable entirely once Twilio brand/10DLC approval is received.
+const TEST_MODE = !!import.meta.env.VITE_TEST_MODE;
 
 /* ─── STRIPE PRICE IDs ─── */
 const STRIPE_PRICES = {
