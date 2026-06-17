@@ -30,13 +30,15 @@ Add `VITE_TEST_MODE=true` to skip Twilio SMS calls entirely during development (
 
 The `send-message` Edge Function sends SMS via Twilio. SMS is currently suppressed via `VITE_TEST_MODE`. When Twilio brand/10DLC approval arrives, do the following:
 
-1. **Remove `VITE_TEST_MODE=true`** from `.env` (and from any Vercel environment variables if it was set there)
-2. **Verify Supabase Edge Function env vars** in the Supabase dashboard → Project Settings → Edge Functions:
+**There are two Supabase projects.** The live app connects to `mysticaltexts-source/mystic...` (not "mysticaltexts -Claude v2.0"). All steps below apply to the **source project**.
+
+1. **Remove `VITE_TEST_MODE=true`** from Vercel → your project → Settings → Environment Variables, then trigger a redeploy
+2. **Update the Twilio FROM number** in the `send-message` Edge Function code — it is hardcoded in the function body (not stored as a secret). In Supabase → Edge Functions → `send-message` → open the editor and replace the placeholder FROM number with your approved, brand-registered number (e.g. `+1XXXXXXXXXX`)
+3. **Verify these secrets exist** in Supabase → Edge Functions → Secrets on the source project (they are already set — just confirm values are production, not test):
    - `TWILIO_ACCOUNT_SID` — production Account SID (starts with `AC`)
    - `TWILIO_AUTH_TOKEN` — production Auth Token
-   - `TWILIO_PHONE_NUMBER` — the approved, brand-registered FROM number (e.g. `+1XXXXXXXXXX`)
-3. **Redeploy** the `send-message` Edge Function if any env vars changed
-4. Send a test message from the dashboard to confirm delivery
+4. **Redeploy** the `send-message` Edge Function after editing the FROM number
+5. Send a test message from the dashboard to confirm delivery
 
 ## Architecture
 
