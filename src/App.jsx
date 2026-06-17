@@ -45,6 +45,14 @@ const G = `
   .fade-up-3 { animation: fadeUp 0.5s 0.24s ease both; }
   ::-webkit-scrollbar { width:6px; }
   ::-webkit-scrollbar-thumb { background:rgba(201,147,58,0.2); border-radius:3px; }
+  .badge-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .badge-carousel { display:none; }
+  @media (max-width:640px) {
+    .badge-grid { display:none; }
+    .badge-carousel { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:14px; padding-bottom:12px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .badge-carousel::-webkit-scrollbar { display:none; }
+    .badge-item { scroll-snap-align:start; flex-shrink:0; width:80vw; }
+  }
 `;
 
 /* ══════════════════════════════════════
@@ -892,12 +900,74 @@ const PLANS = [
     features:["Everything in Standard","Build your own custom character","Unlimited saved message scripts","Priority support"], cta:"Choose Premium" },
 ];
 
+const BADGE_DATA = [
+  { id:"trial",    image:"/badge-trial.png",    tier:"Try It Once", price:"$0.99",     description:"Not sure yet? No pressure at all. One magical message, zero commitment — just the perfect way to see your child's face light up.", scrollCta:"Let's give it a whirl ✨" },
+  { id:"basic",    image:"/badge-basic.png",    tier:"Basic",       price:"$4.99/mo",  description:"Santa and the Tooth Fairy are standing by. Solid templates, simple scheduling — everything you need to nail the classics.", scrollCta:"This feels right for us →" },
+  { id:"standard", image:"/badge-standard.png", tier:"Standard",    price:"$9.99/mo",  description:"Honestly? This is the one most families end up loving. All three characters, Oh-Crap!! buttons for those last-minute saves, and plenty of room to grow.", scrollCta:"Ooh yes, this is the one →" },
+  { id:"premium",  image:"/badge-premium.png",  tier:"Premium",     price:"$14.99/mo", description:"You take magic seriously — and I respect it. Build your own characters, write your own scripts, and make every moment uniquely yours.", scrollCta:"Go big — we deserve it ✨" },
+];
+
+function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
+  return (
+    <div onClick={onFlip} style={{ perspective:1000, cursor:"pointer", height:290, userSelect:"none" }}>
+      <div style={{
+        position:"relative", width:"100%", height:"100%",
+        transformStyle:"preserve-3d",
+        transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+        transition:"transform 0.55s cubic-bezier(0.4,0.2,0.2,1)",
+      }}>
+        {/* FRONT */}
+        <div style={{
+          position:"absolute", inset:0, backfaceVisibility:"hidden",
+          background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`,
+          borderRadius:16, display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"center", padding:"24px 16px", gap:6,
+        }}>
+          <img src={badge.image} alt={badge.tier} style={{ width:84, height:"auto", marginBottom:6 }}/>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:15, fontWeight:700, color:T.ink, textAlign:"center" }}>{badge.tier}</div>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.gold }}>{badge.price}</div>
+          <div style={{ fontSize:10, color:T.muted, letterSpacing:"0.05em", marginTop:4 }}>tap to learn more</div>
+        </div>
+        {/* BACK */}
+        <div style={{
+          position:"absolute", inset:0, backfaceVisibility:"hidden",
+          transform:"rotateY(180deg)",
+          background:T.midnight, borderRadius:16,
+          display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"center",
+          padding:"28px 20px", gap:16, textAlign:"center",
+        }}>
+          <div style={{ fontFamily:"'Lora',serif", fontSize:13, color:"rgba(255,255,255,0.78)", lineHeight:1.75 }}>
+            {badge.description}
+          </div>
+          <button
+            onClick={e => { e.stopPropagation(); onScrollTo(); }}
+            style={{
+              background:"transparent", border:`1.5px solid rgba(201,147,58,0.45)`,
+              color:"#e8b96a", borderRadius:8, padding:"10px 14px",
+              fontSize:12, fontWeight:500, cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif", width:"100%",
+            }}
+          >
+            {badge.scrollCta}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BillingScreen({ profile, onBack }) {
   const [toast, setToast]           = useState(null);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState(null);
+  const [flippedCard, setFlippedCard] = useState(null);
 
   const currentPlan = profile?.plan || "free";
+
+  function scrollToPlan(planId) {
+    document.getElementById(`plan-card-${planId}`)?.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
 
   async function checkout(planId) {
     setLoadingPlan(planId);
@@ -946,13 +1016,44 @@ function BillingScreen({ profile, onBack }) {
           )}
         </div>
 
+        {/* ── Badge Flip Cards ── */}
         <div className="fade-up-1" style={{ marginBottom:48 }}>
+          <div style={{ marginBottom:20 }}>
+            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:6 }}>Which level of magic fits your family?</h3>
+            <p style={{ fontSize:13, color:T.muted }}>Tap a badge to see what each plan is all about.</p>
+          </div>
+          <div className="badge-grid">
+            {BADGE_DATA.map(badge => (
+              <BadgeFlipCard
+                key={badge.id}
+                badge={badge}
+                isFlipped={flippedCard === badge.id}
+                onFlip={() => setFlippedCard(prev => prev === badge.id ? null : badge.id)}
+                onScrollTo={() => { setFlippedCard(null); scrollToPlan(badge.id); }}
+              />
+            ))}
+          </div>
+          <div className="badge-carousel">
+            {BADGE_DATA.map(badge => (
+              <div key={badge.id} className="badge-item">
+                <BadgeFlipCard
+                  badge={badge}
+                  isFlipped={flippedCard === badge.id}
+                  onFlip={() => setFlippedCard(prev => prev === badge.id ? null : badge.id)}
+                  onScrollTo={() => { setFlippedCard(null); scrollToPlan(badge.id); }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="fade-up-2" style={{ marginBottom:48 }}>
           <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:20 }}>All plans</h3>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:14 }}>
             {PLANS.map(plan => {
               const isCurrent = currentPlan === plan.id;
               return (
-                <div key={plan.id} style={{
+                <div key={plan.id} id={`plan-card-${plan.id}`} style={{
                   background: isCurrent ? T.midnight : T.warmWhite,
                   border:`1.5px solid ${isCurrent ? T.gold : "rgba(201,147,58,0.15)"}`,
                   borderRadius:16, padding:"28px 20px", position:"relative",
