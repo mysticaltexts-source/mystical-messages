@@ -81,6 +81,40 @@ function LoadingScreen() {
   );
 }
 
+function MagicShareModal({ variant, onShare, onDismiss }) {
+  const isMoment = variant === "moment";
+  return (
+    <div
+      style={{ position:"fixed", inset:0, background:"rgba(13,27,42,0.8)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:300, padding:24 }}
+      onClick={onDismiss}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ background:T.warmWhite, borderRadius:24, padding:"40px 32px", maxWidth:400, width:"100%", textAlign:"center", animation:"fadeUp 0.35s ease", boxShadow:"0 24px 64px rgba(0,0,0,0.25)" }}
+      >
+        <div style={{ fontSize:48, marginBottom:14 }}>{isMoment ? "✨" : "🌟"}</div>
+        <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:700, color:T.ink, marginBottom:14, lineHeight:1.2 }}>
+          {isMoment ? "Magic just happened." : "The magic doesn't stop here."}
+        </h2>
+        <p style={{ fontSize:15, color:T.body, lineHeight:1.8, fontFamily:"'Lora',serif", marginBottom:28 }}>
+          {isMoment
+            ? "Your child's eyes lit up. That moment is pure gold. Share it with parents who get it — join our community and see the wonder unfold."
+            : "Families in our community are sharing their most magical moments — tooth losses at midnight, surprise visits from Santa, pure joy captured. See what other parents are celebrating."
+          }
+        </p>
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          <Btn onClick={onShare} style={{ width:"100%", justifyContent:"center" }}>
+            ✦ {isMoment ? "Share This Moment" : "See the Magic"}
+          </Btn>
+          <button onClick={onDismiss} style={{ background:"none", border:"none", color:T.muted, fontSize:14, cursor:"pointer", padding:"6px 0", fontFamily:"'DM Sans',sans-serif" }}>
+            {isMoment ? "Maybe later" : "Not now"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Toast({ message, onDone }) {
   useEffect(() => { const t = setTimeout(onDone, 2800); return () => clearTimeout(t); }, []);
   return (
@@ -526,6 +560,9 @@ function SetupScreen({ user, onComplete }) {
    SCREEN: DASHBOARD
 ══════════════════════════════════════ */
 
+// Prevents the community modal from re-appearing if DashboardScreen re-mounts within the same session
+let _communityModalShownThisSession = false;
+
 const OH_CRAP_DEFAULTS = [
   { id:"tooth_emergency", emoji:"🦷", label:"Lost Tooth!", sub:"Tooth Fairy is on her way", charSlug:"tooth_fairy" },
   { id:"santa_watching",  emoji:"🎅", label:"Santa's Watching", sub:"Instant naughty/nice check", charSlug:"santa" },
@@ -544,11 +581,20 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   const [toast, setToast]           = useState(null);
   const [sending, setSending]       = useState(false);
   const [ohCrapSending, setOhCrapSending] = useState(null);
+  const [showMomentModal, setShowMomentModal] = useState(false);
+  const [showCommunityModal, setShowCommunityModal] = useState(false);
 
   const plan = profile?.plan || "free";
   const userName = profile?.full_name?.split(" ")[0] || "there";
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+    if (!_communityModalShownThisSession && localStorage.getItem("mm_pending_share") === "true") {
+      _communityModalShownThisSession = true;
+      localStorage.removeItem("mm_pending_share");
+      setShowCommunityModal(true);
+    }
+  }, []);
 
   async function loadData() {
     const { data: chars } = await supabase.from("characters").select("*").is("parent_id", null).eq("is_active", true);
@@ -560,6 +606,22 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
     const { data: msgs } = await supabase.from("messages").select("*, characters(name,emoji)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false }).limit(5);
     setRecentMessages(msgs || []);
+  }
+
+  function handleShareMoment() {
+    localStorage.removeItem("mm_pending_share");
+    setShowMomentModal(false);
+    setShowCommunityModal(false);
+    window.open("https://www.facebook.com/groups/mysticaltexts", "_blank", "noopener,noreferrer");
+  }
+
+  function handleDismissMoment() {
+    setShowMomentModal(false);
+    // Leave mm_pending_share set so Pop-up 2 shows on next session
+  }
+
+  function handleDismissCommunity() {
+    setShowCommunityModal(false);
   }
 
   function canUse(char) {
@@ -581,6 +643,8 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         character_id: char.id, body, child_id: selectedChild?.id || null, is_ohcrap: true,
       });
       setToast(`${btn.emoji} ${btn.label} message sent to your phone!`);
+      localStorage.setItem("mm_pending_share", "true");
+      setShowMomentModal(true);
       loadData();
     } catch (err) {
       setToast(`Error: ${err.message}`);
@@ -599,6 +663,8 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
       });
       setToast(`${activeChar.emoji} Message sent to your phone!`);
       setMsgText(""); setComposing(false); setActiveChar(null);
+      localStorage.setItem("mm_pending_share", "true");
+      setShowMomentModal(true);
       loadData();
     } catch (err) {
       setToast(`Error: ${err.message}`);
@@ -790,6 +856,14 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
       </div>
 
       <Footer onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms}/>
+
+      {showMomentModal && (
+        <MagicShareModal variant="moment" onShare={handleShareMoment} onDismiss={handleDismissMoment}/>
+      )}
+      {showCommunityModal && (
+        <MagicShareModal variant="community" onShare={handleShareMoment} onDismiss={handleDismissCommunity}/>
+      )}
+
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
