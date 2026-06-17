@@ -24,7 +24,7 @@ VITE_SUPABASE_ANON_KEY=...
 
 These are consumed by `src/lib/supabase.js` via `import.meta.env`.
 
-Add `VITE_TEST_MODE=true` to skip Twilio SMS calls entirely during development (no charges). Remove it once Twilio brand/10DLC approval is received.
+Add `VITE_TEST_MODE=true` to skip Twilio SMS calls entirely during development (no charges). **Delete the variable entirely** (do not set it to empty or false) once Twilio brand/10DLC approval is received.
 
 ## Twilio Go-Live Checklist
 
@@ -32,7 +32,7 @@ The `send-message` Edge Function sends SMS via Twilio. SMS is currently suppress
 
 **There are two Supabase projects.** The live app connects to `mysticaltexts-source/mystic...` (not "mysticaltexts -Claude v2.0"). All steps below apply to the **source project**.
 
-1. **Remove `VITE_TEST_MODE=true`** from Vercel → your project → Settings → Environment Variables, then trigger a redeploy
+1. **DELETE `VITE_TEST_MODE`** from Vercel → your project → Settings → Environment Variables (do not set it to false or empty — delete it entirely), then trigger a redeploy
 2. **Update the Twilio FROM number** in the `send-message` Edge Function code — it is hardcoded in the function body (not stored as a secret). In Supabase → Edge Functions → `send-message` → open the editor and replace the placeholder FROM number with your approved, brand-registered number (e.g. `+1XXXXXXXXXX`)
 3. **Verify these secrets exist** in Supabase → Edge Functions → Secrets on the source project (they are already set — just confirm values are production, not test):
    - `TWILIO_ACCOUNT_SID` — production Account SID (starts with `AC`)
