@@ -1097,6 +1097,12 @@ function BillingScreen({ profile, session, onBack }) {
       if (result === "invalid")   { setCodeError("That code doesn't look right — double-check and try again."); return; }
       if (result === "exhausted") { setCodeError("That code has already been fully redeemed. Reach out if you think this is a mistake."); return; }
       if (result === "expired")   { setCodeError("That code has expired. Reach out if you need a fresh one."); return; }
+      // Send welcome email — fire and forget, don't block on it
+      const firstName = (profile?.full_name || session.user.email).split(" ")[0];
+      callFunction("send-welcome-email", {
+        first_name: firstName,
+        email: session.user.email,
+      }).catch(() => {}); // silently ignore if email fails
       setToast(`✨ Welcome to ${result.charAt(0).toUpperCase() + result.slice(1)}! Refreshing…`);
       setTimeout(() => window.location.reload(), 1600);
     } catch (err) {
