@@ -1099,7 +1099,7 @@ function BillingScreen({ profile, session, onBack }) {
       if (result === "expired")   { setCodeError("That code has expired. Reach out if you need a fresh one."); return; }
       // Send welcome email — fire and forget, don't block on it
       const firstName = (profile?.full_name || session.user.email).split(" ")[0];
-      callFunction("smooth-responder", {
+      callFunction("send-welcome-email", {
         first_name: firstName,
         email: session.user.email,
       }).catch(() => {}); // silently ignore if email fails
