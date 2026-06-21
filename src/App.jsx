@@ -1492,7 +1492,7 @@ function HistoryScreen({ session, onBack }) {
 /* ══════════════════════════════════════
    SCREEN: SCHEDULE
 ══════════════════════════════════════ */
-function ScheduleScreen({ session, onBack }) {
+function ScheduleScreen({ session, profile, onSelectPlan, onBack }) {
   const [step, setStep]           = useState(1);
   const [characters, setCharacters] = useState([]);
   const [children, setChildren]   = useState([]);
@@ -1520,6 +1520,10 @@ function ScheduleScreen({ session, onBack }) {
 
   async function scheduleMessage() {
     if (!msgText.trim() || !schedDate || !selectedChar) return;
+    if (PLAN_RANK[profile?.plan || "free"] < PLAN_RANK["basic"]) {
+      onSelectPlan("banner");
+      return;
+    }
     setSaving(true);
     try {
       const scheduledFor = new Date(`${schedDate}T${schedTime}`).toISOString();
@@ -1964,6 +1968,8 @@ export default function App() {
       )}
       {prelaunchToast && <Toast message={prelaunchToast} onDone={() => setPrelaunchToast(null)}/>}
 
+      <div style={{ paddingTop: (session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup") ? 38 : 0 }}>
+
       {screen === "auth" && (
         <AuthScreen
           onGoToAbout={() => goTo("about")}
@@ -2013,8 +2019,10 @@ export default function App() {
       )}
 
       {screen === "schedule" && session && (
-        <ScheduleScreen session={session} onBack={() => setScreen("dashboard")}/>
+        <ScheduleScreen session={session} profile={profile} onSelectPlan={setPrelaunch} onBack={() => setScreen("dashboard")}/>
       )}
+
+      </div>
     </>
   );
 }
