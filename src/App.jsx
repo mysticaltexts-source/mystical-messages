@@ -209,7 +209,7 @@ function DisplayTitle({ children, light=false, style={} }) {
 }
 
 function PageNav({ onBack, title, onGoToAbout, onGoToTerms }) {
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const menuItems = [
     onGoToAbout && { label:"✨ About",        action: onGoToAbout },
     onGoToTerms && { label:"📜 Terms",        action: onGoToTerms },
