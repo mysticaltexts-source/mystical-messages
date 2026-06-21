@@ -34,7 +34,8 @@ const FontLink = () => (
 /* ─── GLOBAL STYLES ─── */
 const G = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: ${T.parchment}; color: ${T.body}; }
+  html { overflow-x: hidden; }
+  body { font-family: 'DM Sans', sans-serif; background: ${T.parchment}; color: ${T.body}; overflow-x: hidden; }
   input, textarea, select, button { font-family: 'DM Sans', sans-serif; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
   @keyframes twinkle { 0%,100%{opacity:0;transform:scale(0.7);} 50%{opacity:var(--b,0.8);transform:scale(1);} }
@@ -52,6 +53,7 @@ const G = `
     .badge-carousel { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:14px; padding-bottom:12px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
     .badge-carousel::-webkit-scrollbar { display:none; }
     .badge-item { scroll-snap-align:start; flex-shrink:0; width:80vw; }
+    .hide-mobile { display:none !important; }
   }
   .post-carousel { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:20px; padding-bottom:16px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .post-carousel::-webkit-scrollbar { display:none; }
@@ -144,7 +146,7 @@ function Toast({ message, onDone }) {
   );
 }
 
-function Btn({ children, onClick, variant="primary", style={}, disabled=false, small=false, loading=false }) {
+function Btn({ children, onClick, variant="primary", style={}, disabled=false, small=false, loading=false, className="" }) {
   const base = {
     display:"inline-flex", alignItems:"center", justifyContent:"center", gap:8,
     border:"none", cursor: disabled||loading ? "not-allowed" : "pointer",
@@ -160,7 +162,7 @@ function Btn({ children, onClick, variant="primary", style={}, disabled=false, s
     danger:  { background:"rgba(184,92,74,0.12)", color:T.danger, border:`1px solid rgba(184,92,74,0.25)` },
   };
   return (
-    <button onClick={disabled||loading ? undefined : onClick} style={{ ...base, ...variants[variant], ...style }}>
+    <button className={className} onClick={disabled||loading ? undefined : onClick} style={{ ...base, ...variants[variant], ...style }}>
       {loading ? <Spinner/> : children}
     </button>
   );
@@ -766,10 +768,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.warmWhite }}>
           ✦ <span style={{ color:T.goldLight }}>Mystical</span> Messages
         </div>
-        <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
-          <Btn variant="ghost" small onClick={onGoToProfiles}>👨‍👩‍👧 Profiles</Btn>
-          <Btn variant="ghost" small onClick={onGoToSchedule}>📅 Schedule</Btn>
-          <Btn variant="ghost" small onClick={onGoToHistory}>🕰 History</Btn>
+        <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"nowrap" }}>
+          <Btn variant="ghost" small onClick={onGoToProfiles} className="hide-mobile">👨‍👩‍👧 Profiles</Btn>
+          <Btn variant="ghost" small onClick={onGoToSchedule} className="hide-mobile">📅 Schedule</Btn>
+          <Btn variant="ghost" small onClick={onGoToHistory} className="hide-mobile">🕰 History</Btn>
           <Btn variant="outline" small onClick={onGoToBilling} style={{ color:T.goldLight, borderColor:"rgba(201,147,58,0.3)" }}>
             ⭐ {plan.charAt(0).toUpperCase()+plan.slice(1)} Plan
           </Btn>
@@ -1754,6 +1756,8 @@ export default function App() {
     setPrevScreen(screen);
     setScreen(s);
   }
+
+  useEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
