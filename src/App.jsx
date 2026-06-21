@@ -54,7 +54,9 @@ const G = `
     .badge-carousel::-webkit-scrollbar { display:none; }
     .badge-item { scroll-snap-align:start; flex-shrink:0; width:80vw; }
     .hide-mobile { display:none !important; }
+    .show-mobile { display:flex !important; }
   }
+  .show-mobile { display:none; }
   .post-carousel { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:20px; padding-bottom:16px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .post-carousel::-webkit-scrollbar { display:none; }
   .post-card { scroll-snap-align:start; flex-shrink:0; width:300px; }
@@ -668,6 +670,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   const [ohCrapSending, setOhCrapSending] = useState(null);
   const [showMomentModal, setShowMomentModal] = useState(false);
   const [showCommunityModal, setShowCommunityModal] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const plan = profile?.plan || "free";
   const userName = profile?.full_name?.split(" ")[0] || "there";
@@ -764,20 +767,44 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
-      <nav style={{ background:T.midnight, padding:"14px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(255,255,255,0.06)", position:"sticky", top:0, zIndex:50 }}>
-        <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.warmWhite }}>
-          ✦ <span style={{ color:T.goldLight }}>Mystical</span> Messages
-        </div>
-        <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"nowrap" }}>
-          <Btn variant="ghost" small onClick={onGoToProfiles} className="hide-mobile">👨‍👩‍👧 Profiles</Btn>
-          <Btn variant="ghost" small onClick={onGoToSchedule} className="hide-mobile">📅 Schedule</Btn>
-          <Btn variant="ghost" small onClick={onGoToHistory} className="hide-mobile">🕰 History</Btn>
-          <Btn variant="outline" small onClick={onGoToBilling} style={{ color:T.goldLight, borderColor:"rgba(201,147,58,0.3)" }}>
-            ⭐ {plan.charAt(0).toUpperCase()+plan.slice(1)} Plan
-          </Btn>
-          <Btn variant="ghost" small onClick={onLogout}>Log out</Btn>
-        </div>
-      </nav>
+      {/* Nav wrapper is the sticky anchor; dropdown uses position:absolute relative to it */}
+      <div style={{ position:"sticky", top:0, zIndex:50 }}>
+        <nav style={{ background:T.midnight, padding:"14px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.warmWhite }}>
+            ✦ <span style={{ color:T.goldLight }}>Mystical</span> Messages
+          </div>
+          <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"nowrap" }}>
+            <Btn variant="ghost" small onClick={onGoToProfiles} className="hide-mobile">👨‍👩‍👧 Profiles</Btn>
+            <Btn variant="ghost" small onClick={onGoToSchedule} className="hide-mobile">📅 Schedule</Btn>
+            <Btn variant="ghost" small onClick={onGoToHistory} className="hide-mobile">🕰 History</Btn>
+            <Btn variant="outline" small onClick={onGoToBilling} style={{ color:T.goldLight, borderColor:"rgba(201,147,58,0.3)" }}>
+              ⭐ {plan.charAt(0).toUpperCase()+plan.slice(1)} Plan
+            </Btn>
+            <Btn variant="ghost" small onClick={onLogout} className="hide-mobile">Log out</Btn>
+            {/* Hamburger — mobile only */}
+            <button className="show-mobile" onClick={() => setMenuOpen(o => !o)} style={{ background:"none", border:"none", cursor:"pointer", padding:"6px 4px", display:"flex", flexDirection:"column", gap:5, alignItems:"center", justifyContent:"center" }}>
+              <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }}/>
+              <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }}/>
+              <span style={{ display:"block", width:22, height:2, background:"rgba(255,255,255,0.8)", borderRadius:2 }}/>
+            </button>
+          </div>
+        </nav>
+        {/* Mobile dropdown — absolute so it appears just below the nav bar */}
+        {menuOpen && (
+          <div style={{ position:"absolute", top:"100%", right:0, background:T.midnight, borderLeft:`1px solid rgba(255,255,255,0.08)`, borderBottom:`1px solid rgba(255,255,255,0.08)`, borderRadius:"0 0 0 12px", padding:"8px 0", minWidth:180, boxShadow:"0 8px 32px rgba(0,0,0,0.4)" }}>
+            {[
+              { label:"👨‍👩‍👧 Profiles",  action: onGoToProfiles },
+              { label:"📅 Schedule",  action: onGoToSchedule },
+              { label:"🕰 History",   action: onGoToHistory },
+              { label:"Log out",     action: onLogout },
+            ].map(item => (
+              <button key={item.label} onClick={() => { setMenuOpen(false); item.action(); }} style={{ display:"block", width:"100%", background:"none", border:"none", padding:"13px 24px", textAlign:"left", color:"rgba(255,255,255,0.8)", fontFamily:"'DM Sans', sans-serif", fontSize:14, cursor:"pointer" }}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <style>{`@media (max-width: 768px) { .dash-content { padding-bottom: 80px !important; } }`}</style>
       <div className="dash-content" style={{ flex:1, maxWidth:860, margin:"0 auto", width:"100%", padding:"32px 24px 20px" }}>
