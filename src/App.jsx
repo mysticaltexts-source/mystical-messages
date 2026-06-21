@@ -1022,10 +1022,10 @@ const PLANS = [
 ];
 
 const BADGE_DATA = [
-  { id:"trial",    image:"/badge-trial.png",    tier:"Try It Once", price:"$0.99",     description:"Not sure yet? No pressure at all. One magical message, zero commitment — just the perfect way to see your child's face light up.", scrollCta:"Let's give it a whirl ✨" },
-  { id:"basic",    image:"/badge-basic.png",    tier:"Basic",       price:"$4.99/mo",  description:"Santa and the Tooth Fairy are standing by. Solid templates, simple scheduling — everything you need to nail the classics.", scrollCta:"This feels right for us →" },
-  { id:"standard", image:"/badge-standard.png", tier:"Standard",    price:"$9.99/mo",  description:"Honestly? This is the one most families end up loving. All three characters, Oh-Crap!! buttons for those last-minute saves, and plenty of room to grow.", scrollCta:"Ooh yes, this is the one →" },
-  { id:"premium",  image:"/badge-premium.png",  tier:"Premium",     price:"$14.99/mo", description:"You take magic seriously — and I respect it. Build your own characters, write your own scripts, and make every moment uniquely yours.", scrollCta:"Go big — we deserve it ✨" },
+  { id:"trial",    image:"/badge-trial.png",    tier:"Try It Once", price:"$0.99",     badge:null,          description:"Not sure yet? No pressure at all. One magical message, zero commitment — just the perfect way to see your child's face light up.", scrollCta:"Let's give it a whirl ✨" },
+  { id:"basic",    image:"/badge-basic.png",    tier:"Basic",       price:"$4.99/mo",  badge:null,          description:"Santa and the Tooth Fairy are standing by. Solid templates, simple scheduling — everything you need to nail the classics.", scrollCta:"This feels right for us →" },
+  { id:"standard", image:"/badge-standard.png", tier:"Standard",    price:"$9.99/mo",  badge:"Best Value",  description:"Honestly? This is the one most families end up loving. All three characters, Oh-Crap!! buttons for those last-minute saves, and plenty of room to grow.", scrollCta:"Ooh yes, this is the one →" },
+  { id:"premium",  image:"/badge-premium.png",  tier:"Premium",     price:"$14.99/mo", badge:null,          description:"You take magic seriously — and I respect it. Build your own characters, write your own scripts, and make every moment uniquely yours.", scrollCta:"Go big — we deserve it ✨" },
 ];
 
 function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
@@ -1044,6 +1044,11 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
           borderRadius:16, display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center", padding:"24px 16px", gap:6,
         }}>
+          {badge.badge && (
+            <div style={{ position:"absolute", top:-11, left:"50%", transform:"translateX(-50%)", background:T.gold, color:T.midnight, fontSize:10, fontWeight:700, padding:"3px 12px", borderRadius:100, whiteSpace:"nowrap" }}>
+              {badge.badge}
+            </div>
+          )}
           <img src={badge.image} alt={badge.tier} style={{ width:84, height:"auto", marginBottom:6 }}/>
           <div style={{ fontFamily:"'Playfair Display',serif", fontSize:15, fontWeight:700, color:T.ink, textAlign:"center" }}>{badge.tier}</div>
           <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.gold }}>{badge.price}</div>
