@@ -1338,7 +1338,8 @@ function BillingScreen({ profile, session, onBack }) {
                   </button>
 
                   <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:16, display:"flex", flexDirection:"column", gap:8 }}>
-                    <p style={{ fontSize:11, color:"rgba(255,255,255,0.35)", textTransform:"uppercase", letterSpacing:"0.1em", fontWeight:600 }}>Already have an invite code?</p>
+                    <p style={{ fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.75)", fontFamily:"'DM Sans',sans-serif", marginBottom:2 }}>🎟️ Have an invite code?</p>
+                    <p style={{ fontSize:13, color:"rgba(255,255,255,0.5)", fontFamily:"'Lora',serif", lineHeight:1.6, marginBottom:4 }}>That's your key to early access. Enter it below to unlock your free trial right now — no waiting.</p>
                     <div style={{ display:"flex", gap:8 }}>
                       <input
                         type="text"
