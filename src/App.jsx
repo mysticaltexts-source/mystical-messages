@@ -1027,20 +1027,11 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
   );
 }
 
-function BillingScreen({ profile, session, onBack }) {
+function BillingScreen({ profile, session, onBack, onSelectPlan }) {
   const [toast, setToast]               = useState(null);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loadingPlan, setLoadingPlan]   = useState(null);
   const [flippedCard, setFlippedCard]   = useState(null);
-  const [prelaunch, setPrelaunch]       = useState(null); // planId or null
-  const [notifyEmail, setNotifyEmail]   = useState(profile?.email || session?.user?.email || "");
-  const [textOptIn, setTextOptIn]       = useState(false);
-  const [notifyPhone, setNotifyPhone]   = useState(profile?.phone_number || "");
-  const [notifyLoading, setNotifyLoading] = useState(false);
-  const [notifyDone, setNotifyDone]     = useState(false);
-  const [codeInput, setCodeInput]       = useState("");
-  const [codeLoading, setCodeLoading]   = useState(false);
-  const [codeError, setCodeError]       = useState(null);
 
   const currentPlan = profile?.plan || "free";
 
@@ -1049,7 +1040,7 @@ function BillingScreen({ profile, session, onBack }) {
   }
 
   async function checkout(planId) {
-    setPrelaunch(planId);
+    onSelectPlan(planId);
     return; // prelaunch intercept — remove this block when payments go live
     setLoadingPlan(planId);
     try {
@@ -1071,48 +1062,6 @@ function BillingScreen({ profile, session, onBack }) {
     setCancelConfirm(false);
   }
 
-  async function saveNotify() {
-    setNotifyLoading(true);
-    try {
-      await supabase.from("profiles").update({
-        notify_when_live: true,
-        ...(textOptIn && notifyPhone ? { notify_phone: notifyPhone } : {}),
-      }).eq("id", session.user.id);
-    } catch (_) { /* silently succeed even if update fails */ }
-    setNotifyLoading(false);
-    setNotifyDone(true);
-  }
-
-  async function redeemCode() {
-    const code = codeInput.trim().toUpperCase();
-    if (!code) return;
-    setCodeLoading(true);
-    setCodeError(null);
-    try {
-      const { data: result, error } = await supabase.rpc("redeem_invite_code", {
-        p_code: code,
-        p_user_id: session.user.id,
-      });
-      if (error) throw error;
-      if (result === "invalid")   { setCodeError("That code doesn't look right — double-check and try again."); return; }
-      if (result === "exhausted") { setCodeError("That code has already been fully redeemed. Reach out if you think this is a mistake."); return; }
-      if (result === "expired")   { setCodeError("That code has expired. Reach out if you need a fresh one."); return; }
-      // Send welcome email — fire and forget, don't block on it
-      const firstName = (profile?.full_name || session.user.email).split(" ")[0];
-      callFunction("send-welcome-email", {
-        first_name: firstName,
-        email: session.user.email,
-      }).catch(() => {}); // silently ignore if email fails
-      setToast(`✨ Welcome to ${result.charAt(0).toUpperCase() + result.slice(1)}! Refreshing…`);
-      setTimeout(() => window.location.reload(), 1600);
-    } catch (err) {
-      setCodeError("Something went wrong — try again in a moment.");
-    } finally {
-      setCodeLoading(false);
-    }
-  }
-
-  const selectedPlanLabel = prelaunch ? PLANS.find(p => p.id === prelaunch)?.tier : "";
 
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
@@ -1226,26 +1175,12 @@ function BillingScreen({ profile, session, onBack }) {
           <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
             <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to unlock your preview access — no payment needed.</p>
-            <div style={{ display:"flex", gap:10 }}>
-              <input
-                type="text"
-                value={codeInput}
-                onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(null); }}
-                onKeyDown={e => e.key === "Enter" && redeemCode()}
-                placeholder="ENTER CODE"
-                style={{ flex:1, padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.25)`, background:T.parchment, fontSize:14, fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.08em", outline:"none", color:T.ink }}
-              />
-              <button
-                onClick={redeemCode}
-                disabled={!codeInput.trim() || codeLoading}
-                style={{ padding:"11px 20px", borderRadius:8, background: codeInput.trim() ? T.gold : "rgba(201,147,58,0.15)", color: codeInput.trim() ? T.midnight : "rgba(201,147,58,0.4)", border:"none", fontSize:13, fontWeight:600, cursor: codeInput.trim() ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6, transition:"all 0.2s", whiteSpace:"nowrap" }}
-              >
-                {codeLoading ? <Spinner/> : "Redeem ✦"}
-              </button>
-            </div>
-            {codeError && (
-              <p style={{ fontSize:13, color:T.danger, marginTop:10, fontFamily:"'Lora',serif", lineHeight:1.6 }}>{codeError}</p>
-            )}
+            <button
+              onClick={() => onSelectPlan("banner")}
+              style={{ padding:"11px 20px", borderRadius:8, background:T.gold, color:T.midnight, border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+            >
+              Redeem code ✦
+            </button>
           </div>
         </div>
 
@@ -1266,106 +1201,6 @@ function BillingScreen({ profile, session, onBack }) {
               <Btn variant="danger" onClick={cancelSubscription}>Yes, cancel</Btn>
               <Btn onClick={() => setCancelConfirm(false)}>Keep the magic</Btn>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Prelaunch modal ── */}
-      {prelaunch && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(13,27,42,0.82)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:300, padding:24 }} onClick={() => { if (!notifyDone) setPrelaunch(null); }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:T.midnight, border:`1.5px solid rgba(201,147,58,0.3)`, borderRadius:24, padding:"40px 32px", maxWidth:420, width:"100%", animation:"fadeUp 0.35s ease", boxShadow:"0 24px 64px rgba(0,0,0,0.4)" }}>
-
-            {notifyDone ? (
-              /* ── Thank you state ── */
-              <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:52, marginBottom:16 }}>✨</div>
-                <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:700, color:T.warmWhite, marginBottom:14, lineHeight:1.3 }}>You're on the list.</h2>
-                <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.8, marginBottom:28 }}>
-                  We'll reach out the moment we open the doors. Good things coming — we promise it'll be worth the wait.
-                </p>
-                <button onClick={() => { setPrelaunch(null); setNotifyDone(false); }} style={{ background:"transparent", border:`1.5px solid rgba(201,147,58,0.4)`, color:"#e8b96a", borderRadius:8, padding:"10px 24px", fontSize:13, fontWeight:500, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-                  Keep browsing →
-                </button>
-              </div>
-            ) : (
-              /* ── Opt-in form ── */
-              <>
-                <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>🔮</div>
-                <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.warmWhite, marginBottom:12, lineHeight:1.3, textAlign:"center" }}>
-                  Almost time — but not quite yet.
-                </h2>
-                <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
-                  We're in prelaunch and not yet taking payments, but you clearly have great taste in plans. Let us give you a heads up the moment we open the doors — {selectedPlanLabel} will be waiting for you.
-                </p>
-
-                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                  <div>
-                    <label style={{ fontSize:11, fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(255,255,255,0.45)", display:"block", marginBottom:6 }}>Your email</label>
-                    <input
-                      type="email"
-                      value={notifyEmail}
-                      onChange={e => setNotifyEmail(e.target.value)}
-                      style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
-                    />
-                  </div>
-
-                  <button
-                    onClick={() => setTextOptIn(v => !v)}
-                    style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:10, padding:"4px 0", textAlign:"left" }}
-                  >
-                    <div style={{ width:20, height:20, borderRadius:4, border:`1.5px solid rgba(201,147,58,0.5)`, background: textOptIn ? T.gold : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.2s" }}>
-                      {textOptIn && <span style={{ fontSize:11, color:T.midnight, fontWeight:700 }}>✓</span>}
-                    </div>
-                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"rgba(255,255,255,0.65)" }}>Also text me when you're live</span>
-                  </button>
-
-                  {textOptIn && (
-                    <input
-                      type="tel"
-                      value={notifyPhone}
-                      onChange={e => setNotifyPhone(e.target.value)}
-                      placeholder="Your phone number"
-                      style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
-                    />
-                  )}
-
-                  <button
-                    onClick={saveNotify}
-                    disabled={!notifyEmail || notifyLoading}
-                    style={{ marginTop:4, width:"100%", padding:"13px 0", borderRadius:8, background: notifyEmail ? T.gold : "rgba(201,147,58,0.2)", color: notifyEmail ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: notifyEmail ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
-                  >
-                    {notifyLoading ? <Spinner/> : "Notify me when you're live ✨"}
-                  </button>
-
-                  <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:16, display:"flex", flexDirection:"column", gap:8 }}>
-                    <p style={{ fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.75)", fontFamily:"'DM Sans',sans-serif", marginBottom:2 }}>🎟️ Have an invite code?</p>
-                    <p style={{ fontSize:13, color:"rgba(255,255,255,0.5)", fontFamily:"'Lora',serif", lineHeight:1.6, marginBottom:4 }}>That's your key to early access. Enter it below to unlock your free trial right now — no waiting.</p>
-                    <div style={{ display:"flex", gap:8 }}>
-                      <input
-                        type="text"
-                        value={codeInput}
-                        onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(null); }}
-                        onKeyDown={e => e.key === "Enter" && redeemCode()}
-                        placeholder="ENTER CODE"
-                        style={{ flex:1, padding:"10px 12px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.25)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:13, fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.08em", outline:"none" }}
-                      />
-                      <button
-                        onClick={redeemCode}
-                        disabled={!codeInput.trim() || codeLoading}
-                        style={{ padding:"10px 14px", borderRadius:8, background: codeInput.trim() ? T.gold : "rgba(201,147,58,0.15)", color: codeInput.trim() ? T.midnight : "rgba(201,147,58,0.4)", border:"none", fontSize:12, fontWeight:600, cursor: codeInput.trim() ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:4, whiteSpace:"nowrap" }}
-                      >
-                        {codeLoading ? <Spinner/> : "Redeem"}
-                      </button>
-                    </div>
-                    {codeError && <p style={{ fontSize:12, color:"#e8795a", fontFamily:"'Lora',serif", lineHeight:1.5 }}>{codeError}</p>}
-                  </div>
-
-                  <button onClick={() => setPrelaunch(null)} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", fontSize:13, cursor:"pointer", padding:"4px 0", fontFamily:"'DM Sans',sans-serif" }}>
-                    I'll keep an eye out myself
-                  </button>
-                </div>
-              </>
-            )}
           </div>
         </div>
       )}
@@ -1900,6 +1735,16 @@ export default function App() {
   const [screen, setScreen]     = useState("auth");
   const [loading, setLoading]   = useState(true);
   const [prevScreen, setPrevScreen] = useState("dashboard");
+  const [prelaunch, setPrelaunch]           = useState(null);
+  const [notifyEmail, setNotifyEmail]       = useState("");
+  const [textOptIn, setTextOptIn]           = useState(false);
+  const [notifyPhone, setNotifyPhone]       = useState("");
+  const [notifyLoading, setNotifyLoading]   = useState(false);
+  const [notifyDone, setNotifyDone]         = useState(false);
+  const [codeInput, setCodeInput]           = useState("");
+  const [codeLoading, setCodeLoading]       = useState(false);
+  const [codeError, setCodeError]           = useState(null);
+  const [prelaunchToast, setPrelaunchToast] = useState(null);
 
   function goTo(s) {
     setPrevScreen(screen);
@@ -1944,6 +1789,62 @@ export default function App() {
   async function handleLogout() {
     await supabase.auth.signOut();
   }
+
+  useEffect(() => {
+    if (prelaunch) {
+      setNotifyEmail(profile?.email || session?.user?.email || "");
+      setNotifyPhone(profile?.phone_number || "");
+      setNotifyDone(false);
+      setCodeInput("");
+      setCodeError(null);
+      setTextOptIn(false);
+    }
+  }, [!!prelaunch]);
+
+  async function saveNotify() {
+    setNotifyLoading(true);
+    try {
+      await supabase.from("profiles").update({
+        notify_when_live: true,
+        ...(textOptIn && notifyPhone ? { notify_phone: notifyPhone } : {}),
+      }).eq("id", session.user.id);
+    } catch (_) {}
+    setNotifyLoading(false);
+    setNotifyDone(true);
+  }
+
+  async function redeemCode() {
+    const code = codeInput.trim().toUpperCase();
+    if (!code) return;
+    setCodeLoading(true);
+    setCodeError(null);
+    try {
+      const { data: result, error } = await supabase.rpc("redeem_invite_code", {
+        p_code: code,
+        p_user_id: session.user.id,
+      });
+      if (error) throw error;
+      if (result === "invalid")   { setCodeError("That code doesn't look right — double-check and try again."); return; }
+      if (result === "exhausted") { setCodeError("That code has already been fully redeemed. Reach out if you think this is a mistake."); return; }
+      if (result === "expired")   { setCodeError("That code has expired. Reach out if you need a fresh one."); return; }
+      const firstName = (profile?.full_name || session?.user?.email || "").split(" ")[0];
+      callFunction("send-welcome-email", {
+        first_name: firstName,
+        email: session.user.email,
+      }).catch(() => {});
+      setPrelaunchToast(`✨ Welcome to ${result.charAt(0).toUpperCase() + result.slice(1)}! Refreshing…`);
+      setTimeout(() => window.location.reload(), 1600);
+    } catch (err) {
+      setCodeError("Something went wrong — try again in a moment.");
+    } finally {
+      setCodeLoading(false);
+    }
+  }
+
+  const selectedPlanLabel = prelaunch && prelaunch !== "banner"
+    ? PLANS.find(p => p.id === prelaunch)?.tier
+    : "your plan";
+  const isFromBanner = prelaunch === "banner";
 
   if (loading) return (
     <>
