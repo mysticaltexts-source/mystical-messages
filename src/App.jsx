@@ -208,12 +208,8 @@ function DisplayTitle({ children, light=false, style={} }) {
   return <h2 style={{ fontFamily:"'Playfair Display', serif", fontWeight:700, fontSize:"clamp(24px,4vw,36px)", lineHeight:1.15, color: light ? T.warmWhite : T.ink, ...style }}>{children}</h2>;
 }
 
-function PageNav({ onBack, title, onGoToAbout, onGoToTerms }) {
+function PageNav({ onBack, title, menuItems = [] }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuItems = [
-    onGoToAbout && { label:"✨ About",        action: onGoToAbout },
-    onGoToTerms && { label:"📜 Terms",        action: onGoToTerms },
-  ].filter(Boolean);
 
   return (
     <div style={{ position:"sticky", top:0, zIndex:50 }}>
@@ -316,10 +312,10 @@ const FB_POSTS = [
   },
 ];
 
-function AboutScreen({ onBack }) {
+function AboutScreen({ onBack, menuItems }) {
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
-      <PageNav onBack={onBack} title="Messages" onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms}/>
+      <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
       <div style={{ maxWidth:680, margin:"0 auto", padding:"48px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:32 }}>
           <SectionLabel>Our story</SectionLabel>
@@ -404,7 +400,7 @@ function AboutScreen({ onBack }) {
 /* ══════════════════════════════════════
    SCREEN: TERMS OF SERVICE
 ══════════════════════════════════════ */
-function TermsScreen({ onBack }) {
+function TermsScreen({ onBack, menuItems }) {
   const section = (title, text) => (
     <div style={{ marginBottom:28 }}>
       <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:17, fontWeight:700, color:T.ink, marginBottom:10 }}>{title}</h3>
@@ -414,7 +410,7 @@ function TermsScreen({ onBack }) {
 
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
-      <PageNav onBack={onBack} title="Messages" onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms}/>
+      <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
       <div style={{ maxWidth:680, margin:"0 auto", padding:"48px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:8 }}>
           <SectionLabel>Legal</SectionLabel>
@@ -1082,7 +1078,7 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
   );
 }
 
-function BillingScreen({ profile, session, onBack, onSelectPlan, onGoToAbout, onGoToTerms }) {
+function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
   const [toast, setToast]               = useState(null);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loadingPlan, setLoadingPlan]   = useState(null);
@@ -1120,7 +1116,7 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, onGoToAbout, on
 
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
-      <PageNav onBack={onBack} title="Messages" onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms}/>
+      <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
 
       <div style={{ maxWidth:900, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:40 }}>
@@ -1275,7 +1271,7 @@ const BELIEF_LEVELS = [
   { id:"knows",     label:"In on the secret",    desc:"They know — but play along",       color:T.muted },
 ];
 
-function ChildProfileScreen({ session, onBack, onGoToAbout, onGoToTerms }) {
+function ChildProfileScreen({ session, onBack, menuItems }) {
   const [children, setChildren] = useState([]);
   const [editing, setEditing]   = useState(null);
   const [form, setForm]         = useState({ name:"", age:"", avatar:"🧒", belief_level:"full", notes:"" });
@@ -1322,7 +1318,7 @@ function ChildProfileScreen({ session, onBack, onGoToAbout, onGoToTerms }) {
 
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
-      <PageNav onBack={onBack} title="Messages" onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms}/>
+      <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
       <div style={{ maxWidth:720, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:32 }}>
           <SectionLabel>Family Setup</SectionLabel>
@@ -1440,7 +1436,7 @@ function ChildProfileScreen({ session, onBack, onGoToAbout, onGoToTerms }) {
 /* ══════════════════════════════════════
    SCREEN: MESSAGE HISTORY
 ══════════════════════════════════════ */
-function HistoryScreen({ session, onBack, onGoToAbout, onGoToTerms }) {
+function HistoryScreen({ session, onBack, menuItems }) {
   const [messages, setMessages] = useState([]);
   const [filter, setFilter]     = useState("all");
   const [search, setSearch]     = useState("");
@@ -1472,7 +1468,7 @@ function HistoryScreen({ session, onBack, onGoToAbout, onGoToTerms }) {
 
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
-      <PageNav onBack={onBack} title="Messages" onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms}/>
+      <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
       <div style={{ maxWidth:720, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:28 }}>
           <SectionLabel>Memories</SectionLabel>
@@ -1547,7 +1543,7 @@ function HistoryScreen({ session, onBack, onGoToAbout, onGoToTerms }) {
 /* ══════════════════════════════════════
    SCREEN: SCHEDULE
 ══════════════════════════════════════ */
-function ScheduleScreen({ session, profile, onSelectPlan, onBack, onGoToAbout, onGoToTerms }) {
+function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
   const [step, setStep]           = useState(1);
   const [characters, setCharacters] = useState([]);
   const [children, setChildren]   = useState([]);
@@ -1609,7 +1605,7 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, onGoToAbout, o
 
   return (
     <div style={{ minHeight:"100vh", background:T.parchment }}>
-      <PageNav onBack={onBack} title="Messages" onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms}/>
+      <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
       <div style={{ maxWidth:680, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:32 }}>
           <SectionLabel>Plan ahead</SectionLabel>
@@ -1851,6 +1847,16 @@ export default function App() {
     await supabase.auth.signOut();
   }
 
+  const navMenuItems = session ? [
+    { label:"👨‍👩‍👧 Profiles",  action: () => goTo("profiles") },
+    { label:"📅 Schedule",  action: () => goTo("schedule") },
+    { label:"🕰 History",   action: () => goTo("history") },
+    { label:"⭐ Plan",      action: () => goTo("billing") },
+    { label:"✨ About",     action: () => goTo("about") },
+    { label:"📜 Terms",     action: () => goTo("terms") },
+    { label:"Log out",     action: handleLogout },
+  ] : [];
+
   useEffect(() => {
     if (prelaunch) {
       setNotifyEmail(profile?.email || session?.user?.email || "");
@@ -2035,11 +2041,11 @@ export default function App() {
       )}
 
       {screen === "about" && (
-        <AboutScreen onBack={() => setScreen(prevScreen)}/>
+        <AboutScreen onBack={() => setScreen(prevScreen)} menuItems={navMenuItems}/>
       )}
 
       {screen === "terms" && (
-        <TermsScreen onBack={() => setScreen(prevScreen)}/>
+        <TermsScreen onBack={() => setScreen(prevScreen)} menuItems={navMenuItems}/>
       )}
 
       {screen === "setup" && session && (
@@ -2064,19 +2070,19 @@ export default function App() {
       )}
 
       {screen === "billing" && (
-        <BillingScreen profile={profile} session={session} onBack={() => setScreen("dashboard")} onSelectPlan={setPrelaunch} onGoToAbout={() => goTo("about")} onGoToTerms={() => goTo("terms")}/>
+        <BillingScreen profile={profile} session={session} onBack={() => setScreen("dashboard")} onSelectPlan={setPrelaunch} menuItems={navMenuItems}/>
       )}
 
       {screen === "profiles" && session && (
-        <ChildProfileScreen session={session} onBack={() => setScreen("dashboard")} onGoToAbout={() => goTo("about")} onGoToTerms={() => goTo("terms")}/>
+        <ChildProfileScreen session={session} onBack={() => setScreen("dashboard")} menuItems={navMenuItems}/>
       )}
 
       {screen === "history" && session && (
-        <HistoryScreen session={session} onBack={() => setScreen("dashboard")} onGoToAbout={() => goTo("about")} onGoToTerms={() => goTo("terms")}/>
+        <HistoryScreen session={session} onBack={() => setScreen("dashboard")} menuItems={navMenuItems}/>
       )}
 
       {screen === "schedule" && session && (
-        <ScheduleScreen session={session} profile={profile} onSelectPlan={setPrelaunch} onBack={() => setScreen("dashboard")} onGoToAbout={() => goTo("about")} onGoToTerms={() => goTo("terms")}/>
+        <ScheduleScreen session={session} profile={profile} onSelectPlan={setPrelaunch} onBack={() => setScreen("dashboard")} menuItems={navMenuItems}/>
       )}
 
       </div>
