@@ -579,15 +579,17 @@ function AuthScreen({ onGoToAbout, onGoToTerms }) {
 /* ══════════════════════════════════════
    SCREEN: SETUP
 ══════════════════════════════════════ */
-function SetupScreen({ user, onComplete }) {
+function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
   const [phone, setPhone] = useState("");
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function save() {
     if (!phone.trim()) { setError("Phone number is required — it's where your messages arrive."); return; }
+    if (!smsConsent) { setError("Please agree to receive text messages to continue."); return; }
     setLoading(true);
     try {
       let formattedPhone = phone.replace(/\D/g, "");
@@ -635,6 +637,22 @@ function SetupScreen({ user, onComplete }) {
               <Input label="Your mobile number" type="tel" value={phone} onChange={setPhone} placeholder="(555) 123-4567" icon="📱"
                 hint="This is the only number messages will ever be sent to."/>
             </div>
+
+            <label style={{ display:"flex", gap:10, alignItems:"flex-start", cursor:"pointer" }}>
+              <input
+                type="checkbox"
+                checked={smsConsent}
+                onChange={e => setSmsConsent(e.target.checked)}
+                style={{ marginTop:3, accentColor:T.gold, width:16, height:16, flexShrink:0, cursor:"pointer" }}
+              />
+              <span style={{ fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.6 }}>
+                I agree to receive recurring automated text messages from Mystical Messages at the number provided.
+                Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
+                <button type="button" onClick={onGoToTerms} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
+                {" · "}
+                <button type="button" onClick={onGoToPrivacy} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
+              </span>
+            </label>
 
             <div style={{ height:1, background:"rgba(255,255,255,0.08)" }}/>
 
@@ -2057,6 +2075,8 @@ export default function App() {
         <SetupScreen
           user={session.user}
           onComplete={() => loadProfile(session.user.id)}
+          onGoToTerms={() => goTo("terms")}
+          onGoToPrivacy={() => goTo("about")}
         />
       )}
 
