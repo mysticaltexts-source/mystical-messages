@@ -446,6 +446,56 @@ function TermsScreen({ onBack, menuItems }) {
 }
 
 /* ══════════════════════════════════════
+   SCREEN: PRIVACY POLICY
+══════════════════════════════════════ */
+function PrivacyScreen({ onBack, menuItems }) {
+  const section = (title, text) => (
+    <div style={{ marginBottom:28 }}>
+      <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:17, fontWeight:700, color:T.ink, marginBottom:10 }}>{title}</h3>
+      <p style={{ fontSize:14, color:T.body, lineHeight:1.8, fontFamily:"'Lora', serif" }}>{text}</p>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight:"100vh", background:T.parchment }}>
+      <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
+      <div style={{ maxWidth:680, margin:"0 auto", padding:"48px 24px 80px" }}>
+        <div className="fade-up" style={{ marginBottom:8 }}>
+          <SectionLabel>Legal</SectionLabel>
+          <DisplayTitle>Privacy Policy</DisplayTitle>
+          <p style={{ fontSize:13, color:T.muted, marginTop:8 }}>Last updated: June 2026 · Mystical Texts LLC</p>
+        </div>
+
+        <div className="fade-up-1" style={{ marginTop:36 }}>
+          <p style={{ fontSize:15, color:T.body, lineHeight:1.8, fontFamily:"'Lora', serif", marginBottom:32, padding:"18px 22px", background:T.warmWhite, borderRadius:14, border:`1px solid rgba(201,147,58,0.15)` }}>
+            This Privacy Policy describes how <strong>Mystical Texts LLC</strong> collects, uses, and protects information when you use Mystical Messages. By using our service you agree to the practices described here.
+          </p>
+
+          {section("1. Information We Collect", "We collect the email address and phone number you provide during account setup, along with child profile information (name and age) you choose to enter. We also collect usage data such as messages sent and subscription status. We do not collect data directly from children.")}
+          {section("2. How We Use Your Information", "Your phone number is used solely to deliver SMS messages from fictional characters that you initiate. Your email is used for account authentication and service communications. Child profile information is used only to personalise message content at your direction.")}
+          {section("3. SMS Messaging", "By providing your phone number and checking the consent box during signup, you agree to receive recurring automated text messages from Mystical Messages. Message and data rates may apply. Message frequency varies based on your usage. You may opt out at any time by replying STOP to any message or canceling your account.")}
+          {section("4. Message Screening & Content Policy", "All messages composed through Mystical Messages are subject to automated and manual review to ensure they are appropriate for a family audience. Messages that contain content deemed inappropriate, harmful, or unsuitable for children will be flagged. Flagged accounts are subject to suspension pending review, and repeated or serious violations may result in permanent loss of access to Mystical Messages and all associated services.")}
+          {section("5. Data Sharing", "We do not sell or share your personal information with third parties for marketing purposes. We share data only as necessary to operate the service — including Twilio (SMS delivery), Stripe (payment processing), and Supabase (database and authentication) — all of whom are bound by their own privacy policies.")}
+          {section("6. Data Retention", "Your data is retained for as long as your account is active. You may request deletion of your account and associated data at any time by contacting us at hello@mysticaltexts.com.")}
+          {section("7. Security", "We use industry-standard security measures to protect your information. However, no method of transmission over the internet is completely secure, and we cannot guarantee absolute security.")}
+          {section("8. Children's Privacy", "Mystical Messages is intended for use by adults (18+) on behalf of their children. We do not knowingly collect personal information directly from children under 13.")}
+
+          <div style={{ padding:"20px 22px", borderRadius:14, background:T.warmWhite, border:`1px solid rgba(201,147,58,0.15)` }}>
+            <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:17, fontWeight:700, color:T.ink, marginBottom:8 }}>9. Contact</h3>
+            <p style={{ fontSize:14, color:T.body, lineHeight:1.8, fontFamily:"'Lora', serif" }}>
+              Questions about this policy? Reach us at:<br/>
+              <strong>Mystical Texts LLC</strong><br/>
+              <a href="mailto:hello@mysticaltexts.com" style={{ color:T.gold }}>hello@mysticaltexts.com</a><br/>
+              mysticaltexts.com
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
    SCREEN: AUTH
 ══════════════════════════════════════ */
 function AuthScreen({ onGoToAbout, onGoToTerms }) {
@@ -579,15 +629,17 @@ function AuthScreen({ onGoToAbout, onGoToTerms }) {
 /* ══════════════════════════════════════
    SCREEN: SETUP
 ══════════════════════════════════════ */
-function SetupScreen({ user, onComplete }) {
+function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
   const [phone, setPhone] = useState("");
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function save() {
     if (!phone.trim()) { setError("Phone number is required — it's where your messages arrive."); return; }
+    if (!smsConsent) { setError("Please agree to receive text messages to continue."); return; }
     setLoading(true);
     try {
       let formattedPhone = phone.replace(/\D/g, "");
@@ -609,6 +661,7 @@ function SetupScreen({ user, onComplete }) {
         });
       }
 
+      localStorage.setItem("mm_sms_consent_v1", "true");
       onComplete();
     } catch (err) {
       setError(err.message);
@@ -635,6 +688,22 @@ function SetupScreen({ user, onComplete }) {
               <Input label="Your mobile number" type="tel" value={phone} onChange={setPhone} placeholder="(555) 123-4567" icon="📱"
                 hint="This is the only number messages will ever be sent to."/>
             </div>
+
+            <label style={{ display:"flex", gap:10, alignItems:"flex-start", cursor:"pointer" }}>
+              <input
+                type="checkbox"
+                checked={smsConsent}
+                onChange={e => setSmsConsent(e.target.checked)}
+                style={{ marginTop:3, accentColor:T.gold, width:16, height:16, flexShrink:0, cursor:"pointer" }}
+              />
+              <span style={{ fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.6 }}>
+                I agree to receive recurring automated text messages from Mystical Messages at the number provided.
+                Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
+                <button type="button" onClick={onGoToTerms} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
+                {" · "}
+                <button type="button" onClick={onGoToPrivacy} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
+              </span>
+            </label>
 
             <div style={{ height:1, background:"rgba(255,255,255,0.08)" }}/>
 
@@ -677,7 +746,7 @@ const OH_CRAP_DEFAULTS = [
   { id:"wishlist",        emoji:"📝", label:"Wish List Confirmed", sub:"Santa got the list!", charSlug:"santa" },
 ];
 
-function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onLogout }) {
+function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onGoToPrivacy, onLogout }) {
   const [characters, setCharacters] = useState([]);
   const [children, setChildren]     = useState([]);
   const [recentMessages, setRecentMessages] = useState([]);
@@ -818,6 +887,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
               { label:"🕰 History",   action: onGoToHistory },
               { label:"✨ About",     action: onGoToAbout },
               { label:"📜 Terms",     action: onGoToTerms },
+              { label:"🔒 Privacy",   action: onGoToPrivacy },
               { label:"Log out",     action: onLogout },
             ].map(item => (
               <button key={item.label} onClick={() => { setMenuOpen(false); item.action(); }} style={{ display:"block", width:"100%", background:"none", border:"none", padding:"13px 24px", textAlign:"left", color:"rgba(255,255,255,0.8)", fontFamily:"'DM Sans', sans-serif", fontSize:14, cursor:"pointer" }}>
@@ -1580,6 +1650,11 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
       onSelectPlan("banner");
       return;
     }
+    if (TEST_MODE) {
+      setToast(`[TEST] 📅 Message scheduling simulated — no SMS will be sent`);
+      setStep(1); setSelectedChar(null); setMsgText(""); setSchedDate("");
+      return;
+    }
     setSaving(true);
     try {
       const scheduledFor = new Date(`${schedDate}T${schedTime}`).toISOString();
@@ -1796,8 +1871,11 @@ export default function App() {
   const [loading, setLoading]   = useState(true);
   const [prevScreen, setPrevScreen] = useState("dashboard");
   const [prelaunch, setPrelaunch]           = useState(null);
+  const [showConsentOverlay, setShowConsentOverlay] = useState(false);
+  const [consentChecked, setConsentChecked]         = useState(false);
   const [notifyEmail, setNotifyEmail]       = useState("");
   const [textOptIn, setTextOptIn]           = useState(false);
+  const [prelaunchSmsConsent, setPrelaunchSmsConsent] = useState(false);
   const [notifyPhone, setNotifyPhone]       = useState("");
   const [notifyLoading, setNotifyLoading]   = useState(false);
   const [notifyDone, setNotifyDone]         = useState(false);
@@ -1844,8 +1922,17 @@ export default function App() {
       setScreen("setup");
     } else {
       setScreen("dashboard");
+      if (!localStorage.getItem("mm_sms_consent_v1")) {
+        setShowConsentOverlay(true);
+      }
     }
     setLoading(false);
+  }
+
+  function handleConsentAgree() {
+    localStorage.setItem("mm_sms_consent_v1", "true");
+    setShowConsentOverlay(false);
+    setConsentChecked(false);
   }
 
   async function handleLogout() {
@@ -1859,6 +1946,7 @@ export default function App() {
     { label:"⭐ Plan",      action: () => goTo("billing") },
     { label:"✨ About",     action: () => goTo("about") },
     { label:"📜 Terms",     action: () => goTo("terms") },
+    { label:"🔒 Privacy",   action: () => goTo("privacy") },
     { label:"Log out",     action: handleLogout },
   ] : [];
 
@@ -1988,18 +2076,34 @@ export default function App() {
                     <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"rgba(255,255,255,0.65)" }}>Also text me when you're live</span>
                   </button>
                   {textOptIn && (
-                    <input
-                      type="tel"
-                      value={notifyPhone}
-                      onChange={e => setNotifyPhone(e.target.value)}
-                      placeholder="Your phone number"
-                      style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
-                    />
+                    <>
+                      <input
+                        type="tel"
+                        value={notifyPhone}
+                        onChange={e => setNotifyPhone(e.target.value)}
+                        placeholder="Your phone number"
+                        style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
+                      />
+                      <label style={{ display:"flex", gap:10, alignItems:"flex-start", cursor:"pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={prelaunchSmsConsent}
+                          onChange={e => setPrelaunchSmsConsent(e.target.checked)}
+                          style={{ marginTop:3, accentColor:T.gold, width:15, height:15, flexShrink:0, cursor:"pointer" }}
+                        />
+                        <span style={{ fontSize:11, color:"rgba(255,255,255,0.45)", lineHeight:1.65 }}>
+                          I agree to receive recurring automated text messages from Mystical Messages at the number provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
+                          <button type="button" onClick={() => goTo("terms")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
+                          {" · "}
+                          <button type="button" onClick={() => goTo("privacy")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
+                        </span>
+                      </label>
+                    </>
                   )}
                   <button
                     onClick={saveNotify}
-                    disabled={!notifyEmail || notifyLoading}
-                    style={{ marginTop:4, width:"100%", padding:"13px 0", borderRadius:8, background: notifyEmail ? T.gold : "rgba(201,147,58,0.2)", color: notifyEmail ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: notifyEmail ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
+                    disabled={!notifyEmail || notifyLoading || (textOptIn && (!notifyPhone.trim() || !prelaunchSmsConsent))}
+                    style={{ marginTop:4, width:"100%", padding:"13px 0", borderRadius:8, background: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? T.gold : "rgba(201,147,58,0.2)", color: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
                   >
                     {notifyLoading ? <Spinner/> : "Notify me when you're live ✨"}
                   </button>
@@ -2036,6 +2140,43 @@ export default function App() {
       )}
       {prelaunchToast && <Toast message={prelaunchToast} onDone={() => setPrelaunchToast(null)}/>}
 
+      {/* ── SMS consent overlay for returning users ── */}
+      {showConsentOverlay && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(13,27,42,0.88)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:400, padding:24 }}>
+          <div style={{ background:T.midnight, border:`1.5px solid rgba(201,147,58,0.3)`, borderRadius:24, padding:"40px 32px", maxWidth:420, width:"100%", animation:"fadeUp 0.35s ease", boxShadow:"0 24px 64px rgba(0,0,0,0.4)" }}>
+            <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>📱</div>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.warmWhite, marginBottom:12, lineHeight:1.3, textAlign:"center" }}>
+              A quick update
+            </h2>
+            <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
+              We've updated how we handle SMS consent. Please confirm you're happy to keep receiving messages.
+            </p>
+            <label style={{ display:"flex", gap:12, alignItems:"flex-start", cursor:"pointer", marginBottom:24 }}>
+              <input
+                type="checkbox"
+                checked={consentChecked}
+                onChange={e => setConsentChecked(e.target.checked)}
+                style={{ marginTop:3, accentColor:T.gold, width:16, height:16, flexShrink:0, cursor:"pointer" }}
+              />
+              <span style={{ fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.7 }}>
+                I agree to receive recurring automated text messages from Mystical Messages at the number on my account.
+                Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
+                <button type="button" onClick={() => { setShowConsentOverlay(false); goTo("terms"); }} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
+                {" · "}
+                <button type="button" onClick={() => { setShowConsentOverlay(false); goTo("privacy"); }} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
+              </span>
+            </label>
+            <button
+              onClick={handleConsentAgree}
+              disabled={!consentChecked}
+              style={{ width:"100%", padding:"13px 0", borderRadius:8, background: consentChecked ? T.gold : "rgba(201,147,58,0.2)", color: consentChecked ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: consentChecked ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+            >
+              I agree — continue ✦
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={{ paddingTop: (session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup") ? 38 : 0 }}>
 
       {screen === "auth" && (
@@ -2053,10 +2194,16 @@ export default function App() {
         <TermsScreen onBack={() => setScreen(prevScreen)} menuItems={navMenuItems}/>
       )}
 
+      {screen === "privacy" && (
+        <PrivacyScreen onBack={() => setScreen(prevScreen)} menuItems={navMenuItems}/>
+      )}
+
       {screen === "setup" && session && (
         <SetupScreen
           user={session.user}
           onComplete={() => loadProfile(session.user.id)}
+          onGoToTerms={() => goTo("terms")}
+          onGoToPrivacy={() => goTo("privacy")}
         />
       )}
 
@@ -2070,6 +2217,7 @@ export default function App() {
           onGoToProfiles={()  => goTo("profiles")}
           onGoToAbout={()     => goTo("about")}
           onGoToTerms={()     => goTo("terms")}
+          onGoToPrivacy={()   => goTo("privacy")}
           onLogout={handleLogout}
         />
       )}
