@@ -1875,6 +1875,7 @@ export default function App() {
   const [consentChecked, setConsentChecked]         = useState(false);
   const [notifyEmail, setNotifyEmail]       = useState("");
   const [textOptIn, setTextOptIn]           = useState(false);
+  const [prelaunchSmsConsent, setPrelaunchSmsConsent] = useState(false);
   const [notifyPhone, setNotifyPhone]       = useState("");
   const [notifyLoading, setNotifyLoading]   = useState(false);
   const [notifyDone, setNotifyDone]         = useState(false);
@@ -2083,18 +2084,26 @@ export default function App() {
                         placeholder="Your phone number"
                         style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
                       />
-                      <p style={{ fontSize:11, color:"rgba(255,255,255,0.4)", lineHeight:1.6, margin:0 }}>
-                        By providing your number you agree to receive recurring automated text messages from Mystical Messages. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
-                        <button type="button" onClick={() => goTo("terms")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Terms</button>
-                        {" · "}
-                        <button type="button" onClick={() => goTo("privacy")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Privacy</button>
-                      </p>
+                      <label style={{ display:"flex", gap:10, alignItems:"flex-start", cursor:"pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={prelaunchSmsConsent}
+                          onChange={e => setPrelaunchSmsConsent(e.target.checked)}
+                          style={{ marginTop:3, accentColor:T.gold, width:15, height:15, flexShrink:0, cursor:"pointer" }}
+                        />
+                        <span style={{ fontSize:11, color:"rgba(255,255,255,0.45)", lineHeight:1.65 }}>
+                          I agree to receive recurring automated text messages from Mystical Messages at the number provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
+                          <button type="button" onClick={() => goTo("terms")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
+                          {" · "}
+                          <button type="button" onClick={() => goTo("privacy")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
+                        </span>
+                      </label>
                     </>
                   )}
                   <button
                     onClick={saveNotify}
-                    disabled={!notifyEmail || notifyLoading}
-                    style={{ marginTop:4, width:"100%", padding:"13px 0", borderRadius:8, background: notifyEmail ? T.gold : "rgba(201,147,58,0.2)", color: notifyEmail ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: notifyEmail ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
+                    disabled={!notifyEmail || notifyLoading || (textOptIn && (!notifyPhone.trim() || !prelaunchSmsConsent))}
+                    style={{ marginTop:4, width:"100%", padding:"13px 0", borderRadius:8, background: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? T.gold : "rgba(201,147,58,0.2)", color: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
                   >
                     {notifyLoading ? <Spinner/> : "Notify me when you're live ✨"}
                   </button>
