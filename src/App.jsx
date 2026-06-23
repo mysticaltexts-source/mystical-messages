@@ -446,6 +446,56 @@ function TermsScreen({ onBack, menuItems }) {
 }
 
 /* ══════════════════════════════════════
+   SCREEN: PRIVACY POLICY
+══════════════════════════════════════ */
+function PrivacyScreen({ onBack, menuItems }) {
+  const section = (title, text) => (
+    <div style={{ marginBottom:28 }}>
+      <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:17, fontWeight:700, color:T.ink, marginBottom:10 }}>{title}</h3>
+      <p style={{ fontSize:14, color:T.body, lineHeight:1.8, fontFamily:"'Lora', serif" }}>{text}</p>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight:"100vh", background:T.parchment }}>
+      <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
+      <div style={{ maxWidth:680, margin:"0 auto", padding:"48px 24px 80px" }}>
+        <div className="fade-up" style={{ marginBottom:8 }}>
+          <SectionLabel>Legal</SectionLabel>
+          <DisplayTitle>Privacy Policy</DisplayTitle>
+          <p style={{ fontSize:13, color:T.muted, marginTop:8 }}>Last updated: June 2026 · Mystical Texts LLC</p>
+        </div>
+
+        <div className="fade-up-1" style={{ marginTop:36 }}>
+          <p style={{ fontSize:15, color:T.body, lineHeight:1.8, fontFamily:"'Lora', serif", marginBottom:32, padding:"18px 22px", background:T.warmWhite, borderRadius:14, border:`1px solid rgba(201,147,58,0.15)` }}>
+            This Privacy Policy describes how <strong>Mystical Texts LLC</strong> collects, uses, and protects information when you use Mystical Messages. By using our service you agree to the practices described here.
+          </p>
+
+          {section("1. Information We Collect", "We collect the email address and phone number you provide during account setup, along with child profile information (name and age) you choose to enter. We also collect usage data such as messages sent and subscription status. We do not collect data directly from children.")}
+          {section("2. How We Use Your Information", "Your phone number is used solely to deliver SMS messages from fictional characters that you initiate. Your email is used for account authentication and service communications. Child profile information is used only to personalise message content at your direction.")}
+          {section("3. SMS Messaging", "By providing your phone number and checking the consent box during signup, you agree to receive recurring automated text messages from Mystical Messages. Message and data rates may apply. Message frequency varies based on your usage. You may opt out at any time by replying STOP to any message or canceling your account.")}
+          {section("4. Message Screening & Content Policy", "All messages composed through Mystical Messages are subject to automated and manual review to ensure they are appropriate for a family audience. Messages that contain content deemed inappropriate, harmful, or unsuitable for children will be flagged. Flagged accounts are subject to suspension pending review, and repeated or serious violations may result in permanent loss of access to Mystical Messages and all associated services.")}
+          {section("5. Data Sharing", "We do not sell or share your personal information with third parties for marketing purposes. We share data only as necessary to operate the service — including Twilio (SMS delivery), Stripe (payment processing), and Supabase (database and authentication) — all of whom are bound by their own privacy policies.")}
+          {section("6. Data Retention", "Your data is retained for as long as your account is active. You may request deletion of your account and associated data at any time by contacting us at hello@mysticaltexts.com.")}
+          {section("7. Security", "We use industry-standard security measures to protect your information. However, no method of transmission over the internet is completely secure, and we cannot guarantee absolute security.")}
+          {section("8. Children's Privacy", "Mystical Messages is intended for use by adults (18+) on behalf of their children. We do not knowingly collect personal information directly from children under 13.")}
+
+          <div style={{ padding:"20px 22px", borderRadius:14, background:T.warmWhite, border:`1px solid rgba(201,147,58,0.15)` }}>
+            <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:17, fontWeight:700, color:T.ink, marginBottom:8 }}>9. Contact</h3>
+            <p style={{ fontSize:14, color:T.body, lineHeight:1.8, fontFamily:"'Lora', serif" }}>
+              Questions about this policy? Reach us at:<br/>
+              <strong>Mystical Texts LLC</strong><br/>
+              <a href="mailto:hello@mysticaltexts.com" style={{ color:T.gold }}>hello@mysticaltexts.com</a><br/>
+              mysticaltexts.com
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
    SCREEN: AUTH
 ══════════════════════════════════════ */
 function AuthScreen({ onGoToAbout, onGoToTerms }) {
@@ -695,7 +745,7 @@ const OH_CRAP_DEFAULTS = [
   { id:"wishlist",        emoji:"📝", label:"Wish List Confirmed", sub:"Santa got the list!", charSlug:"santa" },
 ];
 
-function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onLogout }) {
+function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onGoToPrivacy, onLogout }) {
   const [characters, setCharacters] = useState([]);
   const [children, setChildren]     = useState([]);
   const [recentMessages, setRecentMessages] = useState([]);
@@ -836,6 +886,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
               { label:"🕰 History",   action: onGoToHistory },
               { label:"✨ About",     action: onGoToAbout },
               { label:"📜 Terms",     action: onGoToTerms },
+              { label:"🔒 Privacy",   action: onGoToPrivacy },
               { label:"Log out",     action: onLogout },
             ].map(item => (
               <button key={item.label} onClick={() => { setMenuOpen(false); item.action(); }} style={{ display:"block", width:"100%", background:"none", border:"none", padding:"13px 24px", textAlign:"left", color:"rgba(255,255,255,0.8)", fontFamily:"'DM Sans', sans-serif", fontSize:14, cursor:"pointer" }}>
@@ -1877,6 +1928,7 @@ export default function App() {
     { label:"⭐ Plan",      action: () => goTo("billing") },
     { label:"✨ About",     action: () => goTo("about") },
     { label:"📜 Terms",     action: () => goTo("terms") },
+    { label:"🔒 Privacy",   action: () => goTo("privacy") },
     { label:"Log out",     action: handleLogout },
   ] : [];
 
@@ -2071,12 +2123,16 @@ export default function App() {
         <TermsScreen onBack={() => setScreen(prevScreen)} menuItems={navMenuItems}/>
       )}
 
+      {screen === "privacy" && (
+        <PrivacyScreen onBack={() => setScreen(prevScreen)} menuItems={navMenuItems}/>
+      )}
+
       {screen === "setup" && session && (
         <SetupScreen
           user={session.user}
           onComplete={() => loadProfile(session.user.id)}
           onGoToTerms={() => goTo("terms")}
-          onGoToPrivacy={() => goTo("about")}
+          onGoToPrivacy={() => goTo("privacy")}
         />
       )}
 
@@ -2090,6 +2146,7 @@ export default function App() {
           onGoToProfiles={()  => goTo("profiles")}
           onGoToAbout={()     => goTo("about")}
           onGoToTerms={()     => goTo("terms")}
+          onGoToPrivacy={()   => goTo("privacy")}
           onLogout={handleLogout}
         />
       )}
