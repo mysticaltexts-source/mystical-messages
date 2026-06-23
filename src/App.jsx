@@ -661,6 +661,7 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
         });
       }
 
+      localStorage.setItem("mm_sms_consent_v1", "true");
       onComplete();
     } catch (err) {
       setError(err.message);
@@ -1647,6 +1648,11 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
     if (!msgText.trim() || !schedDate || !selectedChar) return;
     if (PLAN_RANK[profile?.plan || "free"] < PLAN_RANK["basic"]) {
       onSelectPlan("banner");
+      return;
+    }
+    if (TEST_MODE) {
+      setToast(`[TEST] 📅 Message scheduling simulated — no SMS will be sent`);
+      setStep(1); setSelectedChar(null); setMsgText(""); setSchedDate("");
       return;
     }
     setSaving(true);
