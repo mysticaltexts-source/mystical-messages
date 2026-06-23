@@ -1865,6 +1865,8 @@ export default function App() {
   const [loading, setLoading]   = useState(true);
   const [prevScreen, setPrevScreen] = useState("dashboard");
   const [prelaunch, setPrelaunch]           = useState(null);
+  const [showConsentOverlay, setShowConsentOverlay] = useState(false);
+  const [consentChecked, setConsentChecked]         = useState(false);
   const [notifyEmail, setNotifyEmail]       = useState("");
   const [textOptIn, setTextOptIn]           = useState(false);
   const [notifyPhone, setNotifyPhone]       = useState("");
@@ -1913,8 +1915,17 @@ export default function App() {
       setScreen("setup");
     } else {
       setScreen("dashboard");
+      if (!localStorage.getItem("mm_sms_consent_v1")) {
+        setShowConsentOverlay(true);
+      }
     }
     setLoading(false);
+  }
+
+  function handleConsentAgree() {
+    localStorage.setItem("mm_sms_consent_v1", "true");
+    setShowConsentOverlay(false);
+    setConsentChecked(false);
   }
 
   async function handleLogout() {
@@ -2058,13 +2069,21 @@ export default function App() {
                     <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"rgba(255,255,255,0.65)" }}>Also text me when you're live</span>
                   </button>
                   {textOptIn && (
-                    <input
-                      type="tel"
-                      value={notifyPhone}
-                      onChange={e => setNotifyPhone(e.target.value)}
-                      placeholder="Your phone number"
-                      style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
-                    />
+                    <>
+                      <input
+                        type="tel"
+                        value={notifyPhone}
+                        onChange={e => setNotifyPhone(e.target.value)}
+                        placeholder="Your phone number"
+                        style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
+                      />
+                      <p style={{ fontSize:11, color:"rgba(255,255,255,0.4)", lineHeight:1.6, margin:0 }}>
+                        By providing your number you agree to receive recurring automated text messages from Mystical Messages. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
+                        <button type="button" onClick={() => goTo("terms")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Terms</button>
+                        {" · "}
+                        <button type="button" onClick={() => goTo("privacy")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Privacy</button>
+                      </p>
+                    </>
                   )}
                   <button
                     onClick={saveNotify}
@@ -2105,6 +2124,43 @@ export default function App() {
         </div>
       )}
       {prelaunchToast && <Toast message={prelaunchToast} onDone={() => setPrelaunchToast(null)}/>}
+
+      {/* ── SMS consent overlay for returning users ── */}
+      {showConsentOverlay && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(13,27,42,0.88)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:400, padding:24 }}>
+          <div style={{ background:T.midnight, border:`1.5px solid rgba(201,147,58,0.3)`, borderRadius:24, padding:"40px 32px", maxWidth:420, width:"100%", animation:"fadeUp 0.35s ease", boxShadow:"0 24px 64px rgba(0,0,0,0.4)" }}>
+            <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>📱</div>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.warmWhite, marginBottom:12, lineHeight:1.3, textAlign:"center" }}>
+              A quick update
+            </h2>
+            <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
+              We've updated how we handle SMS consent. Please confirm you're happy to keep receiving messages.
+            </p>
+            <label style={{ display:"flex", gap:12, alignItems:"flex-start", cursor:"pointer", marginBottom:24 }}>
+              <input
+                type="checkbox"
+                checked={consentChecked}
+                onChange={e => setConsentChecked(e.target.checked)}
+                style={{ marginTop:3, accentColor:T.gold, width:16, height:16, flexShrink:0, cursor:"pointer" }}
+              />
+              <span style={{ fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.7 }}>
+                I agree to receive recurring automated text messages from Mystical Messages at the number on my account.
+                Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
+                <button type="button" onClick={() => { setShowConsentOverlay(false); goTo("terms"); }} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
+                {" · "}
+                <button type="button" onClick={() => { setShowConsentOverlay(false); goTo("privacy"); }} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
+              </span>
+            </label>
+            <button
+              onClick={handleConsentAgree}
+              disabled={!consentChecked}
+              style={{ width:"100%", padding:"13px 0", borderRadius:8, background: consentChecked ? T.gold : "rgba(201,147,58,0.2)", color: consentChecked ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: consentChecked ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+            >
+              I agree — continue ✦
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={{ paddingTop: (session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup") ? 38 : 0 }}>
 
