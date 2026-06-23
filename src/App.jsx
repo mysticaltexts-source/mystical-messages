@@ -6,6 +6,27 @@ import { supabase, callFunction } from "./lib/supabase.js";
 // Delete the variable entirely once Twilio brand/10DLC approval is received.
 const TEST_MODE = !!import.meta.env.VITE_TEST_MODE;
 
+/* ─── ANALYTICS ─── */
+async function logEvent(userId, event, metadata = {}) {
+  if (!userId) return;
+  try {
+    await supabase.from("events").insert({ user_id: userId, event, metadata });
+  } catch (_) {}
+}
+
+/* ─── MESSAGE SCREENING ─── */
+const FLAGGED_TERMS = [
+  "sex","sexy","nude","naked","porn","fuck","shit","bitch","ass","dick","cock",
+  "pussy","cunt","whore","slut","rape","kill yourself","kys","suicide","drugs",
+  "cocaine","meth","heroin","weed","marijuana","alcohol","beer","wine","vodka",
+  "gun","weapon","bomb","terrorist","violence","abuse","molest","predator",
+];
+function screenMessage(text) {
+  const lower = text.toLowerCase();
+  const hit = FLAGGED_TERMS.find(t => lower.includes(t));
+  return hit ? `Contains flagged term: "${hit}"` : null;
+}
+
 /* ─── STRIPE PRICE IDs ─── */
 const STRIPE_PRICES = {
   trial:    "price_1Tf7SKJwbJqhqSCz6V76Rv14",
@@ -648,7 +669,7 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
 
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ phone_number: formattedPhone })
+        .update({ phone_number: formattedPhone, sms_consent_at: new Date().toISOString() })
         .eq("id", user.id);
       if (profileError) throw profileError;
 
@@ -814,6 +835,8 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     const childName = selectedChild?.name || "there";
     const body = getOhCrapTemplate(btn.id, childName);
 
+    const flagReason = screenMessage(body);
+
     setOhCrapSending(btn.id);
     try {
       if (!TEST_MODE) {
@@ -821,6 +844,17 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
           character_id: char.id, body, child_id: selectedChild?.id || null, is_ohcrap: true,
         });
       }
+      await supabase.from("messages").insert({
+        parent_id: session.user.id,
+        character_id: char.id,
+        child_id: selectedChild?.id || null,
+        body,
+        status: "sent",
+        is_ohcrap: true,
+        flagged: !!flagReason,
+        flagged_reason: flagReason || null,
+      });
+      logEvent(session.user.id, "message_sent", { character: char.slug, is_ohcrap: true, flagged: !!flagReason });
       setToast(TEST_MODE ? `[TEST] ${btn.emoji} ${btn.label} — no SMS sent` : `${btn.emoji} ${btn.label} message sent to your phone!`);
       localStorage.setItem("mm_pending_share", "true");
       setShowMomentModal(true);
@@ -835,6 +869,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   async function sendMessage() {
     if (!msgText.trim() || !activeChar) return;
     setSending(true);
+    const flagReason = screenMessage(msgText);
     try {
       if (!TEST_MODE) {
         await callFunction("send-message", {
@@ -842,6 +877,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
           child_id: selectedChild?.id || null, is_ohcrap: false,
         });
       }
+      await supabase.from("messages").update({ flagged: !!flagReason, flagged_reason: flagReason || null })
+        .eq("parent_id", session.user.id).eq("body", msgText).eq("status", "sent").is("is_ohcrap", false)
+        .order("created_at", { ascending: false }).limit(1);
+      logEvent(session.user.id, "message_sent", { character: activeChar.slug, is_ohcrap: false, flagged: !!flagReason });
       setToast(TEST_MODE ? `[TEST] ${activeChar.emoji} Message simulated — no SMS sent` : `${activeChar.emoji} Message sent to your phone!`);
       setMsgText(""); setComposing(false); setActiveChar(null);
       localStorage.setItem("mm_pending_share", "true");
@@ -1655,6 +1694,7 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
       setStep(1); setSelectedChar(null); setMsgText(""); setSchedDate("");
       return;
     }
+    const flagReason = screenMessage(msgText);
     setSaving(true);
     try {
       const scheduledFor = new Date(`${schedDate}T${schedTime}`).toISOString();
@@ -1665,7 +1705,10 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
         body: msgText,
         status: "scheduled",
         scheduled_for: scheduledFor,
+        flagged: !!flagReason,
+        flagged_reason: flagReason || null,
       });
+      logEvent(session.user.id, "message_scheduled", { character_id: selectedChar.id, flagged: !!flagReason });
       setToast(`📅 Scheduled for ${new Date(scheduledFor).toLocaleDateString()} at ${schedTime}!`);
       setStep(1); setSelectedChar(null); setMsgText(""); setSchedDate("");
       loadData();
@@ -1918,8 +1961,11 @@ export default function App() {
   async function loadProfile(userId) {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
     setProfile(data);
+    logEvent(userId, "login");
     if (!data?.phone_number) {
       setScreen("setup");
+    } else if (data?.is_suspended) {
+      setScreen("suspended");
     } else {
       setScreen("dashboard");
       if (!localStorage.getItem("mm_sms_consent_v1")) {
@@ -1929,8 +1975,14 @@ export default function App() {
     setLoading(false);
   }
 
-  function handleConsentAgree() {
+  async function handleConsentAgree() {
     localStorage.setItem("mm_sms_consent_v1", "true");
+    if (session?.user?.id) {
+      await supabase.from("profiles")
+        .update({ sms_consent_at: new Date().toISOString() })
+        .eq("id", session.user.id);
+      logEvent(session.user.id, "sms_consent_given", { method: "returning_user_overlay" });
+    }
     setShowConsentOverlay(false);
     setConsentChecked(false);
   }
@@ -2196,6 +2248,25 @@ export default function App() {
 
       {screen === "privacy" && (
         <PrivacyScreen onBack={() => setScreen(prevScreen)} menuItems={navMenuItems}/>
+      )}
+
+      {screen === "suspended" && (
+        <div style={{ minHeight:"100vh", background:T.midnight, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+          <div style={{ maxWidth:420, textAlign:"center" }}>
+            <div style={{ fontSize:48, marginBottom:16 }}>🚫</div>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:700, color:T.warmWhite, marginBottom:12 }}>Account suspended</h2>
+            <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.6)", lineHeight:1.8, marginBottom:8 }}>
+              {profile?.suspended_reason || "Your account has been suspended pending review for a content policy violation."}
+            </p>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", lineHeight:1.7 }}>
+              To appeal, contact us at{" "}
+              <a href="mailto:hello@mysticaltexts.com" style={{ color:T.gold }}>hello@mysticaltexts.com</a>.
+            </p>
+            <button onClick={handleLogout} style={{ marginTop:24, background:"transparent", border:`1px solid rgba(255,255,255,0.2)`, color:"rgba(255,255,255,0.5)", padding:"10px 24px", borderRadius:8, fontSize:13, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
+              Sign out
+            </button>
+          </div>
+        </div>
       )}
 
       {screen === "setup" && session && (
