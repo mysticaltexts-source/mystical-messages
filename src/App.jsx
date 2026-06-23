@@ -265,7 +265,7 @@ function PageNav({ onBack, title, menuItems = [] }) {
 /* ══════════════════════════════════════
    FOOTER COMPONENT
 ══════════════════════════════════════ */
-function Footer({ onGoToAbout, onGoToTerms }) {
+function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
   return (
     <>
       {/* Mobile: fixed bar at bottom of screen */}
@@ -291,6 +291,7 @@ function Footer({ onGoToAbout, onGoToTerms }) {
         <span style={{ fontSize:12, color:T.muted }}>© 2026 Mystical Texts LLC</span>
         <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>About</button>
         <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Terms</button>
+        <button onClick={onGoToPrivacy} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Privacy</button>
       </footer>
 
       {/* Desktop inline footer */}
@@ -302,6 +303,7 @@ function Footer({ onGoToAbout, onGoToTerms }) {
         <div style={{ display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
           <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>About</button>
           <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
+          <button onClick={onGoToPrivacy} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
           <a href="mailto:hello@mysticaltexts.com" style={{ color:T.gold, fontSize:13 }}>Contact</a>
         </div>
       </footer>
@@ -519,7 +521,7 @@ function PrivacyScreen({ onBack, menuItems }) {
 /* ══════════════════════════════════════
    SCREEN: AUTH
 ══════════════════════════════════════ */
-function AuthScreen({ onGoToAbout, onGoToTerms }) {
+function AuthScreen({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ email:"", password:"", name:"", confirmPassword:"" });
   const [errors, setErrors] = useState({});
@@ -626,7 +628,9 @@ function AuthScreen({ onGoToAbout, onGoToTerms }) {
           {mode === "signup" && (
             <p style={{ fontSize:12, color:"rgba(255,255,255,0.3)", textAlign:"center", marginTop:18, lineHeight:1.7 }}>
               By signing up you confirm you are 18+ and agree to our{" "}
-              <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", textDecoration:"underline", fontSize:12 }}>Terms of Service</button>.
+              <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", textDecoration:"underline", fontSize:12 }}>Terms of Service</button>
+              {" "}and{" "}
+              <button onClick={onGoToPrivacy} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", textDecoration:"underline", fontSize:12 }}>Privacy Policy</button>.
               Adults-only platform — children never have accounts.
             </p>
           )}
@@ -641,6 +645,7 @@ function AuthScreen({ onGoToAbout, onGoToTerms }) {
         <div className="fade-up-3" style={{ marginTop:16, display:"flex", justifyContent:"center", gap:20 }}>
           <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.25)", cursor:"pointer", fontSize:12, textDecoration:"underline" }}>About</button>
           <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.25)", cursor:"pointer", fontSize:12, textDecoration:"underline" }}>Terms</button>
+          <button onClick={onGoToPrivacy} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.25)", cursor:"pointer", fontSize:12, textDecoration:"underline" }}>Privacy</button>
         </div>
       </div>
     </div>
@@ -1102,7 +1107,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         </div>
       </div>
 
-      <Footer onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms}/>
+      <Footer onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms} onGoToPrivacy={onGoToPrivacy}/>
 
       {showMomentModal && (
         <MagicShareModal variant="moment" onShare={handleShareMoment} onDismiss={handleDismissMoment}/>
@@ -2235,6 +2240,7 @@ export default function App() {
         <AuthScreen
           onGoToAbout={() => goTo("about")}
           onGoToTerms={() => goTo("terms")}
+          onGoToPrivacy={() => goTo("privacy")}
         />
       )}
 
