@@ -29,10 +29,13 @@ function screenMessage(text) {
 
 /* ─── STRIPE PRICE IDs ─── */
 const STRIPE_PRICES = {
-  trial:    "price_1Tf7SKJwbJqhqSCz6V76Rv14",
-  basic:    "price_1Tf7SGJwbJqhqSCzTCqIq1fz",
-  standard: "price_1Tf7SCJwbJqhqSCzQjMM0BGw",
-  premium:  "price_1Tf7S4JwbJqhqSCzoHDYCBRo",
+  trial:            "price_1Tf7SKJwbJqhqSCz6V76Rv14",  // $0.99 one-time — unchanged
+  basic_monthly:    "REPLACE_basic_monthly",             // $1.99/mo — create in Stripe
+  basic_annual:     "REPLACE_basic_annual",              // $19.99/yr — create in Stripe
+  standard_monthly: "REPLACE_standard_monthly",          // $4.99/mo — create in Stripe
+  standard_annual:  "REPLACE_standard_annual",           // $44.99/yr — create in Stripe
+  premium_monthly:  "REPLACE_premium_monthly",           // $9.99/mo — create in Stripe
+  premium_annual:   "REPLACE_premium_annual",            // $74.99/yr — create in Stripe
 };
 
 /* ─── PLAN RANK ─── */
@@ -1139,24 +1142,36 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
    SCREEN: BILLING
 ══════════════════════════════════════ */
 const PLANS = [
-  { id:"trial",    tier:"Try It Once", price:"$0.99", period:"one-time", badge:null,
+  { id:"trial",    tier:"Try It Once",
+    priceMonthly:"$0.99", periodMonthly:"one-time",
+    priceAnnual:null,     periodAnnual:null,     savingsAnnual:null,
+    badge:null,
     features:["1 message, any character","Template or custom","No subscription"], cta:"Send one message" },
-  { id:"basic",    tier:"Basic",       price:"$4.99", period:"/mo", badge:null,
+  { id:"basic",    tier:"Basic",
+    priceMonthly:"$1.99", periodMonthly:"/mo",
+    priceAnnual:"$19.99", periodAnnual:"/yr",    savingsAnnual:"16%",
+    badge:null,
     features:["Santa & Tooth Fairy","15 templates","Basic scheduling","1 child profile"], cta:"Choose Basic" },
-  { id:"standard", tier:"Standard",    price:"$9.99", period:"/mo", badge:"Best Value",
+  { id:"standard", tier:"Standard",
+    priceMonthly:"$4.99", periodMonthly:"/mo",
+    priceAnnual:"$44.99", periodAnnual:"/yr",    savingsAnnual:"25%",
+    badge:"Best Value",
     features:["All 3 core characters","30+ templates","Oh-Crap!! Buttons","Message history","Multiple children","Advanced scheduling"], cta:"Choose Standard" },
-  { id:"premium",  tier:"Premium",     price:"$14.99", period:"/mo", badge:null,
+  { id:"premium",  tier:"Premium",
+    priceMonthly:"$9.99", periodMonthly:"/mo",
+    priceAnnual:"$74.99", periodAnnual:"/yr",    savingsAnnual:"37%",
+    badge:null,
     features:["Everything in Standard","Build your own custom character","Unlimited saved message scripts","Priority support"], cta:"Choose Premium" },
 ];
 
 const BADGE_DATA = [
-  { id:"trial",    image:"/badge-trial.png",    tier:"Try It Once", price:"$0.99",     badge:null,          description:"Not sure yet? No pressure at all. One magical message, zero commitment — just the perfect way to see your child's face light up.", scrollCta:"Let's give it a whirl ✨" },
-  { id:"basic",    image:"/badge-basic.png",    tier:"Basic",       price:"$4.99/mo",  badge:null,          description:"Santa and the Tooth Fairy are standing by. Solid templates, simple scheduling — everything you need to nail the classics.", scrollCta:"This feels right for us →" },
-  { id:"standard", image:"/badge-standard.png", tier:"Standard",    price:"$9.99/mo",  badge:"Best Value",  description:"Honestly? This is the one most families end up loving. All three characters, Oh-Crap!! buttons for those last-minute saves, and plenty of room to grow.", scrollCta:"Ooh yes, this is the one →" },
-  { id:"premium",  image:"/badge-premium.png",  tier:"Premium",     price:"$14.99/mo", badge:null,          description:"You take magic seriously — and I respect it. Build your own characters, write your own scripts, and make every moment uniquely yours.", scrollCta:"Go big — we deserve it ✨" },
+  { id:"trial",    image:"/badge-trial.png",    tier:"Try It Once", priceMonthly:"$0.99",    priceAnnual:null,      badge:null,         description:"Not sure yet? No pressure at all. One magical message, zero commitment — just the perfect way to see your child's face light up.", scrollCta:"Let's give it a whirl ✨" },
+  { id:"basic",    image:"/badge-basic.png",    tier:"Basic",       priceMonthly:"$1.99/mo", priceAnnual:"$19.99/yr", badge:null,         description:"Santa and the Tooth Fairy are standing by. Solid templates, simple scheduling — everything you need to nail the classics.", scrollCta:"This feels right for us →" },
+  { id:"standard", image:"/badge-standard.png", tier:"Standard",    priceMonthly:"$4.99/mo", priceAnnual:"$44.99/yr", badge:"Best Value", description:"Honestly? This is the one most families end up loving. All three characters, Oh-Crap!! buttons for those last-minute saves, and plenty of room to grow.", scrollCta:"Ooh yes, this is the one →" },
+  { id:"premium",  image:"/badge-premium.png",  tier:"Premium",     priceMonthly:"$9.99/mo", priceAnnual:"$74.99/yr", badge:null,         description:"You take magic seriously — and I respect it. Build your own characters, write your own scripts, and make every moment uniquely yours.", scrollCta:"Go big — we deserve it ✨" },
 ];
 
-function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
+function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "monthly" }) {
   return (
     <div onClick={onFlip} style={{ perspective:1000, cursor:"pointer", height:290, userSelect:"none" }}>
       <div style={{
@@ -1179,7 +1194,9 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
           )}
           <img src={badge.image} alt={badge.tier} style={{ width:84, height:"auto", marginBottom:6 }}/>
           <div style={{ fontFamily:"'Playfair Display',serif", fontSize:15, fontWeight:700, color:T.ink, textAlign:"center" }}>{badge.tier}</div>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.gold }}>{badge.price}</div>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.gold }}>
+            {billingCycle === "annual" && badge.priceAnnual ? badge.priceAnnual : badge.priceMonthly}
+          </div>
           <div style={{ fontSize:10, color:T.muted, letterSpacing:"0.05em", marginTop:4 }}>tap to learn more</div>
         </div>
         {/* BACK */}
@@ -1341,6 +1358,7 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loadingPlan, setLoadingPlan]   = useState(null);
   const [flippedCard, setFlippedCard]   = useState(null);
+  const [billingCycle, setBillingCycle] = useState("monthly");
 
   const currentPlan = profile?.plan || "free";
 
@@ -1352,9 +1370,10 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
     onSelectPlan(planId);
     return; // prelaunch intercept — remove this block when payments go live
     setLoadingPlan(planId);
+    const priceKey = planId === "trial" ? "trial" : `${planId}_${billingCycle}`;
     try {
       const { url } = await callFunction("create-checkout-session", {
-        price_id: STRIPE_PRICES[planId],
+        price_id: STRIPE_PRICES[priceKey],
         plan_name: planId,
       });
       if (url) window.location.href = url;
@@ -1407,8 +1426,31 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
           )}
         </div>
 
+        {/* ── Billing Cycle Toggle ── */}
+        <div className="fade-up-1" style={{ display:"flex", justifyContent:"center", marginBottom:36 }}>
+          <div style={{ background:T.midnight, borderRadius:100, padding:4, display:"inline-flex", gap:2 }}>
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              style={{ padding:"9px 26px", borderRadius:100, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, transition:"all 0.2s",
+                background: billingCycle === "monthly" ? T.gold : "transparent",
+                color: billingCycle === "monthly" ? T.midnight : "rgba(255,255,255,0.5)" }}
+            >Monthly</button>
+            <button
+              onClick={() => setBillingCycle("annual")}
+              style={{ padding:"9px 26px", borderRadius:100, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, transition:"all 0.2s", display:"flex", alignItems:"center", gap:8,
+                background: billingCycle === "annual" ? T.gold : "transparent",
+                color: billingCycle === "annual" ? T.midnight : "rgba(255,255,255,0.5)" }}
+            >
+              Annual
+              <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:100,
+                background: billingCycle === "annual" ? "rgba(13,27,42,0.15)" : "rgba(74,140,110,0.2)",
+                color: billingCycle === "annual" ? T.midnight : "#4a8c6e" }}>Save up to 37%</span>
+            </button>
+          </div>
+        </div>
+
         {/* ── Badge Flip Cards ── */}
-        <div className="fade-up-1" style={{ marginBottom:48 }}>
+        <div className="fade-up-2" style={{ marginBottom:48 }}>
           <div style={{ marginBottom:20 }}>
             <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:6 }}>Which level of magic fits your family?</h3>
             <p style={{ fontSize:13, color:T.muted }}>Tap a badge to see what each plan is all about.</p>
@@ -1432,17 +1474,21 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
                   isFlipped={flippedCard === badge.id}
                   onFlip={() => setFlippedCard(prev => prev === badge.id ? null : badge.id)}
                   onScrollTo={() => { setFlippedCard(null); scrollToPlan(badge.id); }}
+                  billingCycle={billingCycle}
                 />
               </div>
             ))}
           </div>
         </div>
 
-        <div className="fade-up-2" style={{ marginBottom:48 }}>
+        <div className="fade-up-3" style={{ marginBottom:48 }}>
           <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:20 }}>All plans</h3>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:14 }}>
             {PLANS.map(plan => {
               const isCurrent = currentPlan === plan.id;
+              const showAnnual = billingCycle === "annual" && plan.priceAnnual !== null;
+              const displayPrice = showAnnual ? plan.priceAnnual : plan.priceMonthly;
+              const displayPeriod = showAnnual ? plan.periodAnnual : plan.periodMonthly;
               return (
                 <div key={plan.id} id={`plan-card-${plan.id}`} style={{
                   background: isCurrent ? T.midnight : T.warmWhite,
@@ -1452,8 +1498,11 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
                 }}>
                   {plan.badge && <div style={{ position:"absolute", top:-11, left:"50%", transform:"translateX(-50%)", background:T.gold, color:T.midnight, fontSize:10, fontWeight:700, padding:"3px 12px", borderRadius:100, whiteSpace:"nowrap" }}>{plan.badge}</div>}
                   <div style={{ fontSize:11, fontWeight:500, letterSpacing:"0.15em", textTransform:"uppercase", color: isCurrent ? T.goldLight : T.gold, marginBottom:6 }}>{plan.tier}</div>
-                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:700, color: isCurrent ? T.warmWhite : T.ink, lineHeight:1 }}>{plan.price}</div>
-                  <div style={{ fontSize:13, color: isCurrent ? "rgba(255,255,255,0.4)" : T.muted, marginBottom:18 }}>{plan.period}</div>
+                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:700, color: isCurrent ? T.warmWhite : T.ink, lineHeight:1 }}>{displayPrice}</div>
+                  <div style={{ fontSize:13, color: isCurrent ? "rgba(255,255,255,0.4)" : T.muted, marginBottom: showAnnual && plan.savingsAnnual ? 4 : 18 }}>{displayPeriod}</div>
+                  {showAnnual && plan.savingsAnnual && (
+                    <div style={{ fontSize:11, fontWeight:700, color:"#4a8c6e", background:"rgba(74,140,110,0.1)", display:"inline-block", padding:"2px 8px", borderRadius:100, marginBottom:14 }}>Save {plan.savingsAnnual}</div>
+                  )}
                   <div style={{ height:1, background: isCurrent ? "rgba(255,255,255,0.1)" : "rgba(201,147,58,0.15)", marginBottom:16 }}/>
                   <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
                     {plan.features.map((f,i) => (
@@ -1480,7 +1529,7 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
         </div>
 
         {/* ── Invite code ── */}
-        <div className="fade-up-3" style={{ marginBottom:40 }}>
+        <div className="fade-up-4" style={{ marginBottom:40 }}>
           <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
             <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to unlock your preview access — no payment needed.</p>
