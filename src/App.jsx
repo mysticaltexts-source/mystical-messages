@@ -1233,8 +1233,8 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "m
 ══════════════════════════════════════ */
 function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, onGoToBilling }) {
   const [phone, setPhone]           = useState(profile?.phone_number || "");
-  const [emailInput, setEmailInput] = useState("");
-  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailInput, setEmailInput] = useState(session?.user?.email || "");
+  const [emailSent, setEmailSent]   = useState(false);
   const [resetSent, setResetSent]   = useState(false);
   const [saving, setSaving]         = useState(false);
   const [toast, setToast]           = useState(null);
@@ -1251,12 +1251,13 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
   }
 
   async function updateEmail() {
-    if (!emailInput.trim()) return;
+    const trimmed = emailInput.trim();
+    if (!trimmed || trimmed === session.user.email) return;
     setSaving(true);
-    const { error } = await supabase.auth.updateUser({ email: emailInput.trim() });
+    const { error } = await supabase.auth.updateUser({ email: trimmed });
     setSaving(false);
     if (error) setToast("Couldn't update: " + error.message);
-    else { setToast("Confirmation sent — check your new inbox."); setShowEmailForm(false); setEmailInput(""); }
+    else setEmailSent(true);
   }
 
   async function resetPassword() {
@@ -1284,21 +1285,17 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         {/* ── Email ── */}
         <Card style={{ marginBottom:16 }}>
           {field("Email Address",
-            <>
-              <p style={{ fontSize:15, color:T.body, marginBottom:12 }}>{session.user.email}</p>
-              {!showEmailForm ? (
-                <Btn variant="ghost" small onClick={() => setShowEmailForm(true)}>Change email address</Btn>
-              ) : (
-                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                  <Input label="New email address" type="email" value={emailInput} onChange={setEmailInput} placeholder="new@email.com"/>
-                  <div style={{ display:"flex", gap:8 }}>
-                    <Btn small onClick={updateEmail} loading={saving}>Send confirmation</Btn>
-                    <Btn variant="ghost" small onClick={() => { setShowEmailForm(false); setEmailInput(""); }}>Cancel</Btn>
-                  </div>
-                  <p style={{ fontSize:12, color:T.muted, fontFamily:"'Lora',serif" }}>We'll send a confirmation link to your new address. Your email won't change until you click it.</p>
+            emailSent ? (
+              <p style={{ fontSize:14, color:T.gold }}>✓ Confirmation sent — check your new inbox to confirm the change.</p>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                <Input type="email" value={emailInput} onChange={setEmailInput} placeholder="your@email.com"/>
+                <p style={{ fontSize:12, color:T.muted, fontFamily:"'Lora',serif" }}>We'll send a confirmation link to the new address. Nothing changes until you click it.</p>
+                <div>
+                  <Btn small onClick={updateEmail} loading={saving} disabled={!emailInput.trim() || emailInput.trim() === session.user.email}>Update email</Btn>
                 </div>
-              )}
-            </>
+              </div>
+            )
           )}
         </Card>
 
