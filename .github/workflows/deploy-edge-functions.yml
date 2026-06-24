@@ -22,3 +22,13 @@ jobs:
         run: supabase functions deploy send-welcome-email --project-ref oedkofmpwmlpscsowqdo
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy send-earlybird-announcement
+        run: supabase functions deploy send-earlybird-announcement --project-ref oedkofmpwmlpscsowqdo
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy send-free-announcement
+        run: supabase functions deploy send-free-announcement --project-ref oedkofmpwmlpscsowqdo
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
