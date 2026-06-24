@@ -772,10 +772,11 @@ const OH_CRAP_DEFAULTS = [
   { id:"wishlist",        emoji:"📝", label:"Wish List Confirmed", sub:"Santa got the list!", charSlug:"santa" },
 ];
 
-function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onGoToPrivacy, onLogout }) {
+function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onGoToPrivacy, onGoToAccount, onLogout }) {
   const [characters, setCharacters] = useState([]);
   const [children, setChildren]     = useState([]);
   const [recentMessages, setRecentMessages] = useState([]);
+  const [totalMessages, setTotalMessages]   = useState(null);
   const [activeChar, setActiveChar] = useState(null);
   const [composing, setComposing]   = useState(false);
   const [msgText, setMsgText]       = useState("");
@@ -809,6 +810,9 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
     const { data: msgs } = await supabase.from("messages").select("*, characters(name,emoji)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false }).limit(5);
     setRecentMessages(msgs || []);
+
+    const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
+    setTotalMessages(count ?? 0);
   }
 
   function handleShareMoment() {
@@ -828,6 +832,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   }
 
   function canUse(char) {
+    if (plan === "free") return totalMessages === 0; // any character for 1 free message
     return (PLAN_RANK[plan] || 0) >= (PLAN_RANK[char.required_plan] || 0);
   }
 
@@ -835,6 +840,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     const char = characters.find(c => c.slug === btn.charSlug);
     if (!char) { setToast("Character not found. Please contact support."); return; }
     if (!canUse(char)) { onGoToBilling(); return; }
+    if (plan === "free") {
+      const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
+      if ((count ?? 0) >= 1) { onGoToBilling(); return; }
+    }
     if (!profile?.phone_number) { setToast("Please add your phone number in settings first."); return; }
 
     const childName = selectedChild?.name || "there";
@@ -873,6 +882,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
   async function sendMessage() {
     if (!msgText.trim() || !activeChar) return;
+    if (plan === "free") {
+      const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
+      if ((count ?? 0) >= 1) { onGoToBilling(); return; }
+    }
     setSending(true);
     const flagReason = screenMessage(msgText);
     try {
@@ -926,6 +939,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         {menuOpen && (
           <div style={{ position:"absolute", top:"100%", right:0, background:T.midnight, borderLeft:`1px solid rgba(255,255,255,0.08)`, borderBottom:`1px solid rgba(255,255,255,0.08)`, borderRadius:"0 0 0 12px", padding:"8px 0", minWidth:180, boxShadow:"0 8px 32px rgba(0,0,0,0.4)" }}>
             {[
+              { label:"👤 My Account", action: onGoToAccount },
               { label:"👨‍👩‍👧 Profiles",  action: onGoToProfiles },
               { label:"📅 Schedule",  action: onGoToSchedule },
               { label:"🕰 History",   action: onGoToHistory },
@@ -1193,6 +1207,131 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════
+   SCREEN: ACCOUNT SETTINGS
+══════════════════════════════════════ */
+function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, onGoToBilling }) {
+  const [phone, setPhone]           = useState(profile?.phone_number || "");
+  const [emailInput, setEmailInput] = useState("");
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [resetSent, setResetSent]   = useState(false);
+  const [saving, setSaving]         = useState(false);
+  const [toast, setToast]           = useState(null);
+
+  const plan = profile?.plan || "free";
+  const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
+
+  async function savePhone() {
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({ phone_number: phone }).eq("id", session.user.id);
+    setSaving(false);
+    if (error) setToast("Couldn't save — try again.");
+    else { setToast("Phone number updated!"); onProfileUpdated?.(); }
+  }
+
+  async function updateEmail() {
+    if (!emailInput.trim()) return;
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({ email: emailInput.trim() });
+    setSaving(false);
+    if (error) setToast("Couldn't update: " + error.message);
+    else { setToast("Confirmation sent — check your new inbox."); setShowEmailForm(false); setEmailInput(""); }
+  }
+
+  async function resetPassword() {
+    const { error } = await supabase.auth.resetPasswordForEmail(session.user.email);
+    if (error) setToast("Couldn't send reset email.");
+    else setResetSent(true);
+  }
+
+  const field = (label, content) => (
+    <div style={{ marginBottom:24 }}>
+      <SectionLabel>{label}</SectionLabel>
+      {content}
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight:"100vh", background:T.parchment }}>
+      <PageNav onBack={onBack} title="Account" menuItems={menuItems}/>
+      <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 80px" }}>
+
+        <div className="fade-up" style={{ marginBottom:28 }}>
+          <DisplayTitle>Account Settings</DisplayTitle>
+        </div>
+
+        {/* ── Email ── */}
+        <Card style={{ marginBottom:16 }}>
+          {field("Email Address",
+            <>
+              <p style={{ fontSize:15, color:T.body, marginBottom:12 }}>{session.user.email}</p>
+              {!showEmailForm ? (
+                <Btn variant="ghost" small onClick={() => setShowEmailForm(true)}>Change email address</Btn>
+              ) : (
+                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                  <Input label="New email address" type="email" value={emailInput} onChange={setEmailInput} placeholder="new@email.com"/>
+                  <div style={{ display:"flex", gap:8 }}>
+                    <Btn small onClick={updateEmail} loading={saving}>Send confirmation</Btn>
+                    <Btn variant="ghost" small onClick={() => { setShowEmailForm(false); setEmailInput(""); }}>Cancel</Btn>
+                  </div>
+                  <p style={{ fontSize:12, color:T.muted, fontFamily:"'Lora',serif" }}>We'll send a confirmation link to your new address. Your email won't change until you click it.</p>
+                </div>
+              )}
+            </>
+          )}
+        </Card>
+
+        {/* ── Phone ── */}
+        <Card style={{ marginBottom:16 }}>
+          {field("Phone Number",
+            <>
+              <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>This is where your magic messages are delivered.</p>
+              <Input type="tel" value={phone} onChange={setPhone} placeholder="+1 (555) 000-0000"/>
+              <div style={{ marginTop:12 }}>
+                <Btn small onClick={savePhone} loading={saving}>Save</Btn>
+              </div>
+            </>
+          )}
+        </Card>
+
+        {/* ── Password ── */}
+        <Card style={{ marginBottom:16 }}>
+          {field("Password",
+            resetSent ? (
+              <p style={{ fontSize:14, color:T.gold }}>✓ Reset link sent — check {session.user.email}</p>
+            ) : (
+              <>
+                <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>We'll email a reset link to {session.user.email}.</p>
+                <Btn variant="ghost" small onClick={resetPassword}>Send password reset link</Btn>
+              </>
+            )
+          )}
+        </Card>
+
+        {/* ── Plan ── */}
+        <Card>
+          {field("Current Plan",
+            <>
+              <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:12 }}>
+                <span style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.ink }}>{planLabel}</span>
+                {plan !== "free" && <span style={{ fontSize:13, color:T.muted }}>· renews monthly</span>}
+              </div>
+              {plan === "free" && (
+                <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>You're on the free plan. Upgrade anytime to unlock more magic.</p>
+              )}
+              <Btn variant="outline" small onClick={onGoToBilling} style={{ color:T.goldLight, borderColor:"rgba(201,147,58,0.3)" }}>
+                {plan === "free" ? "See Plans & Upgrade →" : "Manage Plan →"}
+              </Btn>
+            </>
+          )}
+        </Card>
+
+      </div>
+      {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
 }
@@ -1997,6 +2136,7 @@ export default function App() {
   }
 
   const navMenuItems = session ? [
+    { label:"👤 My Account", action: () => goTo("account") },
     { label:"👨‍👩‍👧 Profiles",  action: () => goTo("profiles") },
     { label:"📅 Schedule",  action: () => goTo("schedule") },
     { label:"🕰 History",   action: () => goTo("history") },
@@ -2295,8 +2435,13 @@ export default function App() {
           onGoToAbout={()     => goTo("about")}
           onGoToTerms={()     => goTo("terms")}
           onGoToPrivacy={()   => goTo("privacy")}
+          onGoToAccount={()   => goTo("account")}
           onLogout={handleLogout}
         />
+      )}
+
+      {screen === "account" && session && (
+        <AccountScreen session={session} profile={profile} onBack={() => setScreen("dashboard")} menuItems={navMenuItems} onProfileUpdated={() => loadProfile(session.user.id)} onGoToBilling={() => goTo("billing")}/>
       )}
 
       {screen === "billing" && (

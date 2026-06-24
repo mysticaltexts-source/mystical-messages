@@ -54,8 +54,8 @@ function buildEmail(firstName: string): string {
       <div style="background:#f5ede0;border-radius:16px;padding:24px 28px;margin:24px 0;border:1px solid rgba(201,147,58,0.2);">
         <div style="font-family:'Georgia',serif;font-size:16px;font-weight:bold;color:#3d3530;margin-bottom:10px;">What's included on a free account</div>
         <ul style="font-size:14px;line-height:2;color:#3d3530;padding-left:18px;margin:0 0 14px;">
-          <li>One free message to try — so you can see exactly how it works</li>
-          <li>Access to Santa Claus</li>
+          <li>One free message — pick any character you like</li>
+          <li>Santa Claus, the Tooth Fairy, or the Easter Bunny</li>
           <li>One child profile</li>
         </ul>
         <p style="font-size:14px;color:#7a6e66;margin:0;line-height:1.7;">
