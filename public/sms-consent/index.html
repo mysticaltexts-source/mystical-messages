@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SMS Consent & Opt-In — Mystical Messages</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fdf8f0; color: #2c1e0f; font-family: 'DM Sans', sans-serif; }
+    header { background: #0d1b2a; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+    header a { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fdf8f0; text-decoration: none; }
+    header a span { color: #e8c97a; }
+    header nav a { font-size: 13px; color: rgba(255,255,255,0.5); text-decoration: underline; margin-left: 20px; }
+    main { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
+    .label { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #c9933a; margin-bottom: 8px; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: #2c1e0f; line-height: 1.2; }
+    .meta { font-size: 13px; color: #9a8478; margin-top: 8px; }
+    .intro { font-family: 'Lora', serif; font-size: 15px; color: #4a3728; line-height: 1.8; margin-top: 36px; padding: 18px 22px; background: #fff9f0; border-radius: 14px; border: 1px solid rgba(201,147,58,0.15); }
+    .section { margin-top: 28px; }
+    .section h2 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #2c1e0f; margin-bottom: 10px; }
+    .section p, .section li { font-family: 'Lora', serif; font-size: 14px; color: #4a3728; line-height: 1.8; }
+    .section ul { padding-left: 20px; margin-top: 6px; }
+    .consent-box { margin-top: 28px; background: #132233; border-radius: 16px; padding: 28px; border: 1.5px solid rgba(201,147,58,0.3); }
+    .consent-box .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #e8b96a; margin-bottom: 14px; }
+    .consent-box p { font-family: 'Lora', serif; font-size: 14px; color: rgba(255,255,255,0.82); line-height: 1.8; }
+    .checkbox-mock { display: flex; align-items: flex-start; gap: 12px; margin-top: 20px; padding: 16px 18px; background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid rgba(201,147,58,0.2); }
+    .checkbox-mock .box { width: 18px; height: 18px; border: 2px solid #c9933a; border-radius: 4px; flex-shrink: 0; background: #c9933a; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+    .checkbox-mock .box::after { content: '✓'; color: #0d1b2a; font-size: 12px; font-weight: 700; }
+    .checkbox-mock p { font-family: 'DM Sans', sans-serif; font-size: 13px; color: rgba(255,255,255,0.78); line-height: 1.7; }
+    .flow-steps { margin-top: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .step { display: flex; gap: 14px; align-items: flex-start; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: #c9933a; color: #0d1b2a; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step p { font-family: 'Lora', serif; font-size: 14px; color: #4a3728; line-height: 1.7; padding-top: 3px; }
+    .optout-box { margin-top: 28px; padding: 20px 22px; border-radius: 14px; background: #fff9f0; border: 1px solid rgba(201,147,58,0.15); }
+    .optout-box h2 { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #2c1e0f; margin-bottom: 8px; }
+    .optout-box p { font-family: 'Lora', serif; font-size: 14px; color: #4a3728; line-height: 1.8; }
+    .optout-box a { color: #c9933a; }
+    footer { text-align: center; padding: 24px; font-size: 13px; color: #9a8478; border-top: 1px solid rgba(201,147,58,0.15); }
+    footer a { color: #c9933a; margin: 0 10px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="https://mysticaltexts.com">✦ <span>Mystical</span> Messages</a>
+    <nav>
+      <a href="/terms/">Terms</a>
+      <a href="/privacy/">Privacy</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="label">Compliance & Transparency</div>
+    <h1>SMS Consent &amp; Opt-In</h1>
+    <p class="meta">Mystical Texts LLC · mysticaltexts.com · hello@mysticaltexts.com</p>
+
+    <p class="intro">
+      Mystical Messages is a service that lets parents send personalized SMS messages from beloved childhood characters — Santa Claus, the Tooth Fairy, and the Easter Bunny — directly to their own mobile phone. All messages are parent-initiated and delivered to the parent's phone number only. No messages are sent directly to children.
+    </p>
+
+    <div class="section">
+      <h2>Who sends SMS messages</h2>
+      <p>SMS messages are sent by <strong>Mystical Texts LLC</strong> operating as <strong>Mystical Messages</strong>, via Twilio's messaging platform. Messages are only sent to phone numbers explicitly provided and consented to by the account holder (always a parent or guardian aged 18+).</p>
+    </div>
+
+    <div class="section">
+      <h2>How users opt in</h2>
+      <p>SMS consent is collected in two places during the account lifecycle:</p>
+
+      <div class="flow-steps" style="margin-top:16px;">
+        <div class="step">
+          <div class="step-num">1</div>
+          <p>The user creates an account at <strong>mysticaltexts.com</strong> using their email address and a password.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <p>During the account setup step, the user enters their mobile phone number and must check the following opt-in checkbox before proceeding:</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Replica of the in-app consent checkbox -->
+    <div class="consent-box">
+      <div class="eyebrow">📱 In-app consent checkbox — required to complete setup</div>
+      <p>Users see the following checkbox during the phone number setup step. It is <strong>unchecked by default</strong> and must be checked before the account setup form can be submitted.</p>
+      <div class="checkbox-mock">
+        <div class="box"></div>
+        <p>
+          I agree to receive recurring automated text messages from Mystical Messages at the number provided.
+          Msg &amp; data rates may apply. Msg frequency varies. Reply <strong>STOP</strong> to cancel, <strong>HELP</strong> for help.
+          <a href="/terms/" style="color:#e8b96a;">Terms of Service</a> ·
+          <a href="/privacy/" style="color:#e8b96a;">Privacy Policy</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top:28px;">
+      <div class="flow-steps">
+        <div class="step">
+          <div class="step-num">3</div>
+          <p>The user's consent is recorded in the database with a timestamp (<code>sms_consent_at</code>) at the moment they complete setup.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <p>Existing users who signed up before the SMS consent requirement was introduced are shown a consent overlay the first time they log in after the policy went into effect. They must explicitly agree before any SMS messages can be sent to their number.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <p>No SMS messages are sent until consent is recorded. Consent is never assumed.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Message types &amp; frequency</h2>
+      <ul>
+        <li>Transactional messages initiated by the account holder (e.g., "Send a Santa message now")</li>
+        <li>Scheduled messages set up in advance by the account holder</li>
+        <li>One-tap "Oh-Crap!! Button" messages triggered manually by the account holder</li>
+      </ul>
+      <p style="margin-top:10px;">Message frequency is entirely controlled by the account holder. Mystical Messages does not send unsolicited or marketing SMS messages to subscribers.</p>
+    </div>
+
+    <div class="optout-box">
+      <h2>How to opt out</h2>
+      <p>
+        Users may opt out at any time by:
+      </p>
+      <ul style="padding-left:20px; margin-top:8px; font-family:'Lora',serif; font-size:14px; color:#4a3728; line-height:1.8;">
+        <li>Replying <strong>STOP</strong> to any SMS message — Twilio processes this immediately</li>
+        <li>Replying <strong>HELP</strong> to any SMS message for support contact information</li>
+        <li>Emailing <a href="mailto:hello@mysticaltexts.com">hello@mysticaltexts.com</a> to request removal</li>
+        <li>Canceling their account</li>
+      </ul>
+      <p style="margin-top:10px;">Standard message and data rates may apply depending on the recipient's carrier plan.</p>
+    </div>
+
+    <div class="section">
+      <h2>Data &amp; privacy</h2>
+      <p>Phone numbers are used solely to deliver SMS messages from fictional characters that the account holder initiates. Numbers are never shared or sold. See our full <a href="/privacy/" style="color:#c9933a;">Privacy Policy</a> and <a href="/terms/" style="color:#c9933a;">Terms of Service</a> for details.</p>
+    </div>
+
+    <div class="optout-box" style="margin-top:28px;">
+      <h2>Contact</h2>
+      <p>For questions about SMS consent, opt-out requests, or compliance inquiries:<br/>
+        <a href="mailto:hello@mysticaltexts.com">hello@mysticaltexts.com</a><br/>
+        Mystical Texts LLC · mysticaltexts.com
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    <a href="/terms/">Terms of Service</a>
+    <a href="/privacy/">Privacy Policy</a>
+    <a href="https://mysticaltexts.com">mysticaltexts.com</a>
+    <p style="margin-top:12px;">© Mystical Texts LLC. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
