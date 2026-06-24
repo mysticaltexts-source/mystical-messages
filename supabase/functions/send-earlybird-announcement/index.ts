@@ -164,12 +164,11 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    // Fetch all earlybird profiles (plan = 'trial' from invite code redemption)
-    // Adjust this filter if earlybird users are stored differently in your schema
+    // Fetch all earlybird profiles
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("id, full_name, plan")
-      .eq("plan", "trial");
+      .eq("is_earlybird", true);
 
     if (profilesError) throw new Error(profilesError.message);
     if (!profiles?.length) {
