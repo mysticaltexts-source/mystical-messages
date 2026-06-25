@@ -30,12 +30,12 @@ function screenMessage(text) {
 /* ─── STRIPE PRICE IDs ─── */
 const STRIPE_PRICES = {
   trial:            "price_1Tf7SKJwbJqhqSCz6V76Rv14",  // $0.99 one-time — unchanged
-  basic_monthly:    "REPLACE_basic_monthly",             // $1.99/mo — create in Stripe
-  basic_annual:     "REPLACE_basic_annual",              // $19.99/yr — create in Stripe
-  standard_monthly: "REPLACE_standard_monthly",          // $4.99/mo — create in Stripe
-  standard_annual:  "REPLACE_standard_annual",           // $44.99/yr — create in Stripe
-  premium_monthly:  "REPLACE_premium_monthly",           // $9.99/mo — create in Stripe
-  premium_annual:   "REPLACE_premium_annual",            // $74.99/yr — create in Stripe
+  basic_monthly:    "price_1Tm1oSJwbJqhqSCzgnFCXCkE",  // $1.99/mo
+  basic_annual:     "price_1Tm1xxJwbJqhqSCzK25to7AK",  // $19.99/yr
+  standard_monthly: "price_1Tm20RJwbJqhqSCzbhq2Mex2",  // $4.99/mo
+  standard_annual:  "price_1Tm235JwbJqhqSCzZH8v5Eu6",  // $44.99/yr
+  premium_monthly:  "price_1Tm29PJwbJqhqSCz2drtO9FI",  // $9.99/mo
+  premium_annual:   "price_1Tm2BMJwbJqhqSCz9PyI2d8x",  // $74.99/yr
 };
 
 /* ─── PLAN RANK ─── */
