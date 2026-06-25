@@ -835,7 +835,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   }
 
   function canUse(char) {
-    if (plan === "free") return totalMessages === 0; // any character for 1 free message
+    if (plan === "free") {
+      if (totalMessages === null) return true; // optimistic while count loads
+      return totalMessages === 0;
+    }
     return (PLAN_RANK[plan] || 0) >= (PLAN_RANK[char.required_plan] || 0);
   }
 
@@ -2262,14 +2265,14 @@ export default function App() {
       <FontLink/>
       <style>{G}</style>
 
-      {/* ── Global invite code banner (free users only) ── */}
+      {/* ── Global banner (free users only) ── */}
       {session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup" && (
-        <div
-          onClick={() => setPrelaunch("banner")}
-          style={{ position:"fixed", top:0, left:0, right:0, zIndex:200, background:T.navy, borderBottom:`1px solid rgba(201,147,58,0.3)`, color:"rgba(255,255,255,0.75)", fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"9px 16px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, lineHeight:1.4 }}
-        >
-          Have an invite code or early access offer? Redeem it{" "}
-          <span style={{ color:"#e8b96a", fontWeight:700, textDecoration:"underline", letterSpacing:"0.02em" }}>HERE</span>
+        <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:200, background:T.navy, borderBottom:`1px solid rgba(201,147,58,0.3)`, color:"rgba(255,255,255,0.75)", fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"9px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, lineHeight:1.4, flexWrap:"wrap" }}>
+          ✨ You have a free message — pick any character to try the magic.
+          <span
+            onClick={() => setPrelaunch("banner")}
+            style={{ color:"#e8b96a", fontWeight:700, textDecoration:"underline", letterSpacing:"0.02em", cursor:"pointer", whiteSpace:"nowrap" }}
+          >Have an invite code?</span>
         </div>
       )}
 
@@ -2290,14 +2293,14 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>🔮</div>
+                <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>✨</div>
                 <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.warmWhite, marginBottom:12, lineHeight:1.3, textAlign:"center" }}>
-                  Almost time — but not quite yet.
+                  More magic is almost here.
                 </h2>
                 <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
                   {isFromBanner
-                    ? "We're in prelaunch and not yet taking payments. Drop your email and we'll tell you the moment the doors open — or enter your invite code below to get in right now."
-                    : `We're in prelaunch and not yet taking payments, but you clearly have great taste in plans. Let us give you a heads up the moment we open the doors — ${selectedPlanLabel} will be waiting for you.`}
+                    ? "Paid plans are opening very soon. Drop your email and we'll let you know the moment they go live — or enter your invite code below to unlock access right now."
+                    : `Paid plans are opening very soon — ${selectedPlanLabel} will be ready and waiting for you. Leave your email and we'll tell you the moment the doors open.`}
                 </p>
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   <div>
