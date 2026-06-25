@@ -835,6 +835,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   }
 
   function canUse(char) {
+    if (TEST_MODE) return true;
     if (plan === "free") {
       if (totalMessages === null) return true; // optimistic while count loads
       return totalMessages === 0;
@@ -846,7 +847,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     const char = characters.find(c => c.slug === btn.charSlug);
     if (!char) { setToast("Character not found. Please contact support."); return; }
     if (!canUse(char)) { onGoToBilling(); return; }
-    if (plan === "free") {
+    if (!TEST_MODE && plan === "free") {
       const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
       if ((count ?? 0) >= 1) { onGoToBilling(); return; }
     }
@@ -869,7 +870,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         character_id: char.id,
         child_id: selectedChild?.id || null,
         body,
-        status: "sent",
+        status: TEST_MODE ? "test" : "sent",
         is_ohcrap: true,
         flagged: !!flagReason,
         flagged_reason: flagReason || null,
@@ -888,7 +889,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
   async function sendMessage() {
     if (!msgText.trim() || !activeChar) return;
-    if (plan === "free") {
+    if (!TEST_MODE && plan === "free") {
       const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
       if ((count ?? 0) >= 1) { onGoToBilling(); return; }
     }
@@ -2268,11 +2269,14 @@ export default function App() {
       {/* ── Global banner (free users only) ── */}
       {session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup" && (
         <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:200, background:T.navy, borderBottom:`1px solid rgba(201,147,58,0.3)`, color:"rgba(255,255,255,0.75)", fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"9px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, lineHeight:1.4, flexWrap:"wrap" }}>
-          Have an invite code or early access offer? We're almost open.{" "}
+          {TEST_MODE
+            ? "Preview mode — no real SMS is sent yet."
+            : "✨ You have a free message — pick any character to try the magic."
+          }{" "}
           <span
             onClick={() => setPrelaunch("banner")}
             style={{ color:"#e8b96a", fontWeight:700, textDecoration:"underline", letterSpacing:"0.02em", cursor:"pointer", whiteSpace:"nowrap" }}
-          >Redeem it here.</span>
+          >Have an invite code? Redeem it here.</span>
         </div>
       )}
 
