@@ -2268,11 +2268,11 @@ export default function App() {
       {/* ── Global banner (free users only) ── */}
       {session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup" && (
         <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:200, background:T.navy, borderBottom:`1px solid rgba(201,147,58,0.3)`, color:"rgba(255,255,255,0.75)", fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"9px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, lineHeight:1.4, flexWrap:"wrap" }}>
-          ✨ You have a free message — pick any character to try the magic.
+          Have an invite code or early access offer? We're almost open.{" "}
           <span
             onClick={() => setPrelaunch("banner")}
             style={{ color:"#e8b96a", fontWeight:700, textDecoration:"underline", letterSpacing:"0.02em", cursor:"pointer", whiteSpace:"nowrap" }}
-          >Have an invite code?</span>
+          >Redeem it here.</span>
         </div>
       )}
 
