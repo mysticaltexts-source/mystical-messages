@@ -692,53 +692,32 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
 
       // ── Record referral if a ?ref= code was captured at landing ──
       const storedRef = localStorage.getItem("mm_ref_code");
-      // TEMP DIAG — remove after debugging
-      if (!storedRef) {
-        alert("[REFERRAL DIAG]\nmm_ref_code: NOT FOUND in localStorage\n\nBranch: no-code skip — nothing inserted.");
-      } else {
-        let diagReferrerId = null;
-        let diagBranch = "";
-        let diagError = null;
+      if (storedRef) {
         try {
           const { data: referrerId, error: lookupError } = await supabase
             .rpc("get_referrer_id", { code: storedRef });
 
           if (lookupError) throw lookupError;
 
-          diagReferrerId = referrerId || null;
-
           if (referrerId && referrerId !== user.id) {
-            diagBranch = "PENDING insert";
-            const { error: insertError } = await supabase.from("referrals").insert({
+            await supabase.from("referrals").insert({
               referrer_id: referrerId,
               referred_id: user.id,
               code_used:   storedRef,
               status:      "pending",
             });
-            if (insertError) throw insertError;
           } else if (!referrerId) {
-            diagBranch = "UNVERIFIED insert (no match)";
-            const { error: insertError } = await supabase.from("referrals").insert({
+            await supabase.from("referrals").insert({
               referrer_id: null,
               referred_id: user.id,
               code_used:   storedRef,
               status:      "unverified",
             });
-            if (insertError) throw insertError;
-          } else {
-            diagBranch = "SELF-REFERRAL skip — nothing inserted";
           }
-        } catch (err) {
-          diagError = err?.message || err?.toString() || "unknown error";
-          diagBranch = diagBranch || "(error before branch resolved)";
+          // Self-referral: silently skip
+        } catch {
+          // Never block signup on referral failure
         }
-        alert(
-          "[REFERRAL DIAG]\n" +
-          "mm_ref_code: " + storedRef + "\n" +
-          "Referrer id: " + (diagReferrerId || "no match") + "\n" +
-          "Branch: " + diagBranch + "\n" +
-          "Error: " + (diagError || "none")
-        );
         localStorage.removeItem("mm_ref_code");
       }
 
