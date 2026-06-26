@@ -16,15 +16,24 @@ async function logEvent(userId, event, metadata = {}) {
 
 /* ─── MESSAGE SCREENING ─── */
 const FLAGGED_TERMS = [
-  "sex","sexy","nude","naked","porn","fuck","shit","bitch","ass","dick","cock",
-  "pussy","cunt","whore","slut","rape","kill yourself","kys","suicide","drugs",
-  "cocaine","meth","heroin","weed","marijuana","alcohol","beer","wine","vodka",
+  // Profanity
+  "fuck","fucking","shit","bitch","bastard","ass","asshole","dick","cock","pussy","cunt","whore","slut",
+  // Sexual
+  "sex","sexy","nude","naked","porn",
+  // Self-harm / crisis
+  "rape","kill yourself","kys","suicide",
+  // Drugs / substances
+  "drugs","cocaine","meth","heroin","weed","marijuana","alcohol","beer","wine","vodka",
+  // Violence / danger
   "gun","weapon","bomb","terrorist","violence","abuse","molest","predator",
 ];
 function screenMessage(text) {
   const lower = text.toLowerCase();
-  const hit = FLAGGED_TERMS.find(t => lower.includes(t));
-  return hit ? `Contains flagged term: "${hit}"` : null;
+  const hit = FLAGGED_TERMS.find(t => {
+    const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`\\b${escaped}\\b`).test(lower);
+  });
+  return hit ? `"${hit}" isn't something a magical character can say` : null;
 }
 
 /* ─── STRIPE PRICE IDs ─── */
@@ -898,8 +907,9 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
       const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
       if ((count ?? 0) >= 1) { onGoToBilling(); return; }
     }
-    setSending(true);
     const flagReason = screenMessage(msgText);
+    if (flagReason) { setToast(`Blocked: ${flagReason}.`); return; }
+    setSending(true);
     try {
       if (!TEST_MODE) {
         await callFunction("send-message", {
@@ -1092,8 +1102,13 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
                 onFocus={e => e.target.style.borderColor=T.gold}
                 onBlur={e => e.target.style.borderColor="rgba(201,147,58,0.2)"}
               />
+              {screenMessage(msgText) && (
+                <div style={{ marginTop:10, padding:"10px 14px", borderRadius:8, background:"rgba(180,60,60,0.07)", border:"1px solid rgba(180,60,60,0.25)", fontSize:13, color:"#b43c3c" }}>
+                  ⚠️ {screenMessage(msgText)} — please edit before sending.
+                </div>
+              )}
               <div style={{ display:"flex", gap:10, marginTop:12, alignItems:"center" }}>
-                <Btn onClick={sendMessage} disabled={!msgText.trim()} loading={sending}>✦ Send to My Phone</Btn>
+                <Btn onClick={sendMessage} disabled={!msgText.trim() || !!screenMessage(msgText)} loading={sending}>✦ Send to My Phone</Btn>
                 <Btn variant="outline" small onClick={() => { setComposing(false); setActiveChar(null); }}>Cancel</Btn>
                 <span style={{ fontSize:12, color:T.muted, marginLeft:"auto" }}>{msgText.length}/320</span>
               </div>
@@ -1894,6 +1909,7 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
       return;
     }
     const flagReason = screenMessage(msgText);
+    if (flagReason) { setToast(`Blocked: ${flagReason}.`); return; }
     setSaving(true);
     try {
       const scheduledFor = new Date(`${schedDate}T${schedTime}`).toISOString();
