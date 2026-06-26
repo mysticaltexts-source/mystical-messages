@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SMS Opt-In — Mystical Messages</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fdf8f0; color: #2c1e0f; font-family: 'DM Sans', sans-serif; }
+
+    header { background: #0d1b2a; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+    header .logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fdf8f0; text-decoration: none; }
+    header .logo span { color: #e8c97a; }
+    header nav a { font-size: 13px; color: rgba(255,255,255,0.5); text-decoration: underline; margin-left: 20px; }
+
+    main { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .label { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #c9933a; margin-bottom: 8px; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: #2c1e0f; line-height: 1.2; }
+    .meta { font-size: 13px; color: #9a8478; margin-top: 8px; margin-bottom: 32px; }
+
+    .intro { font-family: 'Lora', serif; font-size: 15px; color: #4a3728; line-height: 1.8; padding: 20px 24px; background: #fff9f0; border-radius: 14px; border: 1px solid rgba(201,147,58,0.15); margin-bottom: 48px; }
+
+    /* Opt-in path cards */
+    .path { margin-bottom: 56px; }
+    .path-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+    .path-number { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #c9933a; line-height: 1; flex-shrink: 0; }
+    .path-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #2c1e0f; line-height: 1.2; }
+    .path-when { font-size: 13px; color: #9a8478; margin-bottom: 14px; }
+    .path-note { font-family: 'Lora', serif; font-size: 13px; color: #7a6860; font-style: italic; line-height: 1.7; margin-bottom: 14px; padding: 12px 16px; background: rgba(201,147,58,0.06); border-left: 3px solid rgba(201,147,58,0.4); border-radius: 0 8px 8px 0; }
+    .path-desc { font-family: 'Lora', serif; font-size: 14px; color: #4a3728; line-height: 1.8; margin-bottom: 16px; }
+
+    /* Consent callout */
+    .consent-box { background: #0d1b2a; border: 1px solid rgba(201,147,58,0.3); border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start; }
+    .consent-checkbox { width: 16px; height: 16px; border: 1.5px solid #c9933a; border-radius: 3px; background: transparent; flex-shrink: 0; margin-top: 3px; }
+    .consent-text { font-family: 'DM Sans', sans-serif; font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.65; }
+    .consent-text a { color: #c9933a; }
+    .consent-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #c9933a; margin-bottom: 10px; }
+
+    /* Screenshot */
+    .screenshot-wrap { border-radius: 16px; overflow: hidden; border: 1px solid rgba(201,147,58,0.2); background: #132233; text-align: center; max-width: 360px; }
+    .screenshot-wrap img { display: block; width: 100%; height: auto; }
+    .screenshot-missing { padding: 32px 24px; font-size: 13px; color: rgba(255,255,255,0.35); font-family: 'DM Sans', sans-serif; font-style: italic; }
+
+    /* Divider */
+    .divider { height: 1px; background: rgba(201,147,58,0.15); margin-bottom: 56px; }
+
+    /* Footer note */
+    .footer-note { padding: 20px 24px; background: #fff9f0; border-radius: 14px; border: 1px solid rgba(201,147,58,0.15); font-family: 'Lora', serif; font-size: 14px; color: #4a3728; line-height: 1.8; margin-bottom: 48px; }
+
+    footer { text-align: center; padding: 24px; font-size: 13px; color: #9a8478; border-top: 1px solid rgba(201,147,58,0.15); }
+    footer a { color: #c9933a; margin: 0 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">✦ <span>Mystical</span> Messages</a>
+    <nav>
+      <a href="/terms">Terms of Service</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/">Sign in</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="label">Compliance</div>
+    <h1>How parents opt in to text messages</h1>
+    <p class="meta">Mystical Texts LLC · mysticaltexts.com</p>
+
+    <p class="intro">
+      Mystical Messages (operated by Mystical Texts LLC) sends personalized SMS messages from holiday characters —
+      Santa Claus, the Tooth Fairy, the Easter Bunny, and others — to the parents and guardians who request them.
+      Messages go only to the registered adult account holder; they are never sent directly to children.<br/><br/>
+      Consent is collected through the three paths documented below. In every path the consent checkbox is
+      <strong>unchecked by default</strong> and must be actively checked by the user. Consent is never a
+      condition of purchase or account creation.
+    </p>
+
+    <!-- PATH 1 -->
+    <div class="path">
+      <div class="path-header">
+        <div class="path-number">1</div>
+        <div class="path-title">Account setup (primary opt-in)</div>
+      </div>
+      <p class="path-when">When it appears: Shown when a parent or guardian finishes creating their account. This is the primary opt-in path.</p>
+      <span class="consent-label">Consent checkbox shown to user</span>
+      <div class="consent-box">
+        <div class="consent-checkbox"></div>
+        <div class="consent-text">
+          I agree to receive recurring automated text messages from Mystical Messages at the number provided.
+          Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.
+          <a href="/terms">Terms of Service</a> · <a href="/privacy">Privacy Policy</a>
+        </div>
+      </div>
+      <div class="screenshot-wrap">
+        <img
+          src="/optin/signup.jpg"
+          alt="Account setup consent checkbox screenshot"
+          loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+        />
+        <div class="screenshot-missing" style="display:none">Screenshot coming soon — file: public/optin/signup.jpg</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PATH 2 -->
+    <div class="path">
+      <div class="path-header">
+        <div class="path-number">2</div>
+        <div class="path-title">Pre-launch notification overlay</div>
+      </div>
+      <p class="path-when">When it appears: Shown to visitors who ask to be notified when paid plans open. Opting into texts here is separate and optional.</p>
+      <p class="path-note">
+        The "Also text me when you're live" toggle is a display control that reveals the phone field and the
+        consent checkbox below it — it is not the SMS consent itself. The binding consent checkbox shown here
+        is unchecked by default and must be actively checked to opt in.
+      </p>
+      <span class="consent-label">Consent checkbox shown to user</span>
+      <div class="consent-box">
+        <div class="consent-checkbox"></div>
+        <div class="consent-text">
+          I agree to receive recurring automated text messages from Mystical Messages at the number provided.
+          Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.
+          <a href="/terms">Terms of Service</a> · <a href="/privacy">Privacy Policy</a>
+        </div>
+      </div>
+      <div class="screenshot-wrap">
+        <img
+          src="/optin/prelaunch.jpg"
+          alt="Pre-launch overlay consent checkbox screenshot"
+          loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+        />
+        <div class="screenshot-missing" style="display:none">Screenshot coming soon — file: public/optin/prelaunch.jpg</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PATH 3 -->
+    <div class="path">
+      <div class="path-header">
+        <div class="path-number">3</div>
+        <div class="path-title">Returning-user consent confirmation</div>
+      </div>
+      <p class="path-when">When it appears: Shown once, on next login, to existing users with no SMS consent on record. No messages are sent until they confirm.</p>
+      <span class="consent-label">Consent checkbox shown to user</span>
+      <div class="consent-box">
+        <div class="consent-checkbox"></div>
+        <div class="consent-text">
+          I agree to receive recurring automated text messages from Mystical Messages at the number on my account.
+          Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.
+          <a href="/terms">Terms of Service</a> · <a href="/privacy">Privacy Policy</a>
+        </div>
+      </div>
+      <div class="screenshot-wrap">
+        <img
+          src="/optin/returning.jpg"
+          alt="Returning-user consent overlay screenshot"
+          loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='block'"
+        />
+        <div class="screenshot-missing" style="display:none">Screenshot coming soon — file: public/optin/returning.jpg</div>
+      </div>
+    </div>
+
+    <!-- Footer note -->
+    <div class="footer-note">
+      To stop receiving messages at any time, reply <strong>STOP</strong> to any message.
+      For help, reply <strong>HELP</strong> or email
+      <a href="mailto:hello@mysticaltexts.com" style="color:#c9933a">hello@mysticaltexts.com</a>.<br/>
+      Mystical Texts LLC · mysticaltexts.com
+    </div>
+  </main>
+
+  <footer>
+    © 2026 Mystical Texts LLC &nbsp;·&nbsp;
+    <a href="/terms">Terms of Service</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="mailto:hello@mysticaltexts.com">Contact</a>
+  </footer>
+</body>
+</html>
