@@ -690,6 +690,38 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
         .eq("id", user.id);
       if (profileError) throw profileError;
 
+      // ── Record referral if a ?ref= code was captured at landing ──
+      const storedRef = localStorage.getItem("mm_ref_code");
+      if (storedRef) {
+        try {
+          const { data: referrer } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("referral_code", storedRef)
+            .maybeSingle();
+
+          if (referrer && referrer.id !== user.id) {
+            await supabase.from("referrals").insert({
+              referrer_id: referrer.id,
+              referred_id: user.id,
+              code_used:   storedRef,
+              status:      "pending",
+            });
+          } else if (!referrer) {
+            await supabase.from("referrals").insert({
+              referrer_id: null,
+              referred_id: user.id,
+              code_used:   storedRef,
+              status:      "unverified",
+            });
+          }
+          // Self-referral: silently skip
+        } catch {
+          // Never block signup on referral failure
+        }
+        localStorage.removeItem("mm_ref_code");
+      }
+
       if (childName.trim()) {
         await supabase.from("children").insert({
           parent_id: user.id,
@@ -2148,6 +2180,11 @@ export default function App() {
   }
 
   useEffect(() => { window.scrollTo(0, 0); }, [screen]);
+
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) localStorage.setItem("mm_ref_code", ref.trim().toUpperCase());
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
