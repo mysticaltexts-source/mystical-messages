@@ -691,6 +691,11 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
       }
 
       localStorage.setItem("mm_sms_consent_v1", "true");
+      const firstName = (user.user_metadata?.full_name || user.email || "").split(" ")[0] || "there";
+      callFunction("send-onboarding-email", {
+        first_name: firstName,
+        email: user.email,
+      }).catch(() => {});
       onComplete();
     } catch (err) {
       setError(err.message);
