@@ -124,12 +124,8 @@ function buildEmail(firstName: string, referralLink: string): string {
         <div style="background:#7a6e66;border-radius:14px;padding:18px 20px;margin-bottom:16px;">
           <div style="background:rgba(255,255,255,0.96);border-radius:10px;padding:16px 18px;">
             <div style="font-family:'Arial',sans-serif;font-size:11px;font-weight:bold;color:#7a6e66;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">My Account</div>
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr><td style="font-family:'Arial',sans-serif;font-size:11px;color:#7a6e66;padding-bottom:3px;">Phone number</td></tr>
-              <tr><td style="font-family:'Arial',sans-serif;font-size:13px;color:#2c1e0f;padding-bottom:10px;border-bottom:1px solid #f0e8df;">+1 (555) 000-0000</td></tr>
-              <tr><td style="padding-top:8px;font-family:'Arial',sans-serif;font-size:11px;color:#7a6e66;padding-bottom:3px;">Email</td></tr>
-              <tr><td style="font-family:'Arial',sans-serif;font-size:13px;color:#2c1e0f;">you@example.com</td></tr>
-            </table>
+            <p style="font-family:'Arial',sans-serif;font-size:13px;color:#7a6e66;margin:0 0 4px;">Questions? Email us at</p>
+            <a href="mailto:${SUPPORT_EMAIL}" style="font-family:'Arial',sans-serif;font-size:13px;color:#c9933a;text-decoration:none;">${SUPPORT_EMAIL}</a>
           </div>
         </div>
         <a href="${APP_URL}" style="display:inline-block;background:#c9933a;color:#0d1b2a;font-family:'Arial',sans-serif;font-size:14px;font-weight:bold;padding:11px 26px;border-radius:8px;text-decoration:none;">
