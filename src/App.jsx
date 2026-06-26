@@ -700,26 +700,23 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
         let diagBranch = "";
         let diagError = null;
         try {
-          const { data: referrer, error: lookupError } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("referral_code", storedRef)
-            .maybeSingle();
+          const { data: referrerId, error: lookupError } = await supabase
+            .rpc("get_referrer_id", { code: storedRef });
 
           if (lookupError) throw lookupError;
 
-          diagReferrerId = referrer ? referrer.id : null;
+          diagReferrerId = referrerId || null;
 
-          if (referrer && referrer.id !== user.id) {
+          if (referrerId && referrerId !== user.id) {
             diagBranch = "PENDING insert";
             const { error: insertError } = await supabase.from("referrals").insert({
-              referrer_id: referrer.id,
+              referrer_id: referrerId,
               referred_id: user.id,
               code_used:   storedRef,
               status:      "pending",
             });
             if (insertError) throw insertError;
-          } else if (!referrer) {
+          } else if (!referrerId) {
             diagBranch = "UNVERIFIED insert (no match)";
             const { error: insertError } = await supabase.from("referrals").insert({
               referrer_id: null,
