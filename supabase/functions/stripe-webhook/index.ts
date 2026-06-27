@@ -102,6 +102,18 @@ serve(async (req) => {
 
         if (error) console.error("profiles update error:", error.message);
         else console.log(`Plan set to "${planName}" for user ${userId}`);
+
+        // Qualify any pending referral for this user on first payment.
+        // .eq("status", "pending") makes this idempotent on webhook retries.
+        const { error: referralError } = await supabase
+          .from("referrals")
+          .update({ status: "qualified", qualified_at: new Date().toISOString() })
+          .eq("referred_id", userId)
+          .eq("status", "pending");
+
+        if (referralError) console.error("referral qualification error:", referralError.message);
+        else console.log(`Referral qualified for user ${userId}`);
+
         break;
       }
 
