@@ -2,8 +2,17 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
+const STRIPE_SECRET_KEY     = Deno.env.get("STRIPE_SECRET_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// One month credit per plan, in cents (negative = credit on Stripe balance)
+const PLAN_CREDIT_CENTS: Record<string, number> = {
+  trial:    99,   // $0.99
+  basic:    199,  // $1.99
+  standard: 499,  // $4.99
+  premium:  999,  // $9.99
+};
 
 // Stripe price IDs → plan names (must match STRIPE_PRICES in App.jsx)
 const PRICE_TO_PLAN: Record<string, string> = {
@@ -102,6 +111,75 @@ serve(async (req) => {
 
         if (error) console.error("profiles update error:", error.message);
         else console.log(`Plan set to "${planName}" for user ${userId}`);
+
+        // ── Phase 2: Qualify pending referral ──
+        // Returns the row so Phase 3 can use referrer_id without a second query.
+        const { data: qualifiedReferral, error: referralError } = await supabase
+          .from("referrals")
+          .update({ status: "qualified", qualified_at: new Date().toISOString() })
+          .eq("referred_id", userId)
+          .eq("status", "pending")
+          .select("id, referrer_id")
+          .maybeSingle();
+
+        if (referralError) {
+          console.error("referral qualification error:", referralError.message);
+          break;
+        }
+        if (!qualifiedReferral?.referrer_id) {
+          // No pending referral, or unverified row (no referrer_id) — nothing to reward
+          break;
+        }
+        console.log(`Referral qualified for user ${userId}`);
+
+        // ── Phase 3: Reward the referrer ──
+        const { data: referrerProfile } = await supabase
+          .from("profiles")
+          .select("stripe_customer_id, plan")
+          .eq("id", qualifiedReferral.referrer_id)
+          .maybeSingle();
+
+        if (!referrerProfile?.stripe_customer_id) {
+          console.log(`Referrer ${qualifiedReferral.referrer_id} has no Stripe customer — reward deferred`);
+          break;
+        }
+
+        const creditCents = PLAN_CREDIT_CENTS[referrerProfile.plan] ?? 0;
+        if (creditCents === 0) {
+          console.log(`Referrer ${qualifiedReferral.referrer_id} on unrecognised plan — no credit issued`);
+          break;
+        }
+
+        const stripeRes = await fetch(
+          `https://api.stripe.com/v1/customers/${referrerProfile.stripe_customer_id}/balance_transactions`,
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${STRIPE_SECRET_KEY}`,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              amount:      String(-creditCents),
+              currency:    "usd",
+              description: `Referral reward — 1 free month (${referrerProfile.plan} plan)`,
+            }),
+          }
+        );
+
+        if (!stripeRes.ok) {
+          const stripeErr = await stripeRes.json();
+          console.error("Stripe balance credit error:", JSON.stringify(stripeErr));
+          break; // Leave as "qualified" — retry manually via Stripe dashboard
+        }
+
+        const { error: rewardError } = await supabase
+          .from("referrals")
+          .update({ status: "rewarded", rewarded_at: new Date().toISOString() })
+          .eq("id", qualifiedReferral.id);
+
+        if (rewardError) console.error("referral reward update error:", rewardError.message);
+        else console.log(`Referrer ${qualifiedReferral.referrer_id} rewarded: $${(creditCents / 100).toFixed(2)} credit`);
+
         break;
       }
 
