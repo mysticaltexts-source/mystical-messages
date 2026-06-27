@@ -16,23 +16,35 @@ async function logEvent(userId, event, metadata = {}) {
 
 /* ─── MESSAGE SCREENING ─── */
 const FLAGGED_TERMS = [
-  "sex","sexy","nude","naked","porn","fuck","shit","bitch","ass","dick","cock",
-  "pussy","cunt","whore","slut","rape","kill yourself","kys","suicide","drugs",
-  "cocaine","meth","heroin","weed","marijuana","alcohol","beer","wine","vodka",
+  // Profanity
+  "fuck","fucking","shit","bitch","bastard","ass","asshole","dick","cock","pussy","cunt","whore","slut",
+  // Sexual
+  "sex","sexy","nude","naked","porn",
+  // Self-harm / crisis
+  "rape","kill yourself","kys","suicide",
+  // Drugs / substances
+  "drugs","cocaine","meth","heroin","weed","marijuana","alcohol","beer","wine","vodka",
+  // Violence / danger
   "gun","weapon","bomb","terrorist","violence","abuse","molest","predator",
 ];
 function screenMessage(text) {
   const lower = text.toLowerCase();
-  const hit = FLAGGED_TERMS.find(t => lower.includes(t));
-  return hit ? `Contains flagged term: "${hit}"` : null;
+  const hit = FLAGGED_TERMS.find(t => {
+    const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`\\b${escaped}\\b`).test(lower);
+  });
+  return hit ? `"${hit}" isn't something a magical character can say` : null;
 }
 
 /* ─── STRIPE PRICE IDs ─── */
 const STRIPE_PRICES = {
-  trial:    "price_1Tf7SKJwbJqhqSCz6V76Rv14",
-  basic:    "price_1Tf7SGJwbJqhqSCzTCqIq1fz",
-  standard: "price_1Tf7SCJwbJqhqSCzQjMM0BGw",
-  premium:  "price_1Tf7S4JwbJqhqSCzoHDYCBRo",
+  trial:            "price_1Tf7SKJwbJqhqSCz6V76Rv14",  // $0.99 one-time — unchanged
+  basic_monthly:    "price_1Tm1oSJwbJqhqSCzgnFCXCkE",  // $1.99/mo
+  basic_annual:     "price_1Tm1xxJwbJqhqSCzK25to7AK",  // $19.99/yr
+  standard_monthly: "price_1Tm20RJwbJqhqSCzbhq2Mex2",  // $4.99/mo
+  standard_annual:  "price_1Tm235JwbJqhqSCzZH8v5Eu6",  // $44.99/yr
+  premium_monthly:  "price_1Tm29PJwbJqhqSCz2drtO9FI",  // $9.99/mo
+  premium_annual:   "price_1Tm2BMJwbJqhqSCz9PyI2d8x",  // $74.99/yr
 };
 
 /* ─── PLAN RANK ─── */
@@ -678,6 +690,37 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
         .eq("id", user.id);
       if (profileError) throw profileError;
 
+      // ── Record referral if a ?ref= code was captured at landing ──
+      const storedRef = localStorage.getItem("mm_ref_code");
+      if (storedRef) {
+        try {
+          const { data: referrerId, error: lookupError } = await supabase
+            .rpc("get_referrer_id", { code: storedRef });
+
+          if (lookupError) throw lookupError;
+
+          if (referrerId && referrerId !== user.id) {
+            await supabase.from("referrals").insert({
+              referrer_id: referrerId,
+              referred_id: user.id,
+              code_used:   storedRef,
+              status:      "pending",
+            });
+          } else if (!referrerId) {
+            await supabase.from("referrals").insert({
+              referrer_id: null,
+              referred_id: user.id,
+              code_used:   storedRef,
+              status:      "unverified",
+            });
+          }
+          // Self-referral: silently skip
+        } catch {
+          // Never block signup on referral failure
+        }
+        localStorage.removeItem("mm_ref_code");
+      }
+
       if (childName.trim()) {
         await supabase.from("children").insert({
           parent_id: user.id,
@@ -688,6 +731,11 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
       }
 
       localStorage.setItem("mm_sms_consent_v1", "true");
+      const firstName = (user.user_metadata?.full_name || user.email || "").split(" ")[0] || "there";
+      callFunction("send-onboarding-email", {
+        first_name: firstName,
+        email: user.email,
+      }).catch(() => {});
       onComplete();
     } catch (err) {
       setError(err.message);
@@ -772,10 +820,11 @@ const OH_CRAP_DEFAULTS = [
   { id:"wishlist",        emoji:"📝", label:"Wish List Confirmed", sub:"Santa got the list!", charSlug:"santa" },
 ];
 
-function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onGoToPrivacy, onLogout }) {
+function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onGoToPrivacy, onGoToAccount, onLogout }) {
   const [characters, setCharacters] = useState([]);
   const [children, setChildren]     = useState([]);
   const [recentMessages, setRecentMessages] = useState([]);
+  const [totalMessages, setTotalMessages]   = useState(null);
   const [activeChar, setActiveChar] = useState(null);
   const [composing, setComposing]   = useState(false);
   const [msgText, setMsgText]       = useState("");
@@ -809,6 +858,9 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
     const { data: msgs } = await supabase.from("messages").select("*, characters(name,emoji)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false }).limit(5);
     setRecentMessages(msgs || []);
+
+    const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
+    setTotalMessages(count ?? 0);
   }
 
   function handleShareMoment() {
@@ -828,6 +880,11 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   }
 
   function canUse(char) {
+    if (TEST_MODE) return true;
+    if (plan === "free") {
+      if (totalMessages === null) return true; // optimistic while count loads
+      return totalMessages === 0;
+    }
     return (PLAN_RANK[plan] || 0) >= (PLAN_RANK[char.required_plan] || 0);
   }
 
@@ -835,6 +892,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     const char = characters.find(c => c.slug === btn.charSlug);
     if (!char) { setToast("Character not found. Please contact support."); return; }
     if (!canUse(char)) { onGoToBilling(); return; }
+    if (!TEST_MODE && plan === "free") {
+      const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
+      if ((count ?? 0) >= 1) { onGoToBilling(); return; }
+    }
     if (!profile?.phone_number) { setToast("Please add your phone number in settings first."); return; }
 
     const childName = selectedChild?.name || "there";
@@ -854,7 +915,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         character_id: char.id,
         child_id: selectedChild?.id || null,
         body,
-        status: "sent",
+        status: TEST_MODE ? "test" : "sent",
         is_ohcrap: true,
         flagged: !!flagReason,
         flagged_reason: flagReason || null,
@@ -873,8 +934,13 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
   async function sendMessage() {
     if (!msgText.trim() || !activeChar) return;
-    setSending(true);
+    if (!TEST_MODE && plan === "free") {
+      const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
+      if ((count ?? 0) >= 1) { onGoToBilling(); return; }
+    }
     const flagReason = screenMessage(msgText);
+    if (flagReason) { setToast(`Blocked: ${flagReason}.`); return; }
+    setSending(true);
     try {
       if (!TEST_MODE) {
         await callFunction("send-message", {
@@ -926,6 +992,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         {menuOpen && (
           <div style={{ position:"absolute", top:"100%", right:0, background:T.midnight, borderLeft:`1px solid rgba(255,255,255,0.08)`, borderBottom:`1px solid rgba(255,255,255,0.08)`, borderRadius:"0 0 0 12px", padding:"8px 0", minWidth:180, boxShadow:"0 8px 32px rgba(0,0,0,0.4)" }}>
             {[
+              { label:"👤 My Account", action: onGoToAccount },
               { label:"👨‍👩‍👧 Profiles",  action: onGoToProfiles },
               { label:"📅 Schedule",  action: onGoToSchedule },
               { label:"🕰 History",   action: onGoToHistory },
@@ -1066,8 +1133,13 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
                 onFocus={e => e.target.style.borderColor=T.gold}
                 onBlur={e => e.target.style.borderColor="rgba(201,147,58,0.2)"}
               />
+              {screenMessage(msgText) && (
+                <div style={{ marginTop:10, padding:"10px 14px", borderRadius:8, background:"rgba(180,60,60,0.07)", border:"1px solid rgba(180,60,60,0.25)", fontSize:13, color:"#b43c3c" }}>
+                  ⚠️ {screenMessage(msgText)} — please edit before sending.
+                </div>
+              )}
               <div style={{ display:"flex", gap:10, marginTop:12, alignItems:"center" }}>
-                <Btn onClick={sendMessage} disabled={!msgText.trim()} loading={sending}>✦ Send to My Phone</Btn>
+                <Btn onClick={sendMessage} disabled={!msgText.trim() || !!screenMessage(msgText)} loading={sending}>✦ Send to My Phone</Btn>
                 <Btn variant="outline" small onClick={() => { setComposing(false); setActiveChar(null); }}>Cancel</Btn>
                 <span style={{ fontSize:12, color:T.muted, marginLeft:"auto" }}>{msgText.length}/320</span>
               </div>
@@ -1125,24 +1197,36 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
    SCREEN: BILLING
 ══════════════════════════════════════ */
 const PLANS = [
-  { id:"trial",    tier:"Try It Once", price:"$0.99", period:"one-time", badge:null,
+  { id:"trial",    tier:"Try It Once",
+    priceMonthly:"$0.99", periodMonthly:"one-time",
+    priceAnnual:null,     periodAnnual:null,     savingsAnnual:null,
+    badge:null,
     features:["1 message, any character","Template or custom","No subscription"], cta:"Send one message" },
-  { id:"basic",    tier:"Basic",       price:"$4.99", period:"/mo", badge:null,
+  { id:"basic",    tier:"Basic",
+    priceMonthly:"$1.99", periodMonthly:"/mo",
+    priceAnnual:"$19.99", periodAnnual:"/yr",    savingsAnnual:"16%",
+    badge:null,
     features:["Santa & Tooth Fairy","15 templates","Basic scheduling","1 child profile"], cta:"Choose Basic" },
-  { id:"standard", tier:"Standard",    price:"$9.99", period:"/mo", badge:"Best Value",
+  { id:"standard", tier:"Standard",
+    priceMonthly:"$4.99", periodMonthly:"/mo",
+    priceAnnual:"$44.99", periodAnnual:"/yr",    savingsAnnual:"25%",
+    badge:"Best Value",
     features:["All 3 core characters","30+ templates","Oh-Crap!! Buttons","Message history","Multiple children","Advanced scheduling"], cta:"Choose Standard" },
-  { id:"premium",  tier:"Premium",     price:"$14.99", period:"/mo", badge:null,
+  { id:"premium",  tier:"Premium",
+    priceMonthly:"$9.99", periodMonthly:"/mo",
+    priceAnnual:"$74.99", periodAnnual:"/yr",    savingsAnnual:"37%",
+    badge:null,
     features:["Everything in Standard","Build your own custom character","Unlimited saved message scripts","Priority support"], cta:"Choose Premium" },
 ];
 
 const BADGE_DATA = [
-  { id:"trial",    image:"/badge-trial.png",    tier:"Try It Once", price:"$0.99",     badge:null,          description:"Not sure yet? No pressure at all. One magical message, zero commitment — just the perfect way to see your child's face light up.", scrollCta:"Let's give it a whirl ✨" },
-  { id:"basic",    image:"/badge-basic.png",    tier:"Basic",       price:"$4.99/mo",  badge:null,          description:"Santa and the Tooth Fairy are standing by. Solid templates, simple scheduling — everything you need to nail the classics.", scrollCta:"This feels right for us →" },
-  { id:"standard", image:"/badge-standard.png", tier:"Standard",    price:"$9.99/mo",  badge:"Best Value",  description:"Honestly? This is the one most families end up loving. All three characters, Oh-Crap!! buttons for those last-minute saves, and plenty of room to grow.", scrollCta:"Ooh yes, this is the one →" },
-  { id:"premium",  image:"/badge-premium.png",  tier:"Premium",     price:"$14.99/mo", badge:null,          description:"You take magic seriously — and I respect it. Build your own characters, write your own scripts, and make every moment uniquely yours.", scrollCta:"Go big — we deserve it ✨" },
+  { id:"trial",    image:"/badge-trial.png",    tier:"Try It Once", priceMonthly:"$0.99",    priceAnnual:null,      badge:null,         description:"Not sure yet? No pressure at all. One magical message, zero commitment — just the perfect way to see your child's face light up.", scrollCta:"Let's give it a whirl ✨" },
+  { id:"basic",    image:"/badge-basic.png",    tier:"Basic",       priceMonthly:"$1.99/mo", priceAnnual:"$19.99/yr", badge:null,         description:"Santa and the Tooth Fairy are standing by. Solid templates, simple scheduling — everything you need to nail the classics.", scrollCta:"This feels right for us →" },
+  { id:"standard", image:"/badge-standard.png", tier:"Standard",    priceMonthly:"$4.99/mo", priceAnnual:"$44.99/yr", badge:"Best Value", description:"Honestly? This is the one most families end up loving. All three characters, Oh-Crap!! buttons for those last-minute saves, and plenty of room to grow.", scrollCta:"Ooh yes, this is the one →" },
+  { id:"premium",  image:"/badge-premium.png",  tier:"Premium",     priceMonthly:"$9.99/mo", priceAnnual:"$74.99/yr", badge:null,         description:"You take magic seriously — and I respect it. Build your own characters, write your own scripts, and make every moment uniquely yours.", scrollCta:"Go big — we deserve it ✨" },
 ];
 
-function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
+function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "monthly" }) {
   return (
     <div onClick={onFlip} style={{ perspective:1000, cursor:"pointer", height:290, userSelect:"none" }}>
       <div style={{
@@ -1165,7 +1249,9 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
           )}
           <img src={badge.image} alt={badge.tier} style={{ width:84, height:"auto", marginBottom:6 }}/>
           <div style={{ fontFamily:"'Playfair Display',serif", fontSize:15, fontWeight:700, color:T.ink, textAlign:"center" }}>{badge.tier}</div>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.gold }}>{badge.price}</div>
+          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.gold }}>
+            {billingCycle === "annual" && badge.priceAnnual ? badge.priceAnnual : badge.priceMonthly}
+          </div>
           <div style={{ fontSize:10, color:T.muted, letterSpacing:"0.05em", marginTop:4 }}>tap to learn more</div>
         </div>
         {/* BACK */}
@@ -1197,11 +1283,134 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo }) {
   );
 }
 
+/* ══════════════════════════════════════
+   SCREEN: ACCOUNT SETTINGS
+══════════════════════════════════════ */
+function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, onGoToBilling }) {
+  const [phone, setPhone]           = useState(profile?.phone_number || "");
+  const [emailInput, setEmailInput] = useState(session?.user?.email || "");
+  const [emailSent, setEmailSent]   = useState(false);
+  const [resetSent, setResetSent]   = useState(false);
+  const [saving, setSaving]         = useState(false);
+  const [toast, setToast]           = useState(null);
+
+  const plan = profile?.plan || "free";
+  const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
+
+  async function savePhone() {
+    setSaving(true);
+    const { error } = await supabase.from("profiles").update({ phone_number: phone }).eq("id", session.user.id);
+    setSaving(false);
+    if (error) setToast("Couldn't save — try again.");
+    else { setToast("Phone number updated!"); onProfileUpdated?.(); }
+  }
+
+  async function updateEmail() {
+    const trimmed = emailInput.trim();
+    if (!trimmed || trimmed === session.user.email) return;
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({ email: trimmed });
+    setSaving(false);
+    if (error) setToast("Couldn't update: " + error.message);
+    else setEmailSent(true);
+  }
+
+  async function resetPassword() {
+    const { error } = await supabase.auth.resetPasswordForEmail(session.user.email);
+    if (error) setToast("Couldn't send reset email.");
+    else setResetSent(true);
+  }
+
+  const field = (label, content) => (
+    <div style={{ marginBottom:24 }}>
+      <SectionLabel>{label}</SectionLabel>
+      {content}
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight:"100vh", background:T.parchment }}>
+      <PageNav onBack={onBack} title="Account" menuItems={menuItems}/>
+      <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 80px" }}>
+
+        <div className="fade-up" style={{ marginBottom:28 }}>
+          <DisplayTitle>Account Settings</DisplayTitle>
+        </div>
+
+        {/* ── Email ── */}
+        <Card style={{ marginBottom:16 }}>
+          {field("Email Address",
+            emailSent ? (
+              <p style={{ fontSize:14, color:T.gold }}>✓ Confirmation sent — check your new inbox to confirm the change.</p>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                <Input type="email" value={emailInput} onChange={setEmailInput} placeholder="your@email.com"/>
+                <p style={{ fontSize:12, color:T.muted, fontFamily:"'Lora',serif" }}>We'll send a confirmation link to the new address. Nothing changes until you click it.</p>
+                <div>
+                  <Btn small onClick={updateEmail} loading={saving} disabled={!emailInput.trim() || emailInput.trim() === session.user.email}>Update email</Btn>
+                </div>
+              </div>
+            )
+          )}
+        </Card>
+
+        {/* ── Phone ── */}
+        <Card style={{ marginBottom:16 }}>
+          {field("Phone Number",
+            <>
+              <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>This is where your magic messages are delivered.</p>
+              <Input type="tel" value={phone} onChange={setPhone} placeholder="+1 (555) 000-0000"/>
+              <div style={{ marginTop:12 }}>
+                <Btn small onClick={savePhone} loading={saving}>Save</Btn>
+              </div>
+            </>
+          )}
+        </Card>
+
+        {/* ── Password ── */}
+        <Card style={{ marginBottom:16 }}>
+          {field("Password",
+            resetSent ? (
+              <p style={{ fontSize:14, color:T.gold }}>✓ Reset link sent — check {session.user.email}</p>
+            ) : (
+              <>
+                <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>We'll email a reset link to {session.user.email}.</p>
+                <Btn variant="ghost" small onClick={resetPassword}>Send password reset link</Btn>
+              </>
+            )
+          )}
+        </Card>
+
+        {/* ── Plan ── */}
+        <Card>
+          {field("Current Plan",
+            <>
+              <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:12 }}>
+                <span style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.ink }}>{planLabel}</span>
+                {plan !== "free" && <span style={{ fontSize:13, color:T.muted }}>· renews monthly</span>}
+              </div>
+              {plan === "free" && (
+                <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>You're on the free plan. Upgrade anytime to unlock more magic.</p>
+              )}
+              <Btn variant="outline" small onClick={onGoToBilling} style={{ color:T.goldLight, borderColor:"rgba(201,147,58,0.3)" }}>
+                {plan === "free" ? "See Plans & Upgrade →" : "Manage Plan →"}
+              </Btn>
+            </>
+          )}
+        </Card>
+
+      </div>
+      {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
+    </div>
+  );
+}
+
 function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
   const [toast, setToast]               = useState(null);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loadingPlan, setLoadingPlan]   = useState(null);
   const [flippedCard, setFlippedCard]   = useState(null);
+  const [billingCycle, setBillingCycle] = useState("monthly");
 
   const currentPlan = profile?.plan || "free";
 
@@ -1213,9 +1422,10 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
     onSelectPlan(planId);
     return; // prelaunch intercept — remove this block when payments go live
     setLoadingPlan(planId);
+    const priceKey = planId === "trial" ? "trial" : `${planId}_${billingCycle}`;
     try {
       const { url } = await callFunction("create-checkout-session", {
-        price_id: STRIPE_PRICES[planId],
+        price_id: STRIPE_PRICES[priceKey],
         plan_name: planId,
       });
       if (url) window.location.href = url;
@@ -1268,8 +1478,31 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
           )}
         </div>
 
+        {/* ── Billing Cycle Toggle ── */}
+        <div className="fade-up-1" style={{ display:"flex", justifyContent:"center", marginBottom:36 }}>
+          <div style={{ background:T.midnight, borderRadius:100, padding:4, display:"inline-flex", gap:2 }}>
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              style={{ padding:"9px 26px", borderRadius:100, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, transition:"all 0.2s",
+                background: billingCycle === "monthly" ? T.gold : "transparent",
+                color: billingCycle === "monthly" ? T.midnight : "rgba(255,255,255,0.5)" }}
+            >Monthly</button>
+            <button
+              onClick={() => setBillingCycle("annual")}
+              style={{ padding:"9px 26px", borderRadius:100, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, transition:"all 0.2s", display:"flex", alignItems:"center", gap:8,
+                background: billingCycle === "annual" ? T.gold : "transparent",
+                color: billingCycle === "annual" ? T.midnight : "rgba(255,255,255,0.5)" }}
+            >
+              Annual
+              <span style={{ fontSize:11, fontWeight:700, padding:"2px 8px", borderRadius:100,
+                background: billingCycle === "annual" ? "rgba(13,27,42,0.15)" : "rgba(74,140,110,0.2)",
+                color: billingCycle === "annual" ? T.midnight : "#4a8c6e" }}>Save up to 37%</span>
+            </button>
+          </div>
+        </div>
+
         {/* ── Badge Flip Cards ── */}
-        <div className="fade-up-1" style={{ marginBottom:48 }}>
+        <div className="fade-up-2" style={{ marginBottom:48 }}>
           <div style={{ marginBottom:20 }}>
             <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:6 }}>Which level of magic fits your family?</h3>
             <p style={{ fontSize:13, color:T.muted }}>Tap a badge to see what each plan is all about.</p>
@@ -1293,17 +1526,21 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
                   isFlipped={flippedCard === badge.id}
                   onFlip={() => setFlippedCard(prev => prev === badge.id ? null : badge.id)}
                   onScrollTo={() => { setFlippedCard(null); scrollToPlan(badge.id); }}
+                  billingCycle={billingCycle}
                 />
               </div>
             ))}
           </div>
         </div>
 
-        <div className="fade-up-2" style={{ marginBottom:48 }}>
+        <div className="fade-up-3" style={{ marginBottom:48 }}>
           <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:20 }}>All plans</h3>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:14 }}>
             {PLANS.map(plan => {
               const isCurrent = currentPlan === plan.id;
+              const showAnnual = billingCycle === "annual" && plan.priceAnnual !== null;
+              const displayPrice = showAnnual ? plan.priceAnnual : plan.priceMonthly;
+              const displayPeriod = showAnnual ? plan.periodAnnual : plan.periodMonthly;
               return (
                 <div key={plan.id} id={`plan-card-${plan.id}`} style={{
                   background: isCurrent ? T.midnight : T.warmWhite,
@@ -1313,8 +1550,11 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
                 }}>
                   {plan.badge && <div style={{ position:"absolute", top:-11, left:"50%", transform:"translateX(-50%)", background:T.gold, color:T.midnight, fontSize:10, fontWeight:700, padding:"3px 12px", borderRadius:100, whiteSpace:"nowrap" }}>{plan.badge}</div>}
                   <div style={{ fontSize:11, fontWeight:500, letterSpacing:"0.15em", textTransform:"uppercase", color: isCurrent ? T.goldLight : T.gold, marginBottom:6 }}>{plan.tier}</div>
-                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:700, color: isCurrent ? T.warmWhite : T.ink, lineHeight:1 }}>{plan.price}</div>
-                  <div style={{ fontSize:13, color: isCurrent ? "rgba(255,255,255,0.4)" : T.muted, marginBottom:18 }}>{plan.period}</div>
+                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:700, color: isCurrent ? T.warmWhite : T.ink, lineHeight:1 }}>{displayPrice}</div>
+                  <div style={{ fontSize:13, color: isCurrent ? "rgba(255,255,255,0.4)" : T.muted, marginBottom: showAnnual && plan.savingsAnnual ? 4 : 18 }}>{displayPeriod}</div>
+                  {showAnnual && plan.savingsAnnual && (
+                    <div style={{ fontSize:11, fontWeight:700, color:"#4a8c6e", background:"rgba(74,140,110,0.1)", display:"inline-block", padding:"2px 8px", borderRadius:100, marginBottom:14 }}>Save {plan.savingsAnnual}</div>
+                  )}
                   <div style={{ height:1, background: isCurrent ? "rgba(255,255,255,0.1)" : "rgba(201,147,58,0.15)", marginBottom:16 }}/>
                   <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
                     {plan.features.map((f,i) => (
@@ -1341,7 +1581,7 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
         </div>
 
         {/* ── Invite code ── */}
-        <div className="fade-up-3" style={{ marginBottom:40 }}>
+        <div className="fade-up-4" style={{ marginBottom:40 }}>
           <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
             <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to unlock your preview access — no payment needed.</p>
@@ -1700,6 +1940,7 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
       return;
     }
     const flagReason = screenMessage(msgText);
+    if (flagReason) { setToast(`Blocked: ${flagReason}.`); return; }
     setSaving(true);
     try {
       const scheduledFor = new Date(`${schedDate}T${schedTime}`).toISOString();
@@ -1940,6 +2181,11 @@ export default function App() {
   useEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
   useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) localStorage.setItem("mm_ref_code", ref.trim().toUpperCase());
+  }, []);
+
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -1997,6 +2243,7 @@ export default function App() {
   }
 
   const navMenuItems = session ? [
+    { label:"👤 My Account", action: () => goTo("account") },
     { label:"👨‍👩‍👧 Profiles",  action: () => goTo("profiles") },
     { label:"📅 Schedule",  action: () => goTo("schedule") },
     { label:"🕰 History",   action: () => goTo("history") },
@@ -2076,14 +2323,17 @@ export default function App() {
       <FontLink/>
       <style>{G}</style>
 
-      {/* ── Global invite code banner (free users only) ── */}
+      {/* ── Global banner (free users only) ── */}
       {session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup" && (
-        <div
-          onClick={() => setPrelaunch("banner")}
-          style={{ position:"fixed", top:0, left:0, right:0, zIndex:200, background:T.navy, borderBottom:`1px solid rgba(201,147,58,0.3)`, color:"rgba(255,255,255,0.75)", fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"9px 16px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, lineHeight:1.4 }}
-        >
-          Have an invite code or early access offer? Redeem it{" "}
-          <span style={{ color:"#e8b96a", fontWeight:700, textDecoration:"underline", letterSpacing:"0.02em" }}>HERE</span>
+        <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:200, background:T.navy, borderBottom:`1px solid rgba(201,147,58,0.3)`, color:"rgba(255,255,255,0.75)", fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"9px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, lineHeight:1.4, flexWrap:"wrap" }}>
+          {TEST_MODE
+            ? "Preview mode — no real SMS is sent yet."
+            : "✨ You have a free message — pick any character to try the magic."
+          }{" "}
+          <span
+            onClick={() => setPrelaunch("banner")}
+            style={{ color:"#e8b96a", fontWeight:700, textDecoration:"underline", letterSpacing:"0.02em", cursor:"pointer", whiteSpace:"nowrap" }}
+          >Have an invite code? Redeem it here.</span>
         </div>
       )}
 
@@ -2104,14 +2354,14 @@ export default function App() {
               </div>
             ) : (
               <>
-                <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>🔮</div>
+                <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>✨</div>
                 <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.warmWhite, marginBottom:12, lineHeight:1.3, textAlign:"center" }}>
-                  Almost time — but not quite yet.
+                  More magic is almost here.
                 </h2>
                 <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
                   {isFromBanner
-                    ? "We're in prelaunch and not yet taking payments. Drop your email and we'll tell you the moment the doors open — or enter your invite code below to get in right now."
-                    : `We're in prelaunch and not yet taking payments, but you clearly have great taste in plans. Let us give you a heads up the moment we open the doors — ${selectedPlanLabel} will be waiting for you.`}
+                    ? "Paid plans are opening very soon. Drop your email and we'll let you know the moment they go live — or enter your invite code below to unlock access right now."
+                    : `Paid plans are opening very soon — ${selectedPlanLabel} will be ready and waiting for you. Leave your email and we'll tell you the moment the doors open.`}
                 </p>
                 <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
                   <div>
@@ -2295,8 +2545,13 @@ export default function App() {
           onGoToAbout={()     => goTo("about")}
           onGoToTerms={()     => goTo("terms")}
           onGoToPrivacy={()   => goTo("privacy")}
+          onGoToAccount={()   => goTo("account")}
           onLogout={handleLogout}
         />
+      )}
+
+      {screen === "account" && session && (
+        <AccountScreen session={session} profile={profile} onBack={() => setScreen("dashboard")} menuItems={navMenuItems} onProfileUpdated={() => loadProfile(session.user.id)} onGoToBilling={() => goTo("billing")}/>
       )}
 
       {screen === "billing" && (

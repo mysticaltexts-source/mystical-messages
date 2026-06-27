@@ -26,19 +26,27 @@ These are consumed by `src/lib/supabase.js` via `import.meta.env`.
 
 Add `VITE_TEST_MODE=true` to skip Twilio SMS calls entirely during development (no charges). **Delete the variable entirely** (do not set it to empty or false) once Twilio brand/10DLC approval is received.
 
-## Twilio Go-Live Checklist
+## Launch Day Checklist
 
-The `send-message` Edge Function sends SMS via Twilio. SMS is currently suppressed via `VITE_TEST_MODE`. When Twilio brand/10DLC approval arrives, do the following:
+### Payments (do when ready to take real payments)
+
+1. **Remove the prelaunch intercept** in `src/App.jsx` around line 1377 — delete this line:
+   ```js
+   return; // prelaunch intercept — remove this block when payments go live
+   ```
+   Then commit, push, and redeploy.
+
+### Twilio / SMS (do when Twilio brand/10DLC approval arrives)
 
 **There are two Supabase projects.** The live app connects to `mysticaltexts-source/mystic...` (not "mysticaltexts -Claude v2.0"). All steps below apply to the **source project**.
 
-1. **DELETE `VITE_TEST_MODE`** from Vercel → your project → Settings → Environment Variables (do not set it to false or empty — delete it entirely), then trigger a redeploy
-2. **Update the Twilio FROM number** in the `send-message` Edge Function code — it is hardcoded in the function body (not stored as a secret). In Supabase → Edge Functions → `send-message` → open the editor and replace the placeholder FROM number with your approved, brand-registered number (e.g. `+1XXXXXXXXXX`)
-3. **Verify these secrets exist** in Supabase → Edge Functions → Secrets on the source project (they are already set — just confirm values are production, not test):
+2. **DELETE `VITE_TEST_MODE`** from Vercel → your project → Settings → Environment Variables (do not set it to false or empty — delete it entirely), then trigger a redeploy
+3. **Update the Twilio FROM number** in the `send-message` Edge Function code — it is hardcoded in the function body (not stored as a secret). In Supabase → Edge Functions → `send-message` → open the editor and replace the placeholder FROM number with your approved, brand-registered number (e.g. `+1XXXXXXXXXX`)
+4. **Verify these secrets exist** in Supabase → Edge Functions → Secrets on the source project (they are already set — just confirm values are production, not test):
    - `TWILIO_ACCOUNT_SID` — production Account SID (starts with `AC`)
    - `TWILIO_AUTH_TOKEN` — production Auth Token
-4. **Redeploy** the `send-message` Edge Function after editing the FROM number
-5. Send a test message from the dashboard to confirm delivery
+5. **Redeploy** the `send-message` Edge Function after editing the FROM number
+6. Send a test message from the dashboard to confirm delivery
 
 ## Architecture
 
