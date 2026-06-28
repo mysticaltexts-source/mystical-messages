@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY  = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP_URL         = "https://mysticaltexts.com";
 const SUPPORT_EMAIL   = "hello@mysticaltexts.com";
 const FACEBOOK_GROUP  = "https://www.facebook.com/share/g/1JA1xM9zaT/?mibextid=wwXIfr";
@@ -225,13 +228,21 @@ function buildEmail(firstName: string, referralLink: string): string {
 
 serve(async (req) => {
   try {
-    const { first_name, email, referral_link } = await req.json();
+    const { first_name, email, user_id } = await req.json();
     if (!email) return new Response(JSON.stringify({ error: "email required" }), { status: 400 });
 
     const name = first_name || email.split("@")[0];
-    // referral_link is a placeholder until the referral system is built;
-    // once referral_code exists on profiles, pass mysticaltexts.com/?ref=CODE here
-    const link = referral_link || `${APP_URL}/?ref=COMING_SOON`;
+
+    let link = APP_URL;
+    if (user_id) {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("id", user_id)
+        .maybeSingle();
+      if (profile?.referral_code) link = `${APP_URL}/?ref=${profile.referral_code}`;
+    }
 
     const html = buildEmail(name, link);
 

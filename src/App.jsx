@@ -704,6 +704,7 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
       callFunction("send-onboarding-email", {
         first_name: firstName,
         email: user.email,
+        user_id: user.id,
       }).catch(() => {});
       onComplete();
     } catch (err) {
