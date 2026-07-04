@@ -771,7 +771,7 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
                 style={{ marginTop:3, accentColor:T.gold, width:16, height:16, flexShrink:0, cursor:"pointer" }}
               />
               <span style={{ fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.6 }}>
-                I agree to receive recurring automated text messages from Mystical Messages at the number provided.
+                I agree to receive recurring automated text messages from Mystical Messages to deliver the personalized holiday character messages I schedule (e.g., from Santa, the Tooth Fairy, or the Easter Bunny) at the number provided.
                 Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
                 <button type="button" onClick={onGoToTerms} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
                 {" · "}
@@ -2399,7 +2399,7 @@ export default function App() {
                           style={{ marginTop:3, accentColor:T.gold, width:15, height:15, flexShrink:0, cursor:"pointer" }}
                         />
                         <span style={{ fontSize:11, color:"rgba(255,255,255,0.45)", lineHeight:1.65 }}>
-                          I agree to receive recurring automated text messages from Mystical Messages at the number provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
+                          I agree to receive recurring automated text messages from Mystical Messages to deliver the personalized holiday character messages I schedule (e.g., from Santa, the Tooth Fairy, or the Easter Bunny) at the number provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
                           <button type="button" onClick={() => goTo("terms")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
                           {" · "}
                           <button type="button" onClick={() => goTo("privacy")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
@@ -2466,7 +2466,7 @@ export default function App() {
                 style={{ marginTop:3, accentColor:T.gold, width:16, height:16, flexShrink:0, cursor:"pointer" }}
               />
               <span style={{ fontSize:12, color:"rgba(255,255,255,0.55)", lineHeight:1.7 }}>
-                I agree to receive recurring automated text messages from Mystical Messages at the number on my account.
+                I agree to receive recurring automated text messages from Mystical Messages to deliver the personalized holiday character messages I schedule (e.g., from Santa, the Tooth Fairy, or the Easter Bunny) at the number provided.
                 Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
                 <button type="button" onClick={() => { setShowConsentOverlay(false); goTo("terms"); }} style={{ background:"none", border:"none", padding:0, color:T.gold, fontSize:12, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
                 {" · "}
