@@ -50,6 +50,14 @@ const STRIPE_PRICES = {
 /* ─── PLAN RANK ─── */
 const PLAN_RANK = { free: 0, trial: 1, basic: 2, standard: 3, premium: 4 };
 
+/* ─── EFFECTIVE PLAN ─── */
+// Returns "free" if the user's trial has expired, otherwise their DB plan.
+function getEffectivePlan(profile) {
+  if (!profile) return "free";
+  if (profile.trial_ends_at && new Date(profile.trial_ends_at) < new Date()) return "free";
+  return profile.plan || "free";
+}
+
 /* ─── DESIGN TOKENS ─── */
 const T = {
   midnight: "#0d1b2a", navy: "#132233", parchment: "#fdf8f0",
@@ -806,7 +814,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   const [showCommunityModal, setShowCommunityModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const plan = profile?.plan || "free";
+  const plan = getEffectivePlan(profile);
   const userName = profile?.full_name?.split(" ")[0] || "there";
 
   useEffect(() => {
@@ -1264,7 +1272,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
   const [saving, setSaving]         = useState(false);
   const [toast, setToast]           = useState(null);
 
-  const plan = profile?.plan || "free";
+  const plan = getEffectivePlan(profile);
   const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
 
   async function savePhone() {
@@ -1382,7 +1390,7 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
   const [flippedCard, setFlippedCard]   = useState(null);
   const [billingCycle, setBillingCycle] = useState("monthly");
 
-  const currentPlan = profile?.plan || "free";
+  const currentPlan = getEffectivePlan(profile);
 
   function scrollToPlan(planId) {
     document.getElementById(`plan-card-${planId}`)?.scrollIntoView({ behavior:"smooth", block:"center" });
@@ -1554,7 +1562,7 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
         <div className="fade-up-4" style={{ marginBottom:40 }}>
           <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
-            <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to unlock your preview access — no payment needed.</p>
+            <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to start your 60-day free trial of Standard — no payment needed.</p>
             <button
               onClick={() => onSelectPlan("banner")}
               style={{ padding:"11px 20px", borderRadius:8, background:T.gold, color:T.midnight, border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
@@ -1900,7 +1908,7 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
 
   async function scheduleMessage() {
     if (!msgText.trim() || !schedDate || !selectedChar) return;
-    if (PLAN_RANK[profile?.plan || "free"] < PLAN_RANK["basic"]) {
+    if (PLAN_RANK[getEffectivePlan(profile)] < PLAN_RANK["basic"]) {
       onSelectPlan("banner");
       return;
     }
@@ -2261,7 +2269,7 @@ export default function App() {
         first_name: firstName,
         email: session.user.email,
       }).catch(() => {});
-      setPrelaunchToast(`✨ Welcome to ${result.charAt(0).toUpperCase() + result.slice(1)}! Refreshing…`);
+      setPrelaunchToast("✨ Your 60-day free trial starts now! Refreshing…");
       setTimeout(() => window.location.reload(), 1600);
     } catch (err) {
       setCodeError("Something went wrong — try again in a moment.");
@@ -2289,7 +2297,7 @@ export default function App() {
       <style>{G}</style>
 
       {/* ── Global banner (free users only) ── */}
-      {session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup" && (
+      {session && profile && getEffectivePlan(profile) === "free" && screen !== "auth" && screen !== "setup" && (
         <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:200, background:T.navy, borderBottom:`1px solid rgba(201,147,58,0.3)`, color:"rgba(255,255,255,0.75)", fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"9px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, lineHeight:1.4, flexWrap:"wrap" }}>
           {TEST_MODE
             ? "Preview mode — no real SMS is sent yet."
@@ -2381,7 +2389,7 @@ export default function App() {
                   </button>
                   <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:16, display:"flex", flexDirection:"column", gap:8 }}>
                     <p style={{ fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.75)", fontFamily:"'DM Sans',sans-serif", marginBottom:2 }}>🎟️ Have an invite code?</p>
-                    <p style={{ fontSize:13, color:"rgba(255,255,255,0.5)", fontFamily:"'Lora',serif", lineHeight:1.6, marginBottom:4 }}>That's your key to early access. Enter it below to unlock your free trial right now — no waiting.</p>
+                    <p style={{ fontSize:13, color:"rgba(255,255,255,0.5)", fontFamily:"'Lora',serif", lineHeight:1.6, marginBottom:4 }}>That's your key to a 60-day free trial of Standard access — all three characters, Oh-Crap!! Buttons, and more. Enter it below to start right now.</p>
                     <div style={{ display:"flex", gap:8 }}>
                       <input
                         type="text"
@@ -2449,7 +2457,7 @@ export default function App() {
         </div>
       )}
 
-      <div style={{ paddingTop: (session && profile && (profile.plan === "free" || !profile.plan) && screen !== "auth" && screen !== "setup") ? 38 : 0 }}>
+      <div style={{ paddingTop: (session && profile && getEffectivePlan(profile) === "free" && screen !== "auth" && screen !== "setup") ? 38 : 0 }}>
 
       {screen === "auth" && (
         <AuthScreen

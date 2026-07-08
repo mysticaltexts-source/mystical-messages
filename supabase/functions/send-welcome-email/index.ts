@@ -20,12 +20,12 @@ serve(async (req) => {
         <p style="font-size:16px;line-height:1.8;">Hey ${first_name},</p>
 
         <p style="font-size:15px;line-height:1.8;">
-          Welcome to Mystical Messages — you're one of a small group of people with early access,
+          Welcome to Mystical Messages — your <strong>60-day free trial</strong> starts right now,
           and we're genuinely glad you're here.
         </p>
 
         <p style="font-size:15px;line-height:1.8;">
-          Your account is set up with <strong>Standard access</strong>, which means you've got the full toolkit:
+          Your trial gives you full <strong>Standard access</strong> for the next 60 days — the complete toolkit:
         </p>
 
         <ul style="font-size:15px;line-height:2;padding-left:20px;">
@@ -87,7 +87,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: "Mystical Messages <hello@mysticaltexts.com>",
         to: [email],
-        subject: "You're in. ✨ Here's what to do first.",
+        subject: "Your 60-day free trial starts now ✨",
         html,
       }),
     });
