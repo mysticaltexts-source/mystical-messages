@@ -9,7 +9,7 @@ const LOGIN_URL     = "https://mysticaltexts.com";
 const BILLING_URL   = "https://mysticaltexts.com"; // routes to billing screen after login
 const SUPPORT_EMAIL = "hello@mysticaltexts.com";
 
-function buildEmail(firstName: string): string {
+function buildEmail(firstName: string, referralLink: string): string {
   return `
   <div style="font-family:'Georgia',serif;max-width:600px;margin:0 auto;background:#fdf8f0;color:#3d3530;">
 
@@ -95,19 +95,22 @@ function buildEmail(firstName: string): string {
 
       <!-- REFERRALS -->
       <div style="background:#f5ede0;border-radius:16px;padding:24px 28px;margin:28px 0;border:1px solid rgba(201,147,58,0.2);">
-        <div style="font-family:'Georgia',serif;font-size:18px;font-weight:bold;color:#3d3530;margin-bottom:10px;">👨‍👩‍👧 Refer a Family, Earn a Free Month</div>
+        <div style="font-family:'Georgia',serif;font-size:18px;font-weight:bold;color:#3d3530;margin-bottom:10px;">👨‍👩‍👧 Refer a Family, Earn Free Time</div>
         <p style="font-size:14px;line-height:1.8;color:#3d3530;margin:0 0 10px;">
-          Every time someone you refer signs up for <strong>Basic or higher</strong> as a first-time
-          paid user, you earn <strong>one free month</strong> of Standard — no cap, stacked on top
-          of whatever time you already have.
+          Every time someone subscribes through your personal referral link, you automatically
+          earn a credit equal to <strong>one month of your current plan</strong> — applied straight
+          to your account, no cap, stacks as long as you keep referring.
         </p>
-        <p style="font-size:14px;line-height:1.8;color:#3d3530;margin:0 0 10px;">
-          <strong>Want Premium instead?</strong> Once you've made your first $9.99 Standard payment,
-          referral credits can be applied toward a Premium upgrade — meaning you could unlock our
-          top-tier plan entirely through the families you bring in.
+        <p style="font-size:14px;line-height:1.8;color:#3d3530;margin:0 0 14px;">
+          Share the link below. When a friend signs up through it and pays for the first time,
+          the credit lands automatically — no forms, no emails to us.
         </p>
-        <p style="font-size:13px;color:#7a6e66;margin:0;font-style:italic;">
-          To refer: just send friends to <a href="${LOGIN_URL}" style="color:#c9933a;">${LOGIN_URL}</a> and have them mention your name or email when they sign up. We'll handle the rest.
+        <div style="background:#0d1b2a;border-radius:10px;padding:14px 18px;margin-bottom:6px;">
+          <div style="font-family:'Arial',sans-serif;font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em;">Your referral link</div>
+          <div style="font-family:'Arial',sans-serif;font-size:13px;color:#e8b96a;word-break:break-all;">${referralLink}</div>
+        </div>
+        <p style="font-size:12px;color:#7a6e66;margin:8px 0 0;font-style:italic;">
+          The link must be used at signup — credits aren't applied retroactively.
         </p>
       </div>
 
@@ -167,7 +170,7 @@ serve(async (req) => {
     // Fetch all earlybird profiles
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, full_name, plan")
+      .select("id, full_name, plan, referral_code")
       .eq("is_earlybird", true);
 
     if (profilesError) throw new Error(profilesError.message);
@@ -194,7 +197,10 @@ serve(async (req) => {
       }
 
       const firstName = (profile.full_name || user.email).split(" ")[0];
-      const html = buildEmail(firstName);
+      const referralLink = profile.referral_code
+        ? `https://mysticaltexts.com/?ref=${profile.referral_code}`
+        : "https://mysticaltexts.com";
+      const html = buildEmail(firstName, referralLink);
 
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
