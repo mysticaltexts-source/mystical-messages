@@ -1419,8 +1419,6 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
   }
 
   async function checkout(planId) {
-    onSelectPlan(planId);
-    return; // prelaunch intercept — remove this block when payments go live
     setLoadingPlan(planId);
     const priceKey = planId === "trial" ? "trial" : `${planId}_${billingCycle}`;
     try {
