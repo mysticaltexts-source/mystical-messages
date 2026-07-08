@@ -118,7 +118,7 @@ function buildEmail(firstName: string, referralLink: string): string {
       <div style="border-left:3px solid #c9933a;padding:14px 20px;margin:28px 0;background:rgba(201,147,58,0.06);border-radius:0 8px 8px 0;">
         <p style="font-size:14px;line-height:1.8;color:#3d3530;margin:0;">
           <strong>This is for Earlybirds only.</strong> These rewards — the 60 free days, the review
-          bonuses, the referral-to-Premium path — are not available to anyone who joins after launch.
+          bonuses, the referral credits — are not available to anyone who joins after launch.
           You earned them by believing in us early. We don't forget that.
         </p>
       </div>
