@@ -1405,7 +1405,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
   );
 }
 
-function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
+function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
   const [toast, setToast]               = useState(null);
   const [cancelConfirm, setCancelConfirm] = useState(false);
   const [loadingPlan, setLoadingPlan]   = useState(null);
@@ -1419,8 +1419,6 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
   }
 
   async function checkout(planId) {
-    onSelectPlan(planId);
-    return; // prelaunch intercept — remove this block when payments go live
     setLoadingPlan(planId);
     const priceKey = planId === "trial" ? "trial" : `${planId}_${billingCycle}`;
     try {
@@ -1584,9 +1582,9 @@ function BillingScreen({ profile, session, onBack, onSelectPlan, menuItems }) {
         <div className="fade-up-4" style={{ marginBottom:40 }}>
           <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
-            <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to unlock your preview access — no payment needed.</p>
+            <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to unlock your free trial — no payment needed.</p>
             <button
-              onClick={() => onSelectPlan("banner")}
+              onClick={onRedeemCode}
               style={{ padding:"11px 20px", borderRadius:8, background:T.gold, color:T.midnight, border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
             >
               Redeem code ✦
@@ -1902,7 +1900,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
 /* ══════════════════════════════════════
    SCREEN: SCHEDULE
 ══════════════════════════════════════ */
-function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
+function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) {
   const [step, setStep]           = useState(1);
   const [characters, setCharacters] = useState([]);
   const [children, setChildren]   = useState([]);
@@ -1931,7 +1929,7 @@ function ScheduleScreen({ session, profile, onSelectPlan, onBack, menuItems }) {
   async function scheduleMessage() {
     if (!msgText.trim() || !schedDate || !selectedChar) return;
     if (PLAN_RANK[profile?.plan || "free"] < PLAN_RANK["basic"]) {
-      onSelectPlan("banner");
+      onGoToBilling();
       return;
     }
     if (TEST_MODE) {
@@ -2159,19 +2157,13 @@ export default function App() {
   const [screen, setScreen]     = useState("auth");
   const [loading, setLoading]   = useState(true);
   const [prevScreen, setPrevScreen] = useState("dashboard");
-  const [prelaunch, setPrelaunch]           = useState(null);
+  const [redeemOpen, setRedeemOpen]         = useState(false);
   const [showConsentOverlay, setShowConsentOverlay] = useState(false);
   const [consentChecked, setConsentChecked]         = useState(false);
-  const [notifyEmail, setNotifyEmail]       = useState("");
-  const [textOptIn, setTextOptIn]           = useState(false);
-  const [prelaunchSmsConsent, setPrelaunchSmsConsent] = useState(false);
-  const [notifyPhone, setNotifyPhone]       = useState("");
-  const [notifyLoading, setNotifyLoading]   = useState(false);
-  const [notifyDone, setNotifyDone]         = useState(false);
   const [codeInput, setCodeInput]           = useState("");
   const [codeLoading, setCodeLoading]       = useState(false);
   const [codeError, setCodeError]           = useState(null);
-  const [prelaunchToast, setPrelaunchToast] = useState(null);
+  const [redeemToast, setRedeemToast]       = useState(null);
 
   function goTo(s) {
     setPrevScreen(screen);
@@ -2255,27 +2247,11 @@ export default function App() {
   ] : [];
 
   useEffect(() => {
-    if (prelaunch) {
-      setNotifyEmail(profile?.email || session?.user?.email || "");
-      setNotifyPhone(profile?.phone_number || "");
-      setNotifyDone(false);
+    if (redeemOpen) {
       setCodeInput("");
       setCodeError(null);
-      setTextOptIn(false);
     }
-  }, [!!prelaunch]);
-
-  async function saveNotify() {
-    setNotifyLoading(true);
-    try {
-      await supabase.from("profiles").update({
-        notify_when_live: true,
-        ...(textOptIn && notifyPhone ? { notify_phone: notifyPhone } : {}),
-      }).eq("id", session.user.id);
-    } catch (_) {}
-    setNotifyLoading(false);
-    setNotifyDone(true);
-  }
+  }, [redeemOpen]);
 
   async function redeemCode() {
     const code = codeInput.trim().toUpperCase();
@@ -2296,7 +2272,7 @@ export default function App() {
         first_name: firstName,
         email: session.user.email,
       }).catch(() => {});
-      setPrelaunchToast(`✨ Welcome to ${result.charAt(0).toUpperCase() + result.slice(1)}! Refreshing…`);
+      setRedeemToast(`✨ Welcome to ${result.charAt(0).toUpperCase() + result.slice(1)}! Refreshing…`);
       setTimeout(() => window.location.reload(), 1600);
     } catch (err) {
       setCodeError("Something went wrong — try again in a moment.");
@@ -2304,11 +2280,6 @@ export default function App() {
       setCodeLoading(false);
     }
   }
-
-  const selectedPlanLabel = prelaunch && prelaunch !== "banner"
-    ? PLANS.find(p => p.id === prelaunch)?.tier
-    : "your plan";
-  const isFromBanner = prelaunch === "banner";
 
   if (loading) return (
     <>
@@ -2331,121 +2302,50 @@ export default function App() {
             : "✨ You have a free message — pick any character to try the magic."
           }{" "}
           <span
-            onClick={() => setPrelaunch("banner")}
+            onClick={() => setRedeemOpen(true)}
             style={{ color:"#e8b96a", fontWeight:700, textDecoration:"underline", letterSpacing:"0.02em", cursor:"pointer", whiteSpace:"nowrap" }}
           >Have an invite code? Redeem it here.</span>
         </div>
       )}
 
-      {/* ── Global prelaunch modal ── */}
-      {prelaunch && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(13,27,42,0.82)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:300, padding:24 }} onClick={() => { if (!notifyDone) setPrelaunch(null); }}>
+      {/* ── Global redeem-code modal ── */}
+      {redeemOpen && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(13,27,42,0.82)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:300, padding:24 }} onClick={() => setRedeemOpen(false)}>
           <div onClick={e => e.stopPropagation()} style={{ background:T.midnight, border:`1.5px solid rgba(201,147,58,0.3)`, borderRadius:24, padding:"40px 32px", maxWidth:420, width:"100%", animation:"fadeUp 0.35s ease", boxShadow:"0 24px 64px rgba(0,0,0,0.4)" }}>
-            {notifyDone ? (
-              <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:52, marginBottom:16 }}>✨</div>
-                <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:700, color:T.warmWhite, marginBottom:14, lineHeight:1.3 }}>You're on the list.</h2>
-                <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.7)", lineHeight:1.8, marginBottom:28 }}>
-                  We'll reach out the moment we open the doors. Good things coming — we promise it'll be worth the wait.
-                </p>
-                <button onClick={() => { setPrelaunch(null); setNotifyDone(false); }} style={{ background:"transparent", border:`1.5px solid rgba(201,147,58,0.4)`, color:"#e8b96a", borderRadius:8, padding:"10px 24px", fontSize:13, fontWeight:500, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>
-                  Keep browsing →
+            <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>🎟️</div>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.warmWhite, marginBottom:12, lineHeight:1.3, textAlign:"center" }}>
+              Have an invite code?
+            </h2>
+            <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
+              That's your key to early access. Enter it below to unlock your free trial right now — no waiting.
+            </p>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              <div style={{ display:"flex", gap:8 }}>
+                <input
+                  type="text"
+                  value={codeInput}
+                  onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(null); }}
+                  onKeyDown={e => e.key === "Enter" && redeemCode()}
+                  placeholder="ENTER CODE"
+                  style={{ flex:1, padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.08em", outline:"none" }}
+                />
+                <button
+                  onClick={redeemCode}
+                  disabled={!codeInput.trim() || codeLoading}
+                  style={{ padding:"11px 16px", borderRadius:8, background: codeInput.trim() ? T.gold : "rgba(201,147,58,0.15)", color: codeInput.trim() ? T.midnight : "rgba(201,147,58,0.4)", border:"none", fontSize:13, fontWeight:600, cursor: codeInput.trim() ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:4, whiteSpace:"nowrap" }}
+                >
+                  {codeLoading ? <Spinner/> : "Redeem"}
                 </button>
               </div>
-            ) : (
-              <>
-                <div style={{ fontSize:44, textAlign:"center", marginBottom:18 }}>✨</div>
-                <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:700, color:T.warmWhite, marginBottom:12, lineHeight:1.3, textAlign:"center" }}>
-                  More magic is almost here.
-                </h2>
-                <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
-                  {isFromBanner
-                    ? "Paid plans are opening very soon. Drop your email and we'll let you know the moment they go live — or enter your invite code below to unlock access right now."
-                    : `Paid plans are opening very soon — ${selectedPlanLabel} will be ready and waiting for you. Leave your email and we'll tell you the moment the doors open.`}
-                </p>
-                <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-                  <div>
-                    <label style={{ fontSize:11, fontWeight:600, letterSpacing:"0.1em", textTransform:"uppercase", color:"rgba(255,255,255,0.45)", display:"block", marginBottom:6 }}>Your email</label>
-                    <input
-                      type="email"
-                      value={notifyEmail}
-                      onChange={e => setNotifyEmail(e.target.value)}
-                      style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
-                    />
-                  </div>
-                  <button
-                    onClick={() => setTextOptIn(v => !v)}
-                    style={{ background:"none", border:"none", cursor:"pointer", display:"flex", alignItems:"center", gap:10, padding:"4px 0", textAlign:"left" }}
-                  >
-                    <div style={{ width:20, height:20, borderRadius:4, border:`1.5px solid rgba(201,147,58,0.5)`, background: textOptIn ? T.gold : "transparent", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"all 0.2s" }}>
-                      {textOptIn && <span style={{ fontSize:11, color:T.midnight, fontWeight:700 }}>✓</span>}
-                    </div>
-                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"rgba(255,255,255,0.65)" }}>Also text me when you're live</span>
-                  </button>
-                  {textOptIn && (
-                    <>
-                      <input
-                        type="tel"
-                        value={notifyPhone}
-                        onChange={e => setNotifyPhone(e.target.value)}
-                        placeholder="Your phone number"
-                        style={{ width:"100%", padding:"11px 14px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.3)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:14, fontFamily:"'DM Sans',sans-serif", outline:"none" }}
-                      />
-                      <label style={{ display:"flex", gap:10, alignItems:"flex-start", cursor:"pointer" }}>
-                        <input
-                          type="checkbox"
-                          checked={prelaunchSmsConsent}
-                          onChange={e => setPrelaunchSmsConsent(e.target.checked)}
-                          style={{ marginTop:3, accentColor:T.gold, width:15, height:15, flexShrink:0, cursor:"pointer" }}
-                        />
-                        <span style={{ fontSize:11, color:"rgba(255,255,255,0.45)", lineHeight:1.65 }}>
-                          I agree to receive recurring automated text messages from Mystical Messages to deliver the personalized holiday character messages I schedule (e.g., from Santa, the Tooth Fairy, or the Easter Bunny) at the number provided. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to cancel, HELP for help.{" "}
-                          <button type="button" onClick={() => goTo("terms")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
-                          {" · "}
-                          <button type="button" onClick={() => goTo("privacy")} style={{ background:"none", border:"none", padding:0, color:"rgba(201,147,58,0.7)", fontSize:11, cursor:"pointer", textDecoration:"underline" }}>Privacy Policy</button>
-                        </span>
-                      </label>
-                    </>
-                  )}
-                  <button
-                    onClick={saveNotify}
-                    disabled={!notifyEmail || notifyLoading || (textOptIn && (!notifyPhone.trim() || !prelaunchSmsConsent))}
-                    style={{ marginTop:4, width:"100%", padding:"13px 0", borderRadius:8, background: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? T.gold : "rgba(201,147,58,0.2)", color: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? T.midnight : "rgba(201,147,58,0.4)", fontSize:14, fontWeight:600, border:"none", cursor: (notifyEmail && (!textOptIn || (notifyPhone.trim() && prelaunchSmsConsent))) ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}
-                  >
-                    {notifyLoading ? <Spinner/> : "Notify me when you're live ✨"}
-                  </button>
-                  <div style={{ borderTop:"1px solid rgba(255,255,255,0.08)", paddingTop:16, display:"flex", flexDirection:"column", gap:8 }}>
-                    <p style={{ fontSize:13, fontWeight:600, color:"rgba(255,255,255,0.75)", fontFamily:"'DM Sans',sans-serif", marginBottom:2 }}>🎟️ Have an invite code?</p>
-                    <p style={{ fontSize:13, color:"rgba(255,255,255,0.5)", fontFamily:"'Lora',serif", lineHeight:1.6, marginBottom:4 }}>That's your key to early access. Enter it below to unlock your free trial right now — no waiting.</p>
-                    <div style={{ display:"flex", gap:8 }}>
-                      <input
-                        type="text"
-                        value={codeInput}
-                        onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(null); }}
-                        onKeyDown={e => e.key === "Enter" && redeemCode()}
-                        placeholder="ENTER CODE"
-                        style={{ flex:1, padding:"10px 12px", borderRadius:8, border:`1.5px solid rgba(201,147,58,0.25)`, background:"rgba(255,255,255,0.06)", color:T.warmWhite, fontSize:13, fontFamily:"'DM Sans',sans-serif", letterSpacing:"0.08em", outline:"none" }}
-                      />
-                      <button
-                        onClick={redeemCode}
-                        disabled={!codeInput.trim() || codeLoading}
-                        style={{ padding:"10px 14px", borderRadius:8, background: codeInput.trim() ? T.gold : "rgba(201,147,58,0.15)", color: codeInput.trim() ? T.midnight : "rgba(201,147,58,0.4)", border:"none", fontSize:12, fontWeight:600, cursor: codeInput.trim() ? "pointer" : "default", fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:4, whiteSpace:"nowrap" }}
-                      >
-                        {codeLoading ? <Spinner/> : "Redeem"}
-                      </button>
-                    </div>
-                    {codeError && <p style={{ fontSize:12, color:"#e8795a", fontFamily:"'Lora',serif", lineHeight:1.5 }}>{codeError}</p>}
-                  </div>
-                  <button onClick={() => setPrelaunch(null)} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", fontSize:13, cursor:"pointer", padding:"4px 0", fontFamily:"'DM Sans',sans-serif" }}>
-                    I'll keep an eye out myself
-                  </button>
-                </div>
-              </>
-            )}
+              {codeError && <p style={{ fontSize:12, color:"#e8795a", fontFamily:"'Lora',serif", lineHeight:1.5 }}>{codeError}</p>}
+              <button onClick={() => setRedeemOpen(false)} style={{ background:"none", border:"none", color:"rgba(255,255,255,0.35)", fontSize:13, cursor:"pointer", padding:"4px 0", fontFamily:"'DM Sans',sans-serif" }}>
+                Never mind
+              </button>
+            </div>
           </div>
         </div>
       )}
-      {prelaunchToast && <Toast message={prelaunchToast} onDone={() => setPrelaunchToast(null)}/>}
+      {redeemToast && <Toast message={redeemToast} onDone={() => setRedeemToast(null)}/>}
 
       {/* ── SMS consent overlay for returning users ── */}
       {showConsentOverlay && (
@@ -2555,7 +2455,7 @@ export default function App() {
       )}
 
       {screen === "billing" && (
-        <BillingScreen profile={profile} session={session} onBack={() => setScreen("dashboard")} onSelectPlan={setPrelaunch} menuItems={navMenuItems}/>
+        <BillingScreen profile={profile} session={session} onBack={() => setScreen("dashboard")} onRedeemCode={() => setRedeemOpen(true)} menuItems={navMenuItems}/>
       )}
 
       {screen === "profiles" && session && (
@@ -2567,7 +2467,7 @@ export default function App() {
       )}
 
       {screen === "schedule" && session && (
-        <ScheduleScreen session={session} profile={profile} onSelectPlan={setPrelaunch} onBack={() => setScreen("dashboard")} menuItems={navMenuItems}/>
+        <ScheduleScreen session={session} profile={profile} onGoToBilling={() => goTo("billing")} onBack={() => setScreen("dashboard")} menuItems={navMenuItems}/>
       )}
 
       </div>
