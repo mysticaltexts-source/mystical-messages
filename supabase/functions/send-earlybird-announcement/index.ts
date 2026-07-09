@@ -54,45 +54,6 @@ function buildEmail(firstName: string, referralLink: string): string {
         </p>
       </div>
 
-      <p style="font-size:15px;line-height:1.8;">
-        But here's where it gets even better. You can <strong>extend your free time</strong> — and even
-        unlock Premium — just by doing things that take a few minutes.
-      </p>
-
-      <!-- REVIEW REWARDS -->
-      <div style="margin:28px 0;">
-        <div style="font-family:'Georgia',serif;font-size:18px;font-weight:bold;color:#3d3530;margin-bottom:6px;">✍️ Earn Free Months with Reviews</div>
-        <p style="font-size:14px;color:#7a6e66;margin:0 0 16px;line-height:1.6;">
-          Honest reviews help other parents find the magic. We reward each one — and the more useful
-          it is for other families to discover us, the more time you earn.
-        </p>
-        <table style="width:100%;border-collapse:collapse;">
-          <tr style="background:#f5ede0;">
-            <td style="padding:12px 16px;font-size:13px;font-weight:bold;color:#3d3530;border-radius:8px 0 0 0;">Quick star rating</td>
-            <td style="padding:12px 16px;font-size:13px;color:#7a6e66;">Google or Facebook ★★★★★</td>
-            <td style="padding:12px 16px;font-size:13px;font-weight:bold;color:#c9933a;text-align:right;border-radius:0 8px 0 0;">+ 2 weeks free</td>
-          </tr>
-          <tr>
-            <td style="padding:12px 16px;font-size:13px;font-weight:bold;color:#3d3530;">Written review</td>
-            <td style="padding:12px 16px;font-size:13px;color:#7a6e66;">75+ words on Google or Facebook</td>
-            <td style="padding:12px 16px;font-size:13px;font-weight:bold;color:#c9933a;text-align:right;">+ 1 month free</td>
-          </tr>
-          <tr style="background:#f5ede0;">
-            <td style="padding:12px 16px;font-size:13px;font-weight:bold;color:#3d3530;">Photo story</td>
-            <td style="padding:12px 16px;font-size:13px;color:#7a6e66;">Review with a photo, or share on social media</td>
-            <td style="padding:12px 16px;font-size:13px;font-weight:bold;color:#c9933a;text-align:right;">+ 6 weeks free</td>
-          </tr>
-          <tr>
-            <td style="padding:12px 16px;font-size:13px;font-weight:bold;color:#3d3530;border-radius:0 0 0 8px;">Video testimonial</td>
-            <td style="padding:12px 16px;font-size:13px;color:#7a6e66;">Short video review — your face, your story</td>
-            <td style="padding:12px 16px;font-size:13px;font-weight:bold;color:#c9933a;text-align:right;border-radius:0 0 8px 0;">+ 3 months free</td>
-          </tr>
-        </table>
-        <p style="font-size:13px;color:#7a6e66;margin:10px 0 0;font-style:italic;">
-          To claim: just email us at <a href="mailto:${SUPPORT_EMAIL}" style="color:#c9933a;">${SUPPORT_EMAIL}</a> with a link to your review and we'll add the time to your account.
-        </p>
-      </div>
-
       <!-- REFERRALS -->
       <div style="background:#f5ede0;border-radius:16px;padding:24px 28px;margin:28px 0;border:1px solid rgba(201,147,58,0.2);">
         <div style="font-family:'Georgia',serif;font-size:18px;font-weight:bold;color:#3d3530;margin-bottom:10px;">👨‍👩‍👧 Refer a Family, Earn Free Time</div>
