@@ -839,6 +839,12 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   const plan = profile?.plan || "free";
   const userName = profile?.full_name?.split(" ")[0] || "there";
 
+  // Time-of-day greeting from the device's local time (morning until 12pm,
+  // afternoon until 5pm, evening after 5pm).
+  const localHour = new Date().getHours();
+  const partOfDay = localHour < 12 ? "morning" : localHour < 17 ? "afternoon" : "evening";
+  const magicWhen = localHour < 12 ? "this morning" : localHour < 17 ? "this afternoon" : "tonight";
+
   useEffect(() => {
     loadData();
     if (!_communityModalShownThisSession && localStorage.getItem("mm_pending_share") === "true") {
@@ -1014,10 +1020,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
         <div className="fade-up" style={{ marginBottom:32 }}>
           <SectionLabel>Welcome back</SectionLabel>
-          <DisplayTitle>Good evening, {userName} ✦</DisplayTitle>
+          <DisplayTitle>Good {partOfDay}, {userName} ✦</DisplayTitle>
           {children.length > 0 && (
             <p style={{ fontSize:14, color:T.muted, marginTop:6, fontFamily:"'Lora', serif", fontStyle:"italic" }}>
-              {selectedChild?.name} is waiting for a little magic tonight.
+              {selectedChild?.name} is waiting for a little magic {magicWhen}.
             </p>
           )}
         </div>
