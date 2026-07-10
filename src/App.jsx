@@ -1069,7 +1069,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
                   onMouseLeave={e => { e.currentTarget.style.borderColor=isSending?T.gold:"rgba(201,147,58,0.18)"; e.currentTarget.style.transform="translateY(0)"; }}
                 >
                   <span style={{ fontSize:28, flexShrink:0 }}>{isSending ? "⏳" : btn.emoji}</span>
-                  <div>
+                  <div style={{ minWidth:0 }}>
                     <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:3 }}>{btn.label}</div>
                     <div style={{ fontSize:12, color:T.muted }}>{btn.sub}</div>
                   </div>
@@ -1082,7 +1082,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         <div className="fade-up-2" style={{ marginBottom:36 }}>
           <SectionLabel>Send a Message</SectionLabel>
           <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink, marginBottom:16 }}>Choose a character</h3>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:12 }}>
             {characters.map(char => {
               const unlocked = canUse(char);
               const selected = activeChar?.id === char.id;
