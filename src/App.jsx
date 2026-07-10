@@ -1055,7 +1055,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
             </div>
             <span style={{ fontSize:12, color:T.muted, fontStyle:"italic" }}>One tap. Magic in seconds.</span>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(150px, 1fr))", gap:12 }}>
             {OH_CRAP_DEFAULTS.map(btn => {
               const isSending = ohCrapSending === btn.id;
               return (
