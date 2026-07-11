@@ -11,6 +11,8 @@
 --   * Invite code redeemed  → time-limited trial at the code's own
 --                             level (invite_codes.plan), for
 --                             invite_codes.trial_days (blank = 60)
+--   * Existing users        → backfilled with 14 days from now (soft
+--                             landing, so no one is instantly locked out)
 -- ============================================================
 
 -- 1. Every new signup gets a 14-day Standard trial automatically
@@ -26,6 +28,14 @@ alter table profiles
 -- 3. Let each invite code set its own length (blank = 60 days)
 alter table invite_codes
   add column if not exists trial_days integer;
+
+-- 3b. Soft landing for existing users: give everyone who doesn't already have
+--     a trial 14 days from now, so no current free user is instantly locked out.
+--     (trial_plan was defaulted to 'standard' by step 2. Paid users keep their
+--     paid plan regardless — the trial columns are ignored while plan != free.)
+update profiles
+  set trial_ends_at = now() + interval '14 days'
+  where trial_ends_at is null;
 
 -- 4. New redeem_invite_code: codes now grant a TIME-LIMITED trial at the
 --    code's own level, instead of a permanent plan.
