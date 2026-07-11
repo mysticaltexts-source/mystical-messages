@@ -1,0 +1,19 @@
+name: Trial reminder emails
+
+# Fires the send-trial-reminders Edge Function once a day. The function itself
+# decides who (if anyone) is 2 days from their trial ending and emails them once.
+on:
+  schedule:
+    - cron: '0 15 * * *'   # daily at 15:00 UTC (~10–11am US Eastern)
+  workflow_dispatch:        # allow manual runs for testing
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping send-trial-reminders
+        run: |
+          curl -fsS -X POST \
+            "https://${{ secrets.SUPABASE_PROJECT_ID }}.supabase.co/functions/v1/send-trial-reminders" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
