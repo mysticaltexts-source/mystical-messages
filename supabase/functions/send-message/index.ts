@@ -66,7 +66,7 @@ serve(async (req) => {
     // ── 5. Load the parent's profile (we need their phone number) ──
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("phone_number, plan")
+      .select("phone_number, plan, trial_ends_at, trial_plan")
       .eq("id", user.id)
       .single();
 
@@ -100,7 +100,25 @@ serve(async (req) => {
 
     // ── 7. Check the parent has the right plan to use this character ──
     const planRank = { free: 0, trial: 1, basic: 2, standard: 3, premium: 4 };
-    const parentRank = planRank[profile.plan] ?? 0;
+
+    // Trial-aware effective plan (mirrors the client's getEffectivePlan).
+    // A trial is stored as trial_ends_at + trial_plan while plan stays "free".
+    // A paid plan always wins; an active trial grants its level; otherwise free.
+    const trialActive = profile.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
+    const effectivePlan =
+      (profile.plan && profile.plan !== "free") ? profile.plan
+      : trialActive ? (profile.trial_plan || "standard")
+      : "free";
+
+    // Expired trial (or never started) → no sending, even for a scheduled job.
+    if (effectivePlan === "free") {
+      return new Response(
+        JSON.stringify({ error: "Your free trial has ended. Choose a plan to keep sending magic." }),
+        { status: 403, headers }
+      );
+    }
+
+    const parentRank = planRank[effectivePlan] ?? 0;
     const requiredRank = planRank[character.required_plan] ?? 0;
 
     if (parentRank < requiredRank) {
