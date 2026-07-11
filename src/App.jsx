@@ -50,6 +50,29 @@ const STRIPE_PRICES = {
 /* ─── PLAN RANK ─── */
 const PLAN_RANK = { free: 0, trial: 1, basic: 2, standard: 3, premium: 4 };
 
+/* ─── EFFECTIVE PLAN (trial-aware) ───
+   A trial (the public 14-day one or a redeemed invite code) is stored on the
+   profile as trial_ends_at + trial_plan, while profile.plan stays "free".
+   These helpers resolve the plan the user should actually get right now. */
+function trialActive(profile) {
+  return !!profile?.trial_ends_at && new Date(profile.trial_ends_at) > new Date();
+}
+// 'active' = trial running · 'expired' = had one, now past · 'none' = never had one
+function trialState(profile) {
+  if (trialActive(profile)) return "active";
+  return profile?.trial_ends_at ? "expired" : "none";
+}
+function trialDaysLeft(profile) {
+  if (!trialActive(profile)) return 0;
+  return Math.ceil((new Date(profile.trial_ends_at) - new Date()) / 86400000);
+}
+function getEffectivePlan(profile) {
+  const base = profile?.plan || "free";
+  if (base !== "free") return base;                                 // a paid plan always wins
+  if (trialActive(profile)) return profile.trial_plan || "standard"; // active trial → its level
+  return "free";                                                    // expired / never started
+}
+
 /* ─── DESIGN TOKENS ─── */
 const T = {
   midnight: "#0d1b2a", navy: "#132233", parchment: "#fdf8f0",
@@ -165,6 +188,22 @@ function MagicShareModal({ variant, onShare, onDismiss }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function UpgradePrompt({ state, onUpgrade }) {
+  const ended = state === "expired";
+  return (
+    <div style={{ background:T.warmWhite, border:`1.5px solid ${T.gold}`, borderRadius:16, padding:"32px 28px", textAlign:"center" }}>
+      <div style={{ fontSize:34, marginBottom:10 }}>✨</div>
+      <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:19, fontWeight:700, color:T.ink, marginBottom:8 }}>
+        {ended ? "Your free magic has ended" : "Unlock the magic"}
+      </h3>
+      <p style={{ fontSize:14, color:T.body, fontFamily:"'Lora',serif", lineHeight:1.7, maxWidth:420, margin:"0 auto 18px" }}>
+        Your account, message history, and your little ones' profiles are all still here. Keep the wonder going from <strong>$1.99/mo</strong> — cancel anytime.
+      </p>
+      <Btn onClick={onUpgrade}>✦ Choose your plan</Btn>
     </div>
   );
 }
@@ -853,7 +892,9 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   const [showCommunityModal, setShowCommunityModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const plan = profile?.plan || "free";
+  const plan = getEffectivePlan(profile);   // trial-aware: active trial counts as its plan level
+  const canSend = plan !== "free";          // false once a trial expires (or never existed)
+  const tState = trialState(profile);
   const userName = profile?.full_name?.split(" ")[0] || "there";
 
   // Time-of-day greeting from the device's local time (morning until 12pm,
@@ -904,10 +945,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
   function canUse(char) {
     if (TEST_MODE) return true;
-    if (plan === "free") {
-      if (totalMessages === null) return true; // optimistic while count loads
-      return totalMessages === 0;
-    }
+    if (plan === "free") return false; // no active trial / paid plan → sending is locked
     return (PLAN_RANK[plan] || 0) >= (PLAN_RANK[char.required_plan] || 0);
   }
 
@@ -915,10 +953,6 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     const char = characters.find(c => c.slug === btn.charSlug);
     if (!char) { setToast("Character not found. Please contact support."); return; }
     if (!canUse(char)) { onGoToBilling(); return; }
-    if (!TEST_MODE && plan === "free") {
-      const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
-      if ((count ?? 0) >= 1) { onGoToBilling(); return; }
-    }
     if (!profile?.phone_number) { setToast("Please add your phone number in settings first."); return; }
 
     const childName = selectedChild?.name || "there";
@@ -957,10 +991,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
   async function sendMessage() {
     if (!msgText.trim() || !activeChar) return;
-    if (!TEST_MODE && plan === "free") {
-      const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
-      if ((count ?? 0) >= 1) { onGoToBilling(); return; }
-    }
+    if (!canSend) { onGoToBilling(); return; } // locked (trial expired / never started)
     const flagReason = screenMessage(msgText);
     if (flagReason) { setToast(`Blocked: ${flagReason}.`); return; }
     setSending(true);
@@ -1070,6 +1101,13 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
           </div>
         )}
 
+        {!canSend && (
+          <div className="fade-up-1" style={{ marginBottom:36 }}>
+            <UpgradePrompt state={tState} onUpgrade={onGoToBilling}/>
+          </div>
+        )}
+
+        {canSend && (<>
         <div className="fade-up-1" style={{ marginBottom:36 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
             <div>
@@ -1169,6 +1207,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
             </div>
           )}
         </div>
+        </>)}
 
         <div className="fade-up-3">
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
@@ -1951,7 +1990,7 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
 
   async function scheduleMessage() {
     if (!msgText.trim() || !schedDate || !selectedChar) return;
-    if (PLAN_RANK[profile?.plan || "free"] < PLAN_RANK["basic"]) {
+    if (PLAN_RANK[getEffectivePlan(profile)] < PLAN_RANK["basic"]) {
       onGoToBilling();
       return;
     }
@@ -2001,6 +2040,12 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
           <SectionLabel>Plan ahead</SectionLabel>
           <DisplayTitle>Schedule a Message</DisplayTitle>
         </div>
+
+        {getEffectivePlan(profile) === "free" && (
+          <div style={{ marginBottom:28 }}>
+            <UpgradePrompt state={trialState(profile)} onUpgrade={onGoToBilling}/>
+          </div>
+        )}
 
         <div className="fade-up-1" style={{ display:"flex", alignItems:"center", marginBottom:32 }}>
           {STEPS.map((s,i) => {
@@ -2324,7 +2369,9 @@ export default function App() {
         <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:200, background:T.navy, borderBottom:`1px solid rgba(201,147,58,0.3)`, color:"rgba(255,255,255,0.75)", fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"9px 16px", display:"flex", alignItems:"center", justifyContent:"center", gap:6, lineHeight:1.4, flexWrap:"wrap" }}>
           {TEST_MODE
             ? "Preview mode — no real SMS is sent yet."
-            : "✨ You have a free message — pick any character to try the magic."
+            : trialState(profile) === "active"
+              ? `✨ ${trialDaysLeft(profile)} ${trialDaysLeft(profile) === 1 ? "day" : "days"} left in your free trial — full magic unlocked.`
+              : "✨ Your free trial has ended — pick a plan to keep the magic going."
           }{" "}
           <span
             onClick={() => setRedeemOpen(true)}
