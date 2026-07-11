@@ -534,7 +534,10 @@ function PrivacyScreen({ onBack, menuItems }) {
    SCREEN: AUTH
 ══════════════════════════════════════ */
 function AuthScreen({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
-  const [mode, setMode] = useState("login");
+  const [mode, setMode] = useState(() => {
+    if (_signupIntent) { _signupIntent = false; return "signup"; }
+    return "login";
+  });
   const [form, setForm] = useState({ email:"", password:"", name:"", confirmPassword:"" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -812,6 +815,20 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
 
 // Prevents the community modal from re-appearing if DashboardScreen re-mounts within the same session
 let _communityModalShownThisSession = false;
+
+// Signup intent from the landing "Start the Magic" CTA (/login?signup=1).
+// Consumed once by the first AuthScreen mount; the param is stripped so
+// bookmarks and post-logout returns default to the Log In tab.
+let _signupIntent = false;
+if (typeof window !== "undefined") {
+  const _p = new URLSearchParams(window.location.search);
+  if (_p.get("signup") === "1") {
+    _signupIntent = true;
+    _p.delete("signup");
+    const _qs = _p.toString();
+    window.history.replaceState({}, "", window.location.pathname + (_qs ? `?${_qs}` : "") + window.location.hash);
+  }
+}
 
 const OH_CRAP_DEFAULTS = [
   { id:"tooth_emergency", emoji:"🦷", label:"Lost Tooth!", sub:"Tooth Fairy is on her way", charSlug:"tooth_fairy" },
@@ -2187,6 +2204,7 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
+        _signupIntent = false; // already signed in; the CTA's signup intent no longer applies
         loadProfile(session.user.id);
       } else {
         setLoading(false);
@@ -2196,6 +2214,7 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
+        _signupIntent = false; // an active session means the auth screen won't show; drop any pending CTA intent
         loadProfile(session.user.id);
       } else {
         setProfile(null);
