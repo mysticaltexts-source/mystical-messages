@@ -1516,7 +1516,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
             <div style={{ marginTop:20, background:"rgba(201,147,58,0.07)", border:`1.5px solid rgba(201,147,58,0.25)`, borderRadius:16, padding:"18px 22px", display:"flex", alignItems:"center", gap:14 }}>
               <div style={{ fontSize:28, flexShrink:0 }}>✨</div>
               <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:T.body, lineHeight:1.7, margin:0 }}>
-                To send your first message, choose any plan below — even one message is pure magic. The badges up ahead will help you find your fit.
+                Choose a plan to keep the magic going — then from $1.99/mo, or send a single message for $0.99. The badges up ahead will help you find your fit.
               </p>
             </div>
           )}
@@ -1644,7 +1644,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
         <div className="fade-up-4" style={{ marginBottom:40 }}>
           <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
-            <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to unlock your free trial — no payment needed.</p>
+            <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to extend your free trial — no payment needed.</p>
             <button
               onClick={onRedeemCode}
               style={{ padding:"11px 20px", borderRadius:8, background:T.gold, color:T.midnight, border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
@@ -2393,7 +2393,7 @@ export default function App() {
               Have an invite code?
             </h2>
             <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:"rgba(255,255,255,0.72)", lineHeight:1.8, marginBottom:24, textAlign:"center" }}>
-              That's your key to early access. Enter it below to unlock your free trial right now — no waiting.
+              That's your key to extra magic. Enter it below to extend your free trial right now — no waiting.
             </p>
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               <div style={{ display:"flex", gap:8 }}>
