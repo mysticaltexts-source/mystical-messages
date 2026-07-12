@@ -83,6 +83,13 @@ function safeDate(primary, fallback, fmt = d => d.toLocaleDateString()) {
   return "—";
 }
 
+/* A PostgREST embed (e.g. select "*, characters(...)") can return the same
+   parent row more than once when the relationship resolves via more than one
+   path, which renders a message twice. Collapse rows by id to be safe. */
+function uniqueById(rows) {
+  return Array.from(new Map((rows || []).map(r => [r.id, r])).values());
+}
+
 /* ─── DESIGN TOKENS ─── */
 const T = {
   midnight: "#0d1b2a", navy: "#132233", parchment: "#fdf8f0",
@@ -931,7 +938,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     if (kids?.length > 0) setSelectedChild(kids[0]);
 
     const { data: msgs } = await supabase.from("messages").select("*, characters(name,emoji)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false, nullsFirst:false }).limit(5);
-    setRecentMessages(msgs || []);
+    setRecentMessages(uniqueById(msgs));
 
     const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
     setTotalMessages(count ?? 0);
@@ -1894,7 +1901,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
   async function loadHistory() {
     setLoading(true);
     const { data } = await supabase.from("messages").select("*, characters(name,emoji,slug)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false, nullsFirst:false });
-    setMessages(data || []);
+    setMessages(uniqueById(data));
     setLoading(false);
   }
 
