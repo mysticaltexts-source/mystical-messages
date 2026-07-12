@@ -73,6 +73,16 @@ function getEffectivePlan(profile) {
   return "free";                                                    // expired / never started
 }
 
+/* Format a message date safely. Falls back from the primary timestamp to a
+   secondary (e.g. created_at), and shows a dash rather than an epoch date if
+   both are null/invalid. */
+function safeDate(primary, fallback, fmt = d => d.toLocaleDateString()) {
+  for (const v of [primary, fallback]) {
+    if (v) { const d = new Date(v); if (!isNaN(d.getTime())) return fmt(d); }
+  }
+  return "—";
+}
+
 /* ─── DESIGN TOKENS ─── */
 const T = {
   midnight: "#0d1b2a", navy: "#132233", parchment: "#fdf8f0",
@@ -142,8 +152,8 @@ function Stars({ count = 80 }) {
   );
 }
 
-function Spinner() {
-  return <div style={{ width:18, height:18, border:`2px solid rgba(255,255,255,0.3)`, borderTopColor:"#fff", borderRadius:"50%", animation:"spin 0.7s linear infinite" }}/>;
+function Spinner({ color = "#fff", track = "rgba(255,255,255,0.3)", size = 18 }) {
+  return <div style={{ width:size, height:size, border:`2px solid ${track}`, borderTopColor:color, borderRadius:"50%", animation:"spin 0.7s linear infinite" }}/>;
 }
 
 function LoadingScreen() {
@@ -920,7 +930,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     setChildren(kids || []);
     if (kids?.length > 0) setSelectedChild(kids[0]);
 
-    const { data: msgs } = await supabase.from("messages").select("*, characters(name,emoji)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false }).limit(5);
+    const { data: msgs } = await supabase.from("messages").select("*, characters(name,emoji)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false, nullsFirst:false }).limit(5);
     setRecentMessages(msgs || []);
 
     const { count } = await supabase.from("messages").select("*", { count:"exact", head:true }).eq("parent_id", session.user.id).eq("status","sent");
@@ -973,6 +983,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         child_id: selectedChild?.id || null,
         body,
         status: TEST_MODE ? "test" : "sent",
+        sent_at: new Date().toISOString(),
         is_ohcrap: true,
         flagged: !!flagReason,
         flagged_reason: flagReason || null,
@@ -1233,7 +1244,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
                 <div style={{ fontSize:13, color:T.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{msg.body}</div>
               </div>
               <div style={{ textAlign:"right", flexShrink:0 }}>
-                <div style={{ fontSize:11, color:T.muted }}>{new Date(msg.sent_at).toLocaleDateString()}</div>
+                <div style={{ fontSize:11, color:T.muted }}>{safeDate(msg.sent_at, msg.created_at)}</div>
                 <div style={{ fontSize:11, color:T.success, marginTop:3 }}>✓ Sent</div>
               </div>
             </div>
@@ -1437,7 +1448,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
             ) : (
               <>
                 <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>We'll email a reset link to {session.user.email}.</p>
-                <Btn variant="ghost" small onClick={resetPassword}>Send password reset link</Btn>
+                <Btn small onClick={resetPassword}>Send password reset link</Btn>
               </>
             )
           )}
@@ -1632,7 +1643,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
                     fontFamily:"'DM Sans', sans-serif",
                     display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                   }}>
-                    {loadingPlan === plan.id ? <Spinner/> : isCurrent ? "Current Plan" : plan.cta}
+                    {loadingPlan === plan.id ? <><Spinner color={T.gold} track="rgba(201,147,58,0.25)" size={15}/> Summoning…</> : isCurrent ? "Current Plan" : plan.cta}
                   </button>
                 </div>
               );
@@ -1874,7 +1885,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
 
   async function loadHistory() {
     setLoading(true);
-    const { data } = await supabase.from("messages").select("*, characters(name,emoji,slug)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false });
+    const { data } = await supabase.from("messages").select("*, characters(name,emoji,slug)").eq("parent_id", session.user.id).eq("status","sent").order("sent_at", { ascending:false, nullsFirst:false });
     setMessages(data || []);
     setLoading(false);
   }
@@ -1934,7 +1945,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
                   <div style={{ fontSize:13, color:T.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{msg.body}</div>
                 </div>
                 <div style={{ textAlign:"right", flexShrink:0 }}>
-                  <div style={{ fontSize:12, color:T.muted }}>{new Date(msg.sent_at).toLocaleDateString()}</div>
+                  <div style={{ fontSize:12, color:T.muted }}>{safeDate(msg.sent_at, msg.created_at)}</div>
                   <div style={{ fontSize:11, color:T.success, marginTop:3 }}>✓ Sent</div>
                 </div>
                 <span style={{ color:T.gold, fontSize:12, flexShrink:0, marginLeft:8, transform: isOpen ? "rotate(180deg)" : "none", transition:"transform 0.2s" }}>▼</span>
@@ -1942,7 +1953,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
               {isOpen && (
                 <div style={{ padding:"0 18px 18px", borderTop:"1px solid rgba(201,147,58,0.1)", animation:"fadeUp 0.25s ease" }}>
                   <div style={{ margin:"16px auto", maxWidth:340, background:T.midnight, borderRadius:20, padding:16 }}>
-                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", textAlign:"center", marginBottom:12, fontFamily:"-apple-system,sans-serif" }}>{new Date(msg.sent_at).toLocaleString()}</div>
+                    <div style={{ fontSize:11, color:"rgba(255,255,255,0.4)", textAlign:"center", marginBottom:12, fontFamily:"-apple-system,sans-serif" }}>{safeDate(msg.sent_at, msg.created_at, d => d.toLocaleString())}</div>
                     <div style={{ background:"#e5e5ea", borderRadius:"18px 18px 18px 4px", padding:"10px 14px", fontSize:13, color:"#1c1c1e", lineHeight:1.55, fontFamily:"-apple-system,sans-serif", maxWidth:"88%" }}>{msg.body}</div>
                   </div>
                   <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
@@ -2069,6 +2080,11 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
         {step===1 && (
           <div style={{ animation:"fadeUp 0.35s ease" }}>
             <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.ink, marginBottom:16 }}>Who is sending this message?</h3>
+            {characters.length === 0 ? (
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, padding:"40px 24px", color:T.muted, fontFamily:"'Lora',serif", fontSize:14 }}>
+                <Spinner color={T.gold} track="rgba(201,147,58,0.25)"/> Summoning the characters ✨
+              </div>
+            ) : (
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
               {characters.map(char => (
                 <button key={char.id} onClick={() => { setSelectedChar(char); setStep(2); }} style={{ padding:"22px 18px", borderRadius:16, textAlign:"center", cursor:"pointer", border:"1.5px solid rgba(201,147,58,0.15)", background:T.warmWhite, transition:"all 0.2s" }}
@@ -2080,6 +2096,7 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
                 </button>
               ))}
             </div>
+            )}
           </div>
         )}
 
