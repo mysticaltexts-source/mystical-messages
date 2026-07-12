@@ -973,21 +973,29 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     setOhCrapSending(btn.id);
     try {
       if (!TEST_MODE) {
+        // The send-message Edge Function already logs the message row (with
+        // sent_at). Flag it if needed — like the composer path — instead of
+        // inserting a duplicate row.
         await callFunction("send-message", {
           character_id: char.id, body, child_id: selectedChild?.id || null, is_ohcrap: true,
         });
+        await supabase.from("messages")
+          .update({ flagged: !!flagReason, flagged_reason: flagReason || null })
+          .eq("parent_id", session.user.id).eq("body", body).eq("status", "sent").is("is_ohcrap", true)
+          .order("created_at", { ascending: false }).limit(1);
+      } else {
+        await supabase.from("messages").insert({
+          parent_id: session.user.id,
+          character_id: char.id,
+          child_id: selectedChild?.id || null,
+          body,
+          status: "test",
+          sent_at: new Date().toISOString(),
+          is_ohcrap: true,
+          flagged: !!flagReason,
+          flagged_reason: flagReason || null,
+        });
       }
-      await supabase.from("messages").insert({
-        parent_id: session.user.id,
-        character_id: char.id,
-        child_id: selectedChild?.id || null,
-        body,
-        status: TEST_MODE ? "test" : "sent",
-        sent_at: new Date().toISOString(),
-        is_ohcrap: true,
-        flagged: !!flagReason,
-        flagged_reason: flagReason || null,
-      });
       logEvent(session.user.id, "message_sent", { character: char.slug, is_ohcrap: true, flagged: !!flagReason });
       setToast(TEST_MODE ? `[TEST] ${btn.emoji} ${btn.label} — no SMS sent` : `${btn.emoji} ${btn.label} message sent to your phone!`);
       localStorage.setItem("mm_pending_share", "true");
