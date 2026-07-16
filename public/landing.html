@@ -30,8 +30,16 @@
     .hero-wrap { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 48px 24px 30px; }
     .hero-topper { text-align: center; margin-bottom: 40px; }
     .hero-badge { display: block; width: min(390px, 80%); height: auto; margin: 6px auto 0; filter: drop-shadow(0 14px 34px rgba(0,0,0,0.45)); }
-    /* soft transition from the dark hero into the light sections below */
-    .hero-fade { height: 56px; background: linear-gradient(180deg, #3a3160 0%, #fdf8f0 100%); }
+    /* soft, gradual transition from the dark hero into the light sections below */
+    .hero-fade { height: clamp(150px, 22vw, 250px); background: linear-gradient(180deg,
+        #3a3160 0%,
+        #574f76 15%,
+        #746d8b 30%,
+        #928ba1 45%,
+        #afa8b6 60%,
+        #ccc6cc 74%,
+        #e6e0df 88%,
+        #fdf8f0 100%); }
 
     /* ── Hero ── */
     .hero { display: flex; align-items: center; gap: 40px; }
