@@ -101,7 +101,7 @@ const T = {
 
 /* ─── GOOGLE FONTS ─── */
 const FontLink = () => (
-  <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');`}</style>
+  <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');`}</style>
 );
 
 /* ─── GLOBAL STYLES ─── */
@@ -293,6 +293,43 @@ function SectionLabel({ children, light=false }) {
   return <span style={{ fontSize:11, fontWeight:500, letterSpacing:"0.18em", textTransform:"uppercase", color: light ? T.goldLight : T.gold, display:"block", marginBottom:8 }}>{children}</span>;
 }
 
+/* Navy, gold-ringed emoji badge (matches the landing/character-card motif).
+   `soft` dials the warm backing glow down for already-bright gold emoji. */
+function EmojiBadge({ emoji, size = 46, soft = false, style = {} }) {
+  return (
+    <span style={{
+      flexShrink: 0, width: size, height: size, borderRadius: "50%",
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      fontSize: Math.round(size * 0.52),
+      border: "1.4px solid rgba(232,201,122,0.5)",
+      boxShadow: "0 0 14px rgba(232,201,122,0.18), inset 0 1px 5px rgba(232,201,122,0.12)",
+      background: soft
+        ? "radial-gradient(circle at 50% 47%, rgba(255,240,214,0.44) 0%, rgba(255,240,214,0.2) 27%, rgba(255,240,214,0) 54%), radial-gradient(circle at 50% 36%, #294066 0%, #16233d 68%, #101a30 100%)"
+        : "radial-gradient(circle at 50% 47%, rgba(255,240,214,0.9) 0%, rgba(255,240,214,0.4) 27%, rgba(255,240,214,0) 54%), radial-gradient(circle at 50% 36%, #294066 0%, #16233d 68%, #101a30 100%)",
+      ...style,
+    }}>{emoji}</span>
+  );
+}
+
+/* Decorative gold four-point sparkles scattered behind a dark section. */
+const SPARKLE_PATH = "M12 0c.7 5.6 5.7 10.6 12 12-6.3 1.4-11.3 6.4-12 12-.7-5.6-5.7-10.6-12-12C6.3 10.6 11.3 5.6 12 0z";
+function GoldSparkles({ marks }) {
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+      {marks.map((m, i) => (
+        <svg key={i} viewBox="0 0 24 24" style={{ position: "absolute", left: `${m.l}%`, top: `${m.t}%`, width: m.s, height: m.s, opacity: m.o, fill: "#e8c97a" }}>
+          <path d={SPARKLE_PATH}/>
+        </svg>
+      ))}
+    </div>
+  );
+}
+const DASH_SPARKLES = [
+  { l: 9, t: 10, s: 16, o: 0.85 }, { l: 86, t: 7, s: 13, o: 0.7 }, { l: 70, t: 17, s: 10, o: 0.55 },
+  { l: 22, t: 30, s: 11, o: 0.5 }, { l: 92, t: 48, s: 13, o: 0.5 }, { l: 6, t: 58, s: 12, o: 0.5 },
+  { l: 60, t: 70, s: 10, o: 0.45 }, { l: 16, t: 84, s: 12, o: 0.5 }, { l: 84, t: 88, s: 11, o: 0.45 },
+];
+
 function DisplayTitle({ children, light=false, style={} }) {
   return <h2 style={{ fontFamily:"'Playfair Display', serif", fontWeight:700, fontSize:"clamp(24px,4vw,36px)", lineHeight:1.15, color: light ? T.warmWhite : T.ink, ...style }}>{children}</h2>;
 }
@@ -333,7 +370,8 @@ function PageNav({ onBack, title, menuItems = [] }) {
 /* ══════════════════════════════════════
    FOOTER COMPONENT
 ══════════════════════════════════════ */
-function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
+function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy, dark=false }) {
+  const metaColor = dark ? "rgba(244,238,226,0.55)" : T.muted;
   return (
     <>
       {/* Mobile: fixed bar at bottom of screen */}
@@ -351,12 +389,13 @@ function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
       {/* Mobile fixed footer */}
       <footer className="footer-fixed" style={{
         position:"fixed", bottom:0, left:0, right:0, zIndex:100,
-        background:T.warmWhite, borderTop:`1px solid rgba(201,147,58,0.2)`,
+        background: dark ? "rgba(11,20,32,0.96)" : T.warmWhite,
+        borderTop: dark ? "1px solid rgba(232,201,122,0.2)" : `1px solid rgba(201,147,58,0.2)`,
         padding:"10px 24px", alignItems:"center", justifyContent:"center",
         gap:24, display:"none",
         boxShadow:"0 -4px 16px rgba(0,0,0,0.06)",
       }}>
-        <span style={{ fontSize:12, color:T.muted }}>© 2026 Mystical Texts LLC</span>
+        <span style={{ fontSize:12, color:metaColor }}>© 2026 Mystical Texts LLC</span>
         <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>About</button>
         <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Terms</button>
         <button onClick={onGoToPrivacy} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Privacy</button>
@@ -367,7 +406,7 @@ function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
         borderTop:`1px solid rgba(201,147,58,0.15)`, marginTop:48,
         padding:"28px 24px", textAlign:"center", display:"none",
       }}>
-        <p style={{ fontSize:13, color:T.muted, marginBottom:12 }}>© 2026 Mystical Texts LLC. All rights reserved.</p>
+        <p style={{ fontSize:13, color:metaColor, marginBottom:12 }}>© 2026 Mystical Texts LLC. All rights reserved.</p>
         <div style={{ display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
           <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>About</button>
           <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
@@ -887,9 +926,9 @@ if (typeof window !== "undefined") {
 }
 
 const OH_CRAP_DEFAULTS = [
-  { id:"tooth_emergency", emoji:"🦷", label:"Lost Tooth!", sub:"Tooth Fairy is on her way", charSlug:"tooth_fairy" },
+  { id:"tooth_emergency", emoji:"🦷", label:"Lost Tooth!!!", sub:"Her flight path’s jammed — landing tomorrow night", charSlug:"tooth_fairy" },
   { id:"santa_watching",  emoji:"🎅", label:"Santa's Watching", sub:"Instant naughty/nice check", charSlug:"santa" },
-  { id:"bunny_alert",     emoji:"🐰", label:"Easter Bunny Alert", sub:"Bunny sends a heads-up", charSlug:"easter_bunny" },
+  { id:"bunny_alert",     emoji:"🐰", label:"No Eggs Yet?!", sub:"Bunny hopped off course — baskets land this afternoon!", charSlug:"easter_bunny" },
   { id:"wishlist",        emoji:"📝", label:"Wish List Confirmed", sub:"Santa got the list!", charSlug:"santa" },
 ];
 
@@ -1045,11 +1084,14 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:"linear-gradient(180deg, #0d1b2a 0%, #121a30 55%, #181637 100%)" }}>
+      <Stars count={70}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div aria-hidden="true" style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:680, maxWidth:"120%", height:440, background:"radial-gradient(ellipse at center, rgba(232,201,122,0.14), rgba(232,201,122,0) 62%)", pointerEvents:"none", zIndex:0 }}/>
       {/* Nav wrapper is the sticky anchor; dropdown uses position:absolute relative to it */}
       <div style={{ position:"sticky", top:0, zIndex:50 }}>
         <nav style={{ background:T.midnight, padding:"14px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.warmWhite }}>
+          <div style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:16, fontWeight:700, color:T.warmWhite, whiteSpace:"nowrap" }}>
             ✦ <span style={{ color:T.goldLight }}>Mystical</span> Messages
           </div>
           <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"nowrap" }}>
@@ -1090,13 +1132,15 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
       </div>
 
       <style>{`@media (max-width: 768px) { .dash-content { padding-bottom: 80px !important; } }`}</style>
-      <div className="dash-content" style={{ flex:1, maxWidth:860, margin:"0 auto", width:"100%", padding:"32px 24px 20px" }}>
+      <div className="dash-content" style={{ position:"relative", zIndex:2, flex:1, maxWidth:860, margin:"0 auto", width:"100%", padding:"28px 24px 20px" }}>
+
+        <img src="/logo-badge.webp" alt="Mystical Messages" width="900" height="742" style={{ display:"block", width:"min(150px, 44%)", height:"auto", margin:"2px auto 22px", filter:"drop-shadow(0 10px 26px rgba(0,0,0,0.5))" }}/>
 
         <div className="fade-up" style={{ marginBottom:32 }}>
-          <SectionLabel>Welcome back</SectionLabel>
-          <DisplayTitle>Good {partOfDay}, {userName} ✦</DisplayTitle>
+          <SectionLabel light>Welcome back</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Good {partOfDay}, {userName} ✦</DisplayTitle>
           {children.length > 0 && (
-            <p style={{ fontSize:14, color:T.muted, marginTop:6, fontFamily:"'Lora', serif", fontStyle:"italic" }}>
+            <p style={{ fontSize:14, color:"rgba(244,238,226,0.6)", marginTop:6, fontFamily:"'Lora', serif", fontStyle:"italic" }}>
               {selectedChild?.name} is waiting for a little magic {magicWhen}.
             </p>
           )}
@@ -1104,13 +1148,13 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
         {children.length > 1 && (
           <div className="fade-up" style={{ marginBottom:24, display:"flex", gap:8, flexWrap:"wrap" }}>
-            <span style={{ fontSize:13, color:T.muted, alignSelf:"center" }}>Sending for:</span>
+            <span style={{ fontSize:13, color:"rgba(244,238,226,0.55)", alignSelf:"center" }}>Sending for:</span>
             {children.map(child => (
               <button key={child.id} onClick={() => setSelectedChild(child)} style={{
                 padding:"6px 14px", borderRadius:100, fontSize:13, cursor:"pointer",
-                border:`1.5px solid ${selectedChild?.id===child.id ? T.gold : "rgba(201,147,58,0.2)"}`,
-                background: selectedChild?.id===child.id ? T.goldPale : "transparent",
-                color: selectedChild?.id===child.id ? T.gold : T.muted,
+                border:`1.5px solid ${selectedChild?.id===child.id ? T.goldLight : "rgba(232,201,122,0.28)"}`,
+                background: selectedChild?.id===child.id ? "rgba(232,201,122,0.14)" : "transparent",
+                color: selectedChild?.id===child.id ? T.goldLight : "rgba(244,238,226,0.6)",
                 fontWeight: selectedChild?.id===child.id ? 600 : 400,
               }}>{child.avatar || "🧒"} {child.name}</button>
             ))}
@@ -1122,7 +1166,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
             <span style={{ fontSize:20 }}>📱</span>
             <div>
               <div style={{ fontSize:14, fontWeight:600, color:T.danger }}>No phone number on file</div>
-              <div style={{ fontSize:13, color:T.muted }}>Messages need a destination. Add your phone number in Account Settings to start sending.</div>
+              <div style={{ fontSize:13, color:"rgba(244,238,226,0.6)" }}>Messages need a destination. Add your phone number in Account Settings to start sending.</div>
             </div>
           </div>
         )}
@@ -1137,10 +1181,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         <div className="fade-up-1" style={{ marginBottom:36 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
             <div>
-              <SectionLabel>Emergency Magic</SectionLabel>
-              <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink }}>🚨 Oh-Crap!! Buttons</h3>
+              <SectionLabel light>Emergency Magic</SectionLabel>
+              <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:19, fontWeight:700, color:T.warmWhite }}>🚨 Oh-Crap!! Buttons</h3>
             </div>
-            <span style={{ fontSize:12, color:T.muted, fontStyle:"italic" }}>One tap. Magic in seconds.</span>
+            <span style={{ fontSize:12, color:"rgba(244,238,226,0.5)", fontStyle:"italic" }}>One tap. Magic in seconds.</span>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(150px, 1fr))", gap:12 }}>
             {OH_CRAP_DEFAULTS.map(btn => {
@@ -1148,14 +1192,15 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
               return (
                 <button key={btn.id} onClick={() => sendOhCrap(btn)} disabled={!!ohCrapSending} style={{
                   background: isSending ? `rgba(201,147,58,0.1)` : T.warmWhite,
-                  border:`1.5px solid ${isSending ? T.gold : "rgba(201,147,58,0.18)"}`,
-                  borderRadius:14, padding:"18px 20px", cursor: ohCrapSending ? "not-allowed" : "pointer",
+                  border:`2px solid ${isSending ? T.gold : "rgba(201,147,58,0.5)"}`,
+                  boxShadow:"0 8px 24px rgba(0,0,0,0.3)",
+                  borderRadius:14, padding:"16px 18px", cursor: ohCrapSending ? "not-allowed" : "pointer",
                   display:"flex", alignItems:"center", gap:14, textAlign:"left", transition:"all 0.2s",
                 }}
                   onMouseEnter={e => { if(!ohCrapSending) { e.currentTarget.style.borderColor=T.gold; e.currentTarget.style.transform="translateY(-1px)"; }}}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor=isSending?T.gold:"rgba(201,147,58,0.18)"; e.currentTarget.style.transform="translateY(0)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor=isSending?T.gold:"rgba(201,147,58,0.5)"; e.currentTarget.style.transform="translateY(0)"; }}
                 >
-                  <span style={{ fontSize:28, flexShrink:0 }}>{isSending ? "⏳" : btn.emoji}</span>
+                  <EmojiBadge emoji={isSending ? "⏳" : btn.emoji} size={46}/>
                   <div style={{ minWidth:0 }}>
                     <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:3 }}>{btn.label}</div>
                     <div style={{ fontSize:12, color:T.muted }}>{btn.sub}</div>
@@ -1167,8 +1212,8 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         </div>
 
         <div className="fade-up-2" style={{ marginBottom:36 }}>
-          <SectionLabel>Send a Message</SectionLabel>
-          <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink, marginBottom:16 }}>Choose a character</h3>
+          <SectionLabel light>Send a Message</SectionLabel>
+          <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:19, fontWeight:700, color:T.warmWhite, marginBottom:16 }}>Choose a character</h3>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:12 }}>
             {characters.map(char => {
               const unlocked = canUse(char);
@@ -1180,13 +1225,14 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
                   setComposing(!selected);
                   setMsgText("");
                 }} style={{
-                  background: selected ? `rgba(201,147,58,0.08)` : unlocked ? T.warmWhite : T.cream,
-                  border:`1.5px solid ${selected ? T.gold : "rgba(201,147,58,0.15)"}`,
+                  background: selected ? `rgba(201,147,58,0.14)` : T.warmWhite,
+                  border:`2px solid ${selected ? T.gold : "rgba(201,147,58,0.5)"}`,
+                  boxShadow:"0 8px 24px rgba(0,0,0,0.3)",
                   borderRadius:14, padding:"20px 12px", cursor:"pointer",
-                  textAlign:"center", transition:"all 0.2s", opacity: unlocked ? 1 : 0.6, position:"relative",
+                  textAlign:"center", transition:"all 0.2s", opacity: unlocked ? 1 : 0.92, position:"relative",
                 }}>
                   {!unlocked && <div style={{ position:"absolute", top:8, right:8, background:T.gold, color:T.midnight, fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:100 }}>UPGRADE</div>}
-                  <div style={{ fontSize:32, marginBottom:8 }}>{char.emoji}</div>
+                  <EmojiBadge emoji={char.emoji} size={56} soft={!unlocked} style={{ display:"flex", margin:"0 auto 10px" }}/>
                   <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4 }}>{char.name}</div>
                   {selected && <div style={{ marginTop:8, fontSize:11, color:T.gold, fontWeight:600 }}>Selected ✓</div>}
                 </button>
@@ -1195,9 +1241,9 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
           </div>
 
           {composing && activeChar && (
-            <div style={{ marginTop:16, background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.3)`, borderRadius:16, padding:24, animation:"fadeUp 0.3s ease" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-                <span style={{ fontSize:22 }}>{activeChar.emoji}</span>
+            <div style={{ marginTop:16, background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 10px 28px rgba(0,0,0,0.32)", borderRadius:16, padding:24, animation:"fadeUp 0.3s ease" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                <EmojiBadge emoji={activeChar.emoji} size={40}/>
                 <div>
                   <div style={{ fontSize:14, fontWeight:600, color:T.ink }}>Message from {activeChar.name}</div>
                   <div style={{ fontSize:12, color:T.muted }}>To: {selectedChild?.name ? `${selectedChild.name}'s` : "your"} parent phone (you)</div>
@@ -1238,20 +1284,20 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         <div className="fade-up-3">
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
             <div>
-              <SectionLabel>History</SectionLabel>
-              <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink }}>Recent messages</h3>
+              <SectionLabel light>History</SectionLabel>
+              <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:19, fontWeight:700, color:T.warmWhite }}>Recent messages</h3>
             </div>
-            <span style={{ fontSize:13, color:T.gold, cursor:"pointer" }} onClick={onGoToHistory}>View all →</span>
+            <span style={{ fontSize:13, color:T.goldLight, cursor:"pointer" }} onClick={onGoToHistory}>View all →</span>
           </div>
           {recentMessages.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"32px 24px", color:T.muted, background:T.warmWhite, borderRadius:16, border:"1px solid rgba(201,147,58,0.12)" }}>
+            <div style={{ textAlign:"center", padding:"32px 24px", color:T.muted, background:T.warmWhite, borderRadius:16, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)" }}>
               <div style={{ fontSize:32, marginBottom:8 }}>✨</div>
               <div style={{ fontFamily:"'Playfair Display', serif", fontSize:16, color:T.ink }}>No messages yet</div>
               <div style={{ fontSize:13, marginTop:4 }}>Your first magical moment will appear here.</div>
             </div>
           ) : recentMessages.map((msg,i) => (
-            <div key={msg.id} style={{ background:T.warmWhite, border:"1px solid rgba(201,147,58,0.12)", borderRadius:12, padding:"16px 18px", display:"flex", alignItems:"center", gap:14, marginBottom:10 }}>
-              <span style={{ fontSize:24, flexShrink:0 }}>{msg.characters?.emoji}</span>
+            <div key={msg.id} style={{ background:T.warmWhite, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:12, padding:"14px 16px", display:"flex", alignItems:"center", gap:14, marginBottom:10 }}>
+              <EmojiBadge emoji={msg.characters?.emoji} size={42}/>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:3 }}>
                   <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>{msg.characters?.name}</span>
@@ -1267,7 +1313,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         </div>
       </div>
 
-      <Footer onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms} onGoToPrivacy={onGoToPrivacy}/>
+      <Footer onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms} onGoToPrivacy={onGoToPrivacy} dark/>
 
       {showMomentModal && (
         <MagicShareModal variant="moment" onShare={handleShareMoment} onDismiss={handleDismissMoment}/>
