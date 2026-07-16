@@ -18,22 +18,30 @@
 
     main { max-width: 1040px; margin: 0 auto; padding: 56px 24px 80px; }
 
+    /* ── Dark magical hero section (full-bleed) ── */
+    .hero-section { background: linear-gradient(177deg, #0d1b2a 0%, #16172f 38%, #241f47 70%, #3a3160 100%); }
+    .hero-wrap { max-width: 1040px; margin: 0 auto; padding: 48px 24px 30px; }
+    .hero-topper { text-align: center; margin-bottom: 40px; }
+    .hero-badge { display: block; width: min(390px, 80%); height: auto; margin: 6px auto 0; filter: drop-shadow(0 14px 34px rgba(0,0,0,0.45)); }
+    /* soft transition from the dark hero into the light sections below */
+    .hero-fade { height: 56px; background: linear-gradient(180deg, #3a3160 0%, #fdf8f0 100%); }
+
     /* ── Hero ── */
-    .hero { display: flex; align-items: center; gap: 40px; margin-bottom: 64px; }
+    .hero { display: flex; align-items: center; gap: 40px; }
     .hero-copy { flex: 1 1 0; min-width: 0; max-width: 520px; }
 
-    .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #c9933a; margin-bottom: 14px; }
-    h1 { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 700; color: #2c1e0f; line-height: 1.18; margin-bottom: 24px; }
+    .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #e8c97a; margin-bottom: 14px; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 700; color: #fdf8f0; line-height: 1.18; margin-bottom: 24px; }
 
-    .subhead { font-family: 'Lora', serif; font-size: 16px; color: #4a3728; line-height: 1.8; padding: 20px 24px; background: #fff9f0; border-radius: 14px; border: 1px solid rgba(201,147,58,0.15); margin-bottom: 28px; }
+    .subhead { font-family: 'Lora', serif; font-size: 16px; color: #ece7d8; line-height: 1.8; padding: 20px 24px; background: rgba(255,255,255,0.05); border-radius: 14px; border: 1px solid rgba(232,201,122,0.22); margin-bottom: 28px; }
 
-    .body-text { font-family: 'Lora', serif; font-size: 15px; color: #4a3728; line-height: 1.85; margin-bottom: 36px; }
+    .body-text { font-family: 'Lora', serif; font-size: 15px; color: #d9d3e4; line-height: 1.85; margin-bottom: 36px; }
 
     .cta-wrap { margin-bottom: 0; }
     .cta-btn { display: inline-block; background: #c9933a; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; padding: 14px 30px; border-radius: 10px; text-decoration: none; }
-    .cta-note { font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: #7a6350; margin-top: 12px; }
-    .cta-note strong { color: #c9933a; font-weight: 600; }
-    .cta-fine { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9a8478; margin-top: 6px; }
+    .cta-note { font-family: 'DM Sans', sans-serif; font-size: 13.5px; color: #c7bfd6; margin-top: 12px; }
+    .cta-note strong { color: #e8c97a; font-weight: 600; }
+    .cta-fine { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #a49cb6; margin-top: 6px; }
 
     /* ── Trust chips ── */
     /* Variants all derived from the existing avatar purple (#3a3f66) — no new colors. */
@@ -139,10 +147,14 @@
     <a href="/login" class="sign-in-btn">Sign In</a>
   </header>
 
-  <main>
+  <section class="hero-section">
+   <div class="hero-wrap">
+    <div class="hero-topper">
+      <div class="eyebrow">Mystical Texts LLC · mysticaltexts.com</div>
+      <img class="hero-badge" src="/logo-badge.webp" alt="Mystical Messages — Mystical Texts LLC" width="900" height="742"/>
+    </div>
     <div class="hero">
       <div class="hero-copy">
-        <div class="eyebrow">Mystical Texts LLC · mysticaltexts.com</div>
         <h1>✨ Magic, delivered right to your phone.</h1>
 
         <p class="subhead">
@@ -213,7 +225,11 @@
         </div>
       </div>
     </div>
+   </div>
+  </section>
+  <div class="hero-fade" aria-hidden="true"></div>
 
+  <main>
     <div class="section-how">
       <div class="how-label">How it works</div>
       <h2>Three steps to magic</h2>
