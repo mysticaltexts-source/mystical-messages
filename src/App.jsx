@@ -343,7 +343,7 @@ function PageNav({ onBack, title, menuItems = [] }) {
         {onBack && (
           <button onClick={onBack} style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)", borderRadius:8, padding:"8px 14px", cursor:"pointer", fontSize:13 }}>← Back</button>
         )}
-        <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.warmWhite, flex:1 }}>
+        <div style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:16, fontWeight:700, color:T.warmWhite, flex:1, whiteSpace:"nowrap" }}>
           ✦ <span style={{ color:T.goldLight }}>Mystical</span> {title || "Messages"}
         </div>
         {menuItems.length > 0 && (
@@ -681,17 +681,15 @@ function AuthScreen({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:T.midnight, display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden" }}>
+    <div style={{ minHeight:"100vh", background:"linear-gradient(180deg, #0d1b2a 0%, #121a30 55%, #181637 100%)", display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden" }}>
       <Stars count={90}/>
-      <div style={{ position:"absolute", inset:0, pointerEvents:"none", background:`radial-gradient(ellipse 70% 50% at 20% 80%, rgba(91,130,100,0.1) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 20%, rgba(201,147,58,0.07) 0%, transparent 55%)` }}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none", background:`radial-gradient(ellipse 60% 45% at 50% 22%, rgba(232,201,122,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 45% at 25% 85%, rgba(201,147,58,0.06) 0%, transparent 60%)` }}/>
 
       <div style={{ position:"relative", zIndex:2, width:"100%", maxWidth:420 }}>
-        <div className="fade-up" style={{ textAlign:"center", marginBottom:36 }}>
-          <div style={{ fontSize:32, marginBottom:8 }}>✦</div>
-          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:700, color:T.warmWhite }}>
-            Mystical <span style={{ color:T.goldLight }}>Messages</span>
-          </div>
-          <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:6 }}>
+        <div className="fade-up" style={{ textAlign:"center", marginBottom:32 }}>
+          <img src="/logo-badge.webp" alt="Mystical Messages" width="900" height="742" style={{ display:"block", width:"min(190px, 62%)", height:"auto", margin:"0 auto 14px", filter:"drop-shadow(0 12px 30px rgba(0,0,0,0.5))" }}/>
+          <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)" }}>
             {mode === "login" ? "Welcome back" : "Create your parent account"}
           </div>
         </div>
@@ -1372,7 +1370,7 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "m
         {/* FRONT */}
         <div style={{
           position:"absolute", inset:0, backfaceVisibility:"hidden",
-          background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`,
+          background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)",
           borderRadius:16, display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center", padding:"24px 16px", gap:6,
         }}>
@@ -1392,7 +1390,7 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "m
         <div style={{
           position:"absolute", inset:0, backfaceVisibility:"hidden",
           transform:"rotateY(180deg)",
-          background:T.midnight, borderRadius:16,
+          background:"#16233d", border:"1.5px solid rgba(232,201,122,0.32)", borderRadius:16,
           display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center",
           padding:"28px 20px", gap:16, textAlign:"center",
@@ -1576,17 +1574,20 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
 
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:"linear-gradient(180deg, #0d1b2a 0%, #121a30 55%, #181637 100%)" }}>
+      <Stars count={70}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div aria-hidden="true" style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:680, maxWidth:"120%", height:440, background:"radial-gradient(ellipse at center, rgba(232,201,122,0.14), rgba(232,201,122,0) 62%)", pointerEvents:"none", zIndex:0 }}/>
       <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
 
-      <div style={{ maxWidth:900, margin:"0 auto", padding:"40px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:900, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:40 }}>
-          <SectionLabel>Account & Billing</SectionLabel>
-          <DisplayTitle>Your subscription</DisplayTitle>
+          <SectionLabel light>Account & Billing</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Your subscription</DisplayTitle>
 
           {currentPlan === "free" && (
-            <div style={{ marginTop:20, background:"rgba(201,147,58,0.07)", border:`1.5px solid rgba(201,147,58,0.25)`, borderRadius:16, padding:"18px 22px", display:"flex", alignItems:"center", gap:14 }}>
-              <div style={{ fontSize:28, flexShrink:0 }}>✨</div>
+            <div style={{ marginTop:20, background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, padding:"18px 22px", display:"flex", alignItems:"center", gap:14 }}>
+              <EmojiBadge emoji="✨" size={44} soft/>
               <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:T.body, lineHeight:1.7, margin:0 }}>
                 Choose a plan to keep the magic going — then from $1.99/mo, or send a single message for $0.99. The badges up ahead will help you find your fit.
               </p>
@@ -1594,9 +1595,9 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
           )}
 
           {currentPlan !== "free" && (
-            <div style={{ marginTop:20, background:T.warmWhite, border:`1.5px solid ${T.gold}`, borderRadius:16, padding:"20px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
+            <div style={{ marginTop:20, background:T.warmWhite, border:`2px solid ${T.gold}`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, padding:"20px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{ width:44, height:44, borderRadius:"50%", background:T.goldPale, border:`1.5px solid rgba(201,147,58,0.3)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🌠</div>
+                <EmojiBadge emoji="🌠" size={44}/>
                 <div>
                   <div style={{ fontSize:16, fontWeight:700, color:T.ink, fontFamily:"'Playfair Display', serif" }}>{currentPlan.charAt(0).toUpperCase()+currentPlan.slice(1)} Plan</div>
                   <div style={{ fontSize:13, color:T.muted }}>Managed via Stripe · Cancel anytime</div>
@@ -1612,7 +1613,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
 
         {/* ── Billing Cycle Toggle ── */}
         <div className="fade-up-1" style={{ display:"flex", justifyContent:"center", marginBottom:36 }}>
-          <div style={{ background:T.midnight, borderRadius:100, padding:4, display:"inline-flex", gap:2 }}>
+          <div style={{ background:"#16233d", border:"1px solid rgba(232,201,122,0.22)", borderRadius:100, padding:4, display:"inline-flex", gap:2 }}>
             <button
               onClick={() => setBillingCycle("monthly")}
               style={{ padding:"9px 26px", borderRadius:100, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, transition:"all 0.2s",
@@ -1636,8 +1637,8 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
         {/* ── Badge Flip Cards ── */}
         <div className="fade-up-2" style={{ marginBottom:48 }}>
           <div style={{ marginBottom:20 }}>
-            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:6 }}>Which level of magic fits your family?</h3>
-            <p style={{ fontSize:13, color:T.muted }}>Tap a badge to see what each plan is all about.</p>
+            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.warmWhite, marginBottom:6 }}>Which level of magic fits your family?</h3>
+            <p style={{ fontSize:13, color:"rgba(244,238,226,0.55)" }}>Tap a badge to see what each plan is all about.</p>
           </div>
           <div className="badge-grid">
             {BADGE_DATA.map(badge => (
@@ -1666,7 +1667,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
         </div>
 
         <div className="fade-up-3" style={{ marginBottom:48 }}>
-          <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:20 }}>All plans</h3>
+          <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:700, color:T.warmWhite, marginBottom:20 }}>All plans</h3>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:14 }}>
             {PLANS.map(plan => {
               const isCurrent = currentPlan === plan.id;
@@ -1675,22 +1676,22 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
               const displayPeriod = showAnnual ? plan.periodAnnual : plan.periodMonthly;
               return (
                 <div key={plan.id} id={`plan-card-${plan.id}`} style={{
-                  background: isCurrent ? T.midnight : T.warmWhite,
-                  border:`1.5px solid ${isCurrent ? T.gold : "rgba(201,147,58,0.15)"}`,
+                  background: T.warmWhite,
+                  border:`2px solid ${isCurrent ? T.gold : "rgba(201,147,58,0.5)"}`,
                   borderRadius:16, padding:"28px 20px", position:"relative",
-                  boxShadow: isCurrent ? "0 12px 40px rgba(0,0,0,0.15)" : "none",
+                  boxShadow: isCurrent ? "0 0 0 3px rgba(232,201,122,0.2), 0 12px 34px rgba(0,0,0,0.4)" : "0 8px 24px rgba(0,0,0,0.3)",
                 }}>
                   {plan.badge && <div style={{ position:"absolute", top:-11, left:"50%", transform:"translateX(-50%)", background:T.gold, color:T.midnight, fontSize:10, fontWeight:700, padding:"3px 12px", borderRadius:100, whiteSpace:"nowrap" }}>{plan.badge}</div>}
-                  <div style={{ fontSize:11, fontWeight:500, letterSpacing:"0.15em", textTransform:"uppercase", color: isCurrent ? T.goldLight : T.gold, marginBottom:6 }}>{plan.tier}</div>
-                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:700, color: isCurrent ? T.warmWhite : T.ink, lineHeight:1 }}>{displayPrice}</div>
-                  <div style={{ fontSize:13, color: isCurrent ? "rgba(255,255,255,0.4)" : T.muted, marginBottom: showAnnual && plan.savingsAnnual ? 4 : 18 }}>{displayPeriod}</div>
+                  <div style={{ fontSize:11, fontWeight:500, letterSpacing:"0.15em", textTransform:"uppercase", color: T.gold, marginBottom:6 }}>{plan.tier}</div>
+                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:700, color: T.ink, lineHeight:1 }}>{displayPrice}</div>
+                  <div style={{ fontSize:13, color: T.muted, marginBottom: showAnnual && plan.savingsAnnual ? 4 : 18 }}>{displayPeriod}</div>
                   {showAnnual && plan.savingsAnnual && (
                     <div style={{ fontSize:11, fontWeight:700, color:"#4a8c6e", background:"rgba(74,140,110,0.1)", display:"inline-block", padding:"2px 8px", borderRadius:100, marginBottom:14 }}>Save {plan.savingsAnnual}</div>
                   )}
-                  <div style={{ height:1, background: isCurrent ? "rgba(255,255,255,0.1)" : "rgba(201,147,58,0.15)", marginBottom:16 }}/>
+                  <div style={{ height:1, background:"rgba(201,147,58,0.18)", marginBottom:16 }}/>
                   <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
                     {plan.features.map((f,i) => (
-                      <li key={i} style={{ display:"flex", gap:8, fontSize:12, color: isCurrent ? "rgba(255,255,255,0.65)" : T.body, lineHeight:1.4 }}>
+                      <li key={i} style={{ display:"flex", gap:8, fontSize:12, color: T.body, lineHeight:1.4 }}>
                         <span style={{ color:T.gold, flexShrink:0, fontSize:10, marginTop:2 }}>✦</span>{f}
                       </li>
                     ))}
@@ -1699,8 +1700,8 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
                     width:"100%", padding:"11px 0", borderRadius:8, fontSize:13, fontWeight:500,
                     cursor: isCurrent ? "default" : "pointer", transition:"all 0.2s",
                     background: isCurrent ? "rgba(201,147,58,0.15)" : "transparent",
-                    border: isCurrent ? "none" : "1.5px solid rgba(201,147,58,0.3)",
-                    color: isCurrent ? T.goldLight : T.gold,
+                    border: isCurrent ? "1.5px solid rgba(201,147,58,0.3)" : "1.5px solid rgba(201,147,58,0.3)",
+                    color: T.gold,
                     fontFamily:"'DM Sans', sans-serif",
                     display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                   }}>
@@ -1714,7 +1715,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
 
         {/* ── Invite code ── */}
         <div className="fade-up-4" style={{ marginBottom:40 }}>
-          <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
+          <div style={{ background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, padding:"24px 26px" }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
             <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to extend your free trial — no payment needed.</p>
             <button
@@ -1728,7 +1729,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
 
         <div style={{ textAlign:"center", display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
           {["🔒 Stripe Secure","❌ Cancel anytime","📱 Messages to your phone only"].map(t => (
-            <span key={t} style={{ fontSize:12, color:T.muted }}>{t}</span>
+            <span key={t} style={{ fontSize:12, color:"rgba(244,238,226,0.5)" }}>{t}</span>
           ))}
         </div>
       </div>
