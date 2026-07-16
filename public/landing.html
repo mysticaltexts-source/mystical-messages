@@ -159,6 +159,12 @@
       box-shadow: 0 0 16px rgba(232,201,122,0.22), 0 6px 18px rgba(13,27,42,0.28), inset 0 1px 6px rgba(232,201,122,0.14);
       display: flex; align-items: center; justify-content: center; font-size: 30px;
     }
+    /* reduced glow for already-bright gold emoji (star/sparkle/wand) so they aren't washed out */
+    .badge-soft {
+      background:
+        radial-gradient(circle at 50% 47%, rgba(255,240,214,0.44) 0%, rgba(255,240,214,0.20) 27%, rgba(255,240,214,0) 54%),
+        radial-gradient(circle at 50% 36%, #294066 0%, #16233d 68%, #101a30 100%);
+    }
     .char-name { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #2c1e0f; margin-bottom: 8px; }
     .char-flavor { font-family: 'Lora', serif; font-size: 13px; color: #6a5443; line-height: 1.55; }
 
@@ -296,7 +302,7 @@
       <div class="steps">
         <div class="step">
           <div class="step-num">1</div>
-          <div class="step-badge" aria-hidden="true">🌟</div>
+          <div class="step-badge badge-soft" aria-hidden="true">🌟</div>
           <div class="step-text">Sign up with your email</div>
         </div>
         <div class="step">
@@ -306,7 +312,7 @@
         </div>
         <div class="step">
           <div class="step-num">3</div>
-          <div class="step-badge" aria-hidden="true">✨</div>
+          <div class="step-badge badge-soft" aria-hidden="true">✨</div>
           <div class="step-text">Schedule a message in advance — or tap the <strong>Oh-Crap!! Button</strong> for instant magic when you need backup fast</div>
         </div>
       </div>
@@ -339,7 +345,7 @@
           <div class="char-flavor">Springtime hellos and hidden-egg surprises hopping right to your phone.</div>
         </div>
         <div class="char-card">
-          <div class="char-icon">🪄</div>
+          <div class="char-icon badge-soft">🪄</div>
           <div class="char-name">Custom Character</div>
           <div class="char-flavor">Dream up your own magical messenger for any moment worth celebrating.</div>
         </div>
