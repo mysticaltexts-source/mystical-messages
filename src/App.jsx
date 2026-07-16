@@ -2316,9 +2316,9 @@ function getTemplates(slug) {
 
 function getOhCrapTemplate(btnId, childName) {
   const t = {
-    tooth_emergency: `Hello ${childName}! 🧚‍♀️ Word just reached me that a very brave little one lost a tooth tonight — and what a beauty it is! My flight path is completely full this evening, but a tooth this special absolutely cannot be missed. Tuck it safely under your pillow tomorrow night and I promise to visit before morning. Sweet dreams! 💫`,
+    tooth_emergency: `Hello ${childName}! 🧚 Word just reached me that a very brave little one lost a tooth tonight — and what a beauty it is! My flight path is completely jammed this evening, but a tooth this special cannot be missed. Tuck it safely under your pillow and I'll be there tomorrow night, before morning light. Sweet dreams! 💫`,
     santa_watching:  `Ho ho ho, ${childName}! 🎅 A little elf just sent me a message about what is happening at your house right now. Remember — I see everything, and the nice list is still open. Sweet dreams! ⭐`,
-    bunny_alert:     `Hippity hoppity, ${childName}! 🐰 I heard you were looking for me. I am hopping as fast as I can — big things are coming your way very soon! 🥚🌸`,
+    bunny_alert:     `Hippity hoppity, ${childName}! 🐰 Word reached my burrow that you're looking for me — and oh dear, I've hopped a little off course this morning! But don't you worry: I'm bounding your way right now, and your basket will be prepped and ready this afternoon. Keep your eyes peeled! 🥚🌸`,
     wishlist:        `Ho ho ho, ${childName}! 🎅 Great news from the North Pole — your wish list arrived safely in my mailroom just a little while ago! Mrs. Claus has already logged it in the Big Book and I have had a chance to look it over myself. The elves are taking notes as we speak. Keep being wonderful and we will take care of the rest! ⭐🎄`,
   };
   return t[btnId] || `A little magic is coming your way, ${childName}! ✨`;
