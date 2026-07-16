@@ -247,9 +247,9 @@ function Btn({ children, onClick, variant="primary", style={}, disabled=false, s
     transition:"all 0.18s ease", opacity: disabled||loading ? 0.6 : 1, whiteSpace:"nowrap",
   };
   const variants = {
-    primary: { background:T.gold, color:T.midnight },
+    primary: { background:T.gold, color:T.midnight, fontFamily:"'Playfair Display', serif", fontWeight:700 },
     ghost:   { background:"transparent", color:"rgba(255,255,255,0.7)", border:"1px solid rgba(255,255,255,0.2)" },
-    outline: { background:"transparent", color:T.gold, border:`1.5px solid rgba(201,147,58,0.35)` },
+    outline: { background:"transparent", color:T.gold, border:`1.5px solid rgba(201,147,58,0.35)`, fontFamily:"'Playfair Display', serif", fontWeight:700 },
     danger:  { background:"rgba(184,92,74,0.12)", color:T.danger, border:`1px solid rgba(184,92,74,0.25)` },
   };
   return (
@@ -1698,12 +1698,12 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
                     ))}
                   </ul>
                   <button onClick={() => !isCurrent && checkout(plan.id)} disabled={isCurrent || loadingPlan === plan.id} style={{
-                    width:"100%", padding:"11px 0", borderRadius:8, fontSize:13, fontWeight:500,
+                    width:"100%", padding:"11px 0", borderRadius:8, fontSize:14, fontWeight:700,
                     cursor: isCurrent ? "default" : "pointer", transition:"all 0.2s",
                     background: isCurrent ? "rgba(201,147,58,0.15)" : "transparent",
                     border: isCurrent ? "1.5px solid rgba(201,147,58,0.3)" : "1.5px solid rgba(201,147,58,0.3)",
                     color: T.gold,
-                    fontFamily:"'DM Sans', sans-serif",
+                    fontFamily:"'Playfair Display', serif",
                     display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                   }}>
                     {loadingPlan === plan.id ? <><Spinner color={T.gold} track="rgba(201,147,58,0.25)" size={15}/> Summoning…</> : isCurrent ? "Current Plan" : plan.cta}
@@ -1721,7 +1721,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
             <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to extend your free trial — no payment needed.</p>
             <button
               onClick={onRedeemCode}
-              style={{ padding:"11px 20px", borderRadius:8, background:T.gold, color:T.midnight, border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+              style={{ padding:"11px 22px", borderRadius:8, background:T.gold, color:T.midnight, border:"none", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Playfair Display', serif", transition:"all 0.2s" }}
             >
               Redeem code ✦
             </button>
