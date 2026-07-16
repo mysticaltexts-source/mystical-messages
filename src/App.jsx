@@ -281,9 +281,12 @@ function Input({ label, type="text", value, onChange, placeholder, hint, error, 
   );
 }
 
-function Card({ children, style={} }) {
+function Card({ children, style={}, dark=false }) {
   return (
-    <div style={{ background:T.warmWhite, border:`1px solid rgba(201,147,58,0.15)`, borderRadius:16, padding:24, ...style }}>
+    <div style={{ background:T.warmWhite,
+      border: dark ? "2px solid rgba(201,147,58,0.5)" : "1px solid rgba(201,147,58,0.15)",
+      boxShadow: dark ? "0 8px 24px rgba(0,0,0,0.3)" : "none",
+      borderRadius:16, padding:24, ...style }}>
       {children}
     </div>
   );
@@ -329,6 +332,20 @@ const DASH_SPARKLES = [
   { l: 22, t: 30, s: 11, o: 0.5 }, { l: 92, t: 48, s: 13, o: 0.5 }, { l: 6, t: 58, s: 12, o: 0.5 },
   { l: 60, t: 70, s: 10, o: 0.45 }, { l: 16, t: 84, s: 12, o: 0.5 }, { l: 84, t: 88, s: 11, o: 0.45 },
 ];
+
+/* Full-page dark night-sky background (gradient + twinkling stars + gold sparkles + warm glow).
+   Drop <NightSky/> as the first child of a screen whose root uses background:NIGHT_BG and
+   position:relative; overflow:hidden. Foreground content should sit at zIndex >= 1. */
+const NIGHT_BG = "linear-gradient(180deg, #0d1b2a 0%, #121a30 55%, #181637 100%)";
+function NightSky() {
+  return (
+    <>
+      <Stars count={70}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div aria-hidden="true" style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:680, maxWidth:"120%", height:440, background:"radial-gradient(ellipse at center, rgba(232,201,122,0.14), rgba(232,201,122,0) 62%)", pointerEvents:"none", zIndex:0 }}/>
+    </>
+  );
+}
 
 function DisplayTitle({ children, light=false, style={} }) {
   return <h2 style={{ fontFamily:"'Playfair Display', serif", fontWeight:700, fontSize:"clamp(24px,4vw,36px)", lineHeight:1.15, color: light ? T.warmWhite : T.ink, ...style }}>{children}</h2>;
@@ -1462,16 +1479,17 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
   );
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:NIGHT_BG }}>
+      <NightSky/>
       <PageNav onBack={onBack} title="Account" menuItems={menuItems}/>
-      <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:560, margin:"0 auto", padding:"32px 24px 80px" }}>
 
         <div className="fade-up" style={{ marginBottom:28 }}>
-          <DisplayTitle>Account Settings</DisplayTitle>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Account Settings</DisplayTitle>
         </div>
 
         {/* ── Email ── */}
-        <Card style={{ marginBottom:16 }}>
+        <Card dark style={{ marginBottom:16 }}>
           {field("Email Address",
             emailSent ? (
               <p style={{ fontSize:14, color:T.gold }}>✓ Confirmation sent — check your new inbox to confirm the change.</p>
@@ -1488,7 +1506,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         </Card>
 
         {/* ── Phone ── */}
-        <Card style={{ marginBottom:16 }}>
+        <Card dark style={{ marginBottom:16 }}>
           {field("Phone Number",
             <>
               <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>This is where your magic messages are delivered.</p>
@@ -1501,7 +1519,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         </Card>
 
         {/* ── Password ── */}
-        <Card style={{ marginBottom:16 }}>
+        <Card dark style={{ marginBottom:16 }}>
           {field("Password",
             resetSent ? (
               <p style={{ fontSize:14, color:T.gold }}>✓ Reset link sent — check {session.user.email}</p>
@@ -1515,7 +1533,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         </Card>
 
         {/* ── Plan ── */}
-        <Card>
+        <Card dark>
           {field("Current Plan",
             <>
               <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:12 }}>
@@ -1960,15 +1978,16 @@ function HistoryScreen({ session, onBack, menuItems }) {
   });
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:NIGHT_BG }}>
+      <NightSky/>
       <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
-      <div style={{ maxWidth:720, margin:"0 auto", padding:"40px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:720, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:28 }}>
-          <SectionLabel>Memories</SectionLabel>
-          <DisplayTitle>Message History</DisplayTitle>
+          <SectionLabel light>Memories</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Message History</DisplayTitle>
         </div>
 
-        <div className="fade-up-1" style={{ display:"flex", gap:0, background:T.warmWhite, border:"1px solid rgba(201,147,58,0.15)", borderRadius:14, overflow:"hidden", marginBottom:24 }}>
+        <div className="fade-up-1" style={{ display:"flex", gap:0, background:T.warmWhite, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:14, overflow:"hidden", marginBottom:24 }}>
           {[{ label:"Total sent", value:messages.length },{ label:"Characters", value: new Set(messages.map(m=>m.characters?.slug)).size },].map((s,i) => (
             <div key={i} style={{ flex:1, padding:"16px 20px", textAlign:"center", borderRight: i<1 ? "1px solid rgba(201,147,58,0.12)" : "none" }}>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:700, color:T.gold }}>{s.value}</div>
@@ -1985,7 +2004,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
           </div>
           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
             {FILTERS.map(f => (
-              <button key={f.id} onClick={() => setFilter(f.id)} style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:`1.5px solid ${filter===f.id ? T.gold : "rgba(201,147,58,0.2)"}`, background: filter===f.id ? T.goldPale : "transparent", color: filter===f.id ? T.gold : T.muted, fontWeight: filter===f.id ? 600 : 400 }}>{f.emoji} {f.label}</button>
+              <button key={f.id} onClick={() => setFilter(f.id)} style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:`1.5px solid ${filter===f.id ? T.goldLight : "rgba(232,201,122,0.28)"}`, background: filter===f.id ? "rgba(232,201,122,0.14)" : "transparent", color: filter===f.id ? T.goldLight : "rgba(244,238,226,0.6)", fontWeight: filter===f.id ? 600 : 400 }}>{f.emoji} {f.label}</button>
             ))}
           </div>
         </div>
@@ -1993,16 +2012,16 @@ function HistoryScreen({ session, onBack, menuItems }) {
         {loading ? (
           <div style={{ textAlign:"center", padding:48 }}><Spinner/></div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign:"center", padding:"48px 24px", color:T.muted }}>
+          <div style={{ textAlign:"center", padding:"48px 24px", color:"rgba(244,238,226,0.6)" }}>
             <div style={{ fontSize:36, marginBottom:12 }}>🔮</div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:T.ink }}>No messages found</div>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:T.warmWhite }}>No messages found</div>
           </div>
         ) : filtered.map((msg,i) => {
           const isOpen = expanded === msg.id;
           return (
-            <div key={msg.id} style={{ background:T.warmWhite, border:`1.5px solid ${isOpen ? T.gold : "rgba(201,147,58,0.15)"}`, borderRadius:14, overflow:"hidden", marginBottom:10, animation:`fadeUp 0.4s ${i*0.04}s ease both` }}>
-              <button onClick={() => setExpanded(isOpen ? null : msg.id)} style={{ width:"100%", background:"none", border:"none", cursor:"pointer", padding:"16px 18px", display:"flex", alignItems:"center", gap:14, textAlign:"left" }}>
-                <span style={{ fontSize:26, flexShrink:0 }}>{msg.characters?.emoji}</span>
+            <div key={msg.id} style={{ background:T.warmWhite, border:`2px solid ${isOpen ? T.gold : "rgba(201,147,58,0.5)"}`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:14, overflow:"hidden", marginBottom:10, animation:`fadeUp 0.4s ${i*0.04}s ease both` }}>
+              <button onClick={() => setExpanded(isOpen ? null : msg.id)} style={{ width:"100%", background:"none", border:"none", cursor:"pointer", padding:"14px 16px", display:"flex", alignItems:"center", gap:14, textAlign:"left" }}>
+                <EmojiBadge emoji={msg.characters?.emoji} size={42}/>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:3 }}>{msg.characters?.name}</div>
                   <div style={{ fontSize:13, color:T.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{msg.body}</div>
@@ -2193,7 +2212,7 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
         {step===3 && (
           <div style={{ animation:"fadeUp 0.35s ease" }}>
             <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.ink, marginBottom:20 }}>When should it arrive on your phone?</h3>
-            <Card style={{ marginBottom:16 }}>
+            <Card dark style={{ marginBottom:16 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
                 <div>
                   <label style={{ fontSize:13, fontWeight:500, color:T.body, display:"block", marginBottom:6 }}>Date</label>
