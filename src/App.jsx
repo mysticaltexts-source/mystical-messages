@@ -689,7 +689,7 @@ function AuthScreen({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
       <div style={{ position:"relative", zIndex:2, width:"100%", maxWidth:420 }}>
         <div className="fade-up" style={{ textAlign:"center", marginBottom:32 }}>
           <img src="/logo-badge.webp" alt="Mystical Messages" width="900" height="742" style={{ display:"block", width:"min(190px, 62%)", height:"auto", margin:"0 auto 14px", filter:"drop-shadow(0 12px 30px rgba(0,0,0,0.5))" }}/>
-          <div style={{ fontSize:13, color:"rgba(255,255,255,0.45)" }}>
+          <div style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:15, letterSpacing:"0.02em", color:"rgba(255,255,255,0.62)" }}>
             {mode === "login" ? "Welcome back" : "Create your parent account"}
           </div>
         </div>
@@ -924,8 +924,8 @@ if (typeof window !== "undefined") {
 }
 
 const OH_CRAP_DEFAULTS = [
-  { id:"tooth_emergency", emoji:"🦷", label:"Lost Tooth!!!", sub:"Her flight path’s jammed — landing tomorrow night", charSlug:"tooth_fairy" },
   { id:"santa_watching",  emoji:"🎅", label:"Santa's Watching", sub:"Instant naughty/nice check", charSlug:"santa" },
+  { id:"tooth_emergency", emoji:"🦷", label:"Lost Tooth!!!", sub:"Her flight path’s jammed — landing tomorrow night", charSlug:"tooth_fairy" },
   { id:"bunny_alert",     emoji:"🐰", label:"No Eggs Yet?!", sub:"Bunny hopped off course — baskets land this afternoon!", charSlug:"easter_bunny" },
   { id:"wishlist",        emoji:"📝", label:"Wish List Confirmed", sub:"Santa got the list!", charSlug:"santa" },
 ];
@@ -1401,10 +1401,11 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "m
           <button
             onClick={e => { e.stopPropagation(); onScrollTo(); }}
             style={{
-              background:"transparent", border:`1.5px solid rgba(201,147,58,0.45)`,
-              color:"#e8b96a", borderRadius:8, padding:"10px 14px",
-              fontSize:12, fontWeight:500, cursor:"pointer",
+              background:T.gold, border:"none",
+              color:T.midnight, borderRadius:8, padding:"11px 14px",
+              fontSize:12.5, fontWeight:600, cursor:"pointer",
               fontFamily:"'DM Sans',sans-serif", width:"100%",
+              boxShadow:"0 4px 14px rgba(201,147,58,0.35)",
             }}
           >
             {badge.scrollCta}
