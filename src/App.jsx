@@ -1403,8 +1403,8 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "m
             style={{
               background:T.gold, border:"none",
               color:T.midnight, borderRadius:8, padding:"11px 14px",
-              fontSize:12.5, fontWeight:600, cursor:"pointer",
-              fontFamily:"'DM Sans',sans-serif", width:"100%",
+              fontSize:14, fontWeight:700, cursor:"pointer",
+              fontFamily:"'Playfair Display', serif", width:"100%",
               boxShadow:"0 4px 14px rgba(201,147,58,0.35)",
             }}
           >
