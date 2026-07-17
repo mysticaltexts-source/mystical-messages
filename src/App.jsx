@@ -387,8 +387,15 @@ function PageNav({ onBack, title, menuItems = [] }) {
 /* ══════════════════════════════════════
    FOOTER COMPONENT
 ══════════════════════════════════════ */
-function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy, dark=false }) {
+function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy, dark=false, menuItems=null }) {
   const metaColor = dark ? "rgba(244,238,226,0.55)" : T.muted;
+  // Sub-pages pass their nav menuItems instead of explicit handlers — derive the links from them.
+  if (menuItems) {
+    const find = kw => menuItems.find(m => m.label.toLowerCase().includes(kw))?.action || (() => {});
+    onGoToAbout = onGoToAbout || find("about");
+    onGoToTerms = onGoToTerms || find("terms");
+    onGoToPrivacy = onGoToPrivacy || find("privacy");
+  }
   return (
     <>
       {/* Mobile: fixed bar at bottom of screen */}
@@ -541,6 +548,7 @@ function AboutScreen({ onBack, menuItems }) {
         </div>
 
       </div>
+      <Footer menuItems={menuItems} dark/>
     </div>
   );
 }
@@ -588,7 +596,12 @@ function TermsScreen({ onBack, menuItems }) {
             </p>
           </div>
         </div>
+
+        <div style={{ textAlign:"center", marginTop:36 }}>
+          <img src="/logo-round.webp" alt="Mystical Messages" width="400" height="380" style={{ width:78, height:"auto", opacity:0.92 }}/>
+        </div>
       </div>
+      <Footer menuItems={menuItems}/>
     </div>
   );
 }
@@ -638,7 +651,12 @@ function PrivacyScreen({ onBack, menuItems }) {
             </p>
           </div>
         </div>
+
+        <div style={{ textAlign:"center", marginTop:36 }}>
+          <img src="/logo-round.webp" alt="Mystical Messages" width="400" height="380" style={{ width:78, height:"auto", opacity:0.92 }}/>
+        </div>
       </div>
+      <Footer menuItems={menuItems}/>
     </div>
   );
 }
@@ -1554,6 +1572,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         </Card>
 
       </div>
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -1770,6 +1789,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
         </div>
       )}
 
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -1943,6 +1963,7 @@ function ChildProfileScreen({ session, onBack, menuItems }) {
         </div>
       )}
 
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -2051,6 +2072,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
           );
         })}
       </div>
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -2296,6 +2318,7 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
         </div>
       )}
 
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
