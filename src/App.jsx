@@ -415,10 +415,11 @@ function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy, dark=false, menuItems
         position:"fixed", bottom:0, left:0, right:0, zIndex:100,
         background: dark ? "rgba(11,20,32,0.96)" : T.warmWhite,
         borderTop: dark ? "1px solid rgba(232,201,122,0.2)" : `1px solid rgba(201,147,58,0.2)`,
-        padding:"10px 24px", alignItems:"center", justifyContent:"center",
-        gap:24, display:"none",
+        padding:"8px 20px", alignItems:"center", justifyContent:"center",
+        gap:"6px 16px", display:"none", flexWrap:"wrap",
         boxShadow:"0 -4px 16px rgba(0,0,0,0.06)",
       }}>
+        <img src="/logo-round.webp" alt="" width="400" height="380" style={{ width:19, height:19, borderRadius:"50%", flexShrink:0 }}/>
         <span style={{ fontSize:12, color:metaColor }}>© 2026 Mystical Texts LLC</span>
         <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>About</button>
         <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Terms</button>
@@ -427,9 +428,10 @@ function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy, dark=false, menuItems
 
       {/* Desktop inline footer */}
       <footer className="footer-inline" style={{
-        borderTop:`1px solid rgba(201,147,58,0.15)`, marginTop:48,
+        borderTop: dark ? "1px solid rgba(232,201,122,0.18)" : `1px solid rgba(201,147,58,0.15)`, marginTop:48,
         padding:"28px 24px", textAlign:"center", display:"none",
       }}>
+        <img src="/logo-round.webp" alt="Mystical Messages" width="400" height="380" style={{ width:52, height:"auto", opacity:0.9, display:"block", margin:"0 auto 14px" }}/>
         <p style={{ fontSize:13, color:metaColor, marginBottom:12 }}>© 2026 Mystical Texts LLC. All rights reserved.</p>
         <div style={{ display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
           <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>About</button>
@@ -596,10 +598,6 @@ function TermsScreen({ onBack, menuItems }) {
             </p>
           </div>
         </div>
-
-        <div style={{ textAlign:"center", marginTop:36 }}>
-          <img src="/logo-round.webp" alt="Mystical Messages" width="400" height="380" style={{ width:78, height:"auto", opacity:0.92 }}/>
-        </div>
       </div>
       <Footer menuItems={menuItems}/>
     </div>
@@ -650,10 +648,6 @@ function PrivacyScreen({ onBack, menuItems }) {
               mysticaltexts.com
             </p>
           </div>
-        </div>
-
-        <div style={{ textAlign:"center", marginTop:36 }}>
-          <img src="/logo-round.webp" alt="Mystical Messages" width="400" height="380" style={{ width:78, height:"auto", opacity:0.92 }}/>
         </div>
       </div>
       <Footer menuItems={menuItems}/>
