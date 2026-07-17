@@ -101,7 +101,7 @@ const T = {
 
 /* ─── GOOGLE FONTS ─── */
 const FontLink = () => (
-  <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');`}</style>
+  <style>{`@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');`}</style>
 );
 
 /* ─── GLOBAL STYLES ─── */
@@ -247,9 +247,9 @@ function Btn({ children, onClick, variant="primary", style={}, disabled=false, s
     transition:"all 0.18s ease", opacity: disabled||loading ? 0.6 : 1, whiteSpace:"nowrap",
   };
   const variants = {
-    primary: { background:T.gold, color:T.midnight },
+    primary: { background:T.gold, color:T.midnight, fontFamily:"'Playfair Display', serif", fontWeight:700 },
     ghost:   { background:"transparent", color:"rgba(255,255,255,0.7)", border:"1px solid rgba(255,255,255,0.2)" },
-    outline: { background:"transparent", color:T.gold, border:`1.5px solid rgba(201,147,58,0.35)` },
+    outline: { background:"transparent", color:T.gold, border:`1.5px solid rgba(201,147,58,0.35)`, fontFamily:"'Playfair Display', serif", fontWeight:700 },
     danger:  { background:"rgba(184,92,74,0.12)", color:T.danger, border:`1px solid rgba(184,92,74,0.25)` },
   };
   return (
@@ -281,9 +281,12 @@ function Input({ label, type="text", value, onChange, placeholder, hint, error, 
   );
 }
 
-function Card({ children, style={} }) {
+function Card({ children, style={}, dark=false }) {
   return (
-    <div style={{ background:T.warmWhite, border:`1px solid rgba(201,147,58,0.15)`, borderRadius:16, padding:24, ...style }}>
+    <div style={{ background:T.warmWhite,
+      border: dark ? "2px solid rgba(201,147,58,0.5)" : "1px solid rgba(201,147,58,0.15)",
+      boxShadow: dark ? "0 8px 24px rgba(0,0,0,0.3)" : "none",
+      borderRadius:16, padding:24, ...style }}>
       {children}
     </div>
   );
@@ -291,6 +294,57 @@ function Card({ children, style={} }) {
 
 function SectionLabel({ children, light=false }) {
   return <span style={{ fontSize:11, fontWeight:500, letterSpacing:"0.18em", textTransform:"uppercase", color: light ? T.goldLight : T.gold, display:"block", marginBottom:8 }}>{children}</span>;
+}
+
+/* Navy, gold-ringed emoji badge (matches the landing/character-card motif).
+   `soft` dials the warm backing glow down for already-bright gold emoji. */
+function EmojiBadge({ emoji, size = 46, soft = false, style = {} }) {
+  return (
+    <span style={{
+      flexShrink: 0, width: size, height: size, borderRadius: "50%",
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      fontSize: Math.round(size * 0.52),
+      border: "1.4px solid rgba(232,201,122,0.5)",
+      boxShadow: "0 0 14px rgba(232,201,122,0.18), inset 0 1px 5px rgba(232,201,122,0.12)",
+      background: soft
+        ? "radial-gradient(circle at 50% 47%, rgba(255,240,214,0.44) 0%, rgba(255,240,214,0.2) 27%, rgba(255,240,214,0) 54%), radial-gradient(circle at 50% 36%, #294066 0%, #16233d 68%, #101a30 100%)"
+        : "radial-gradient(circle at 50% 47%, rgba(255,240,214,0.9) 0%, rgba(255,240,214,0.4) 27%, rgba(255,240,214,0) 54%), radial-gradient(circle at 50% 36%, #294066 0%, #16233d 68%, #101a30 100%)",
+      ...style,
+    }}>{emoji}</span>
+  );
+}
+
+/* Decorative gold four-point sparkles scattered behind a dark section. */
+const SPARKLE_PATH = "M12 0c.7 5.6 5.7 10.6 12 12-6.3 1.4-11.3 6.4-12 12-.7-5.6-5.7-10.6-12-12C6.3 10.6 11.3 5.6 12 0z";
+function GoldSparkles({ marks }) {
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
+      {marks.map((m, i) => (
+        <svg key={i} viewBox="0 0 24 24" style={{ position: "absolute", left: `${m.l}%`, top: `${m.t}%`, width: m.s, height: m.s, opacity: m.o, fill: "#e8c97a" }}>
+          <path d={SPARKLE_PATH}/>
+        </svg>
+      ))}
+    </div>
+  );
+}
+const DASH_SPARKLES = [
+  { l: 9, t: 10, s: 16, o: 0.85 }, { l: 86, t: 7, s: 13, o: 0.7 }, { l: 70, t: 17, s: 10, o: 0.55 },
+  { l: 22, t: 30, s: 11, o: 0.5 }, { l: 92, t: 48, s: 13, o: 0.5 }, { l: 6, t: 58, s: 12, o: 0.5 },
+  { l: 60, t: 70, s: 10, o: 0.45 }, { l: 16, t: 84, s: 12, o: 0.5 }, { l: 84, t: 88, s: 11, o: 0.45 },
+];
+
+/* Full-page dark night-sky background (gradient + twinkling stars + gold sparkles + warm glow).
+   Drop <NightSky/> as the first child of a screen whose root uses background:NIGHT_BG and
+   position:relative; overflow:hidden. Foreground content should sit at zIndex >= 1. */
+const NIGHT_BG = "linear-gradient(180deg, #0d1b2a 0%, #121a30 55%, #181637 100%)";
+function NightSky() {
+  return (
+    <>
+      <Stars count={70}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div aria-hidden="true" style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:680, maxWidth:"120%", height:440, background:"radial-gradient(ellipse at center, rgba(232,201,122,0.14), rgba(232,201,122,0) 62%)", pointerEvents:"none", zIndex:0 }}/>
+    </>
+  );
 }
 
 function DisplayTitle({ children, light=false, style={} }) {
@@ -306,7 +360,7 @@ function PageNav({ onBack, title, menuItems = [] }) {
         {onBack && (
           <button onClick={onBack} style={{ background:"rgba(255,255,255,0.08)", border:"1px solid rgba(255,255,255,0.12)", color:"rgba(255,255,255,0.7)", borderRadius:8, padding:"8px 14px", cursor:"pointer", fontSize:13 }}>← Back</button>
         )}
-        <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.warmWhite, flex:1 }}>
+        <div style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:16, fontWeight:700, color:T.warmWhite, flex:1, whiteSpace:"nowrap" }}>
           ✦ <span style={{ color:T.goldLight }}>Mystical</span> {title || "Messages"}
         </div>
         {menuItems.length > 0 && (
@@ -333,7 +387,15 @@ function PageNav({ onBack, title, menuItems = [] }) {
 /* ══════════════════════════════════════
    FOOTER COMPONENT
 ══════════════════════════════════════ */
-function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
+function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy, dark=false, menuItems=null }) {
+  const metaColor = dark ? "rgba(244,238,226,0.55)" : T.muted;
+  // Sub-pages pass their nav menuItems instead of explicit handlers — derive the links from them.
+  if (menuItems) {
+    const find = kw => menuItems.find(m => m.label.toLowerCase().includes(kw))?.action || (() => {});
+    onGoToAbout = onGoToAbout || find("about");
+    onGoToTerms = onGoToTerms || find("terms");
+    onGoToPrivacy = onGoToPrivacy || find("privacy");
+  }
   return (
     <>
       {/* Mobile: fixed bar at bottom of screen */}
@@ -351,12 +413,14 @@ function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
       {/* Mobile fixed footer */}
       <footer className="footer-fixed" style={{
         position:"fixed", bottom:0, left:0, right:0, zIndex:100,
-        background:T.warmWhite, borderTop:`1px solid rgba(201,147,58,0.2)`,
-        padding:"10px 24px", alignItems:"center", justifyContent:"center",
-        gap:24, display:"none",
+        background: dark ? "rgba(11,20,32,0.96)" : T.warmWhite,
+        borderTop: dark ? "1px solid rgba(232,201,122,0.2)" : `1px solid rgba(201,147,58,0.2)`,
+        padding:"8px 20px", alignItems:"center", justifyContent:"center",
+        gap:"6px 16px", display:"none", flexWrap:"wrap",
         boxShadow:"0 -4px 16px rgba(0,0,0,0.06)",
       }}>
-        <span style={{ fontSize:12, color:T.muted }}>© 2026 Mystical Texts LLC</span>
+        <img src="/logo-round.webp" alt="" width="400" height="380" style={{ width:19, height:19, borderRadius:"50%", flexShrink:0 }}/>
+        <span style={{ fontSize:12, color:metaColor }}>© 2026 Mystical Texts LLC</span>
         <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>About</button>
         <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Terms</button>
         <button onClick={onGoToPrivacy} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Privacy</button>
@@ -364,10 +428,11 @@ function Footer({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
 
       {/* Desktop inline footer */}
       <footer className="footer-inline" style={{
-        borderTop:`1px solid rgba(201,147,58,0.15)`, marginTop:48,
+        borderTop: dark ? "1px solid rgba(232,201,122,0.18)" : `1px solid rgba(201,147,58,0.15)`, marginTop:48,
         padding:"28px 24px", textAlign:"center", display:"none",
       }}>
-        <p style={{ fontSize:13, color:T.muted, marginBottom:12 }}>© 2026 Mystical Texts LLC. All rights reserved.</p>
+        <img src="/logo-round.webp" alt="Mystical Messages" width="400" height="380" style={{ width:52, height:"auto", opacity:0.9, display:"block", margin:"0 auto 14px" }}/>
+        <p style={{ fontSize:13, color:metaColor, marginBottom:12 }}>© 2026 Mystical Texts LLC. All rights reserved.</p>
         <div style={{ display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
           <button onClick={onGoToAbout} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>About</button>
           <button onClick={onGoToTerms} style={{ background:"none", border:"none", color:T.gold, fontSize:13, cursor:"pointer", textDecoration:"underline" }}>Terms of Service</button>
@@ -405,31 +470,32 @@ const FB_POSTS = [
 
 function AboutScreen({ onBack, menuItems }) {
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:NIGHT_BG }}>
+      <NightSky/>
       <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
-      <div style={{ maxWidth:680, margin:"0 auto", padding:"48px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:680, margin:"0 auto", padding:"48px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:32 }}>
-          <SectionLabel>Our story</SectionLabel>
-          <DisplayTitle>About Mystical Messages</DisplayTitle>
+          <SectionLabel light>Our story</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>About Mystical Messages</DisplayTitle>
         </div>
 
         <div className="fade-up-1" style={{ display:"flex", flexDirection:"column", gap:20, fontFamily:"'Lora', serif", lineHeight:1.8 }}>
-          <p style={{ fontSize:16, color:T.body }}>
+          <p style={{ fontSize:16, color:"rgba(244,238,226,0.82)" }}>
             Mystical Messages is a service operated by <strong>Mystical Texts LLC</strong>, a company dedicated to
             creating magical, memorable moments for families through the power of storytelling and imagination.
           </p>
-          <p style={{ fontSize:15, color:T.body }}>
+          <p style={{ fontSize:15, color:"rgba(244,238,226,0.78)" }}>
             Our platform lets parents arrange SMS messages from beloved characters — Santa Claus, the Tooth Fairy,
             the Easter Bunny, and more — delivered straight to their own phones to share with their children.
             Messages are always parent-controlled and never sent directly to kids, keeping the magic safe and
             firmly in your hands.
           </p>
-          <p style={{ fontSize:15, color:T.body }}>
+          <p style={{ fontSize:15, color:"rgba(244,238,226,0.78)" }}>
             Founded with a simple belief: childhood is short, and wonder is worth protecting. Mystical Messages
             helps you be the architect of your child's most magical memories.
           </p>
 
-          <div style={{ background:T.warmWhite, border:`1px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 28px", marginTop:8 }}>
+          <div style={{ background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, padding:"24px 28px", marginTop:8 }}>
             <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink, marginBottom:6 }}>Get in touch</div>
             <p style={{ fontSize:14, color:T.muted }}>
               Questions or feedback? Reach us at{" "}
@@ -443,13 +509,13 @@ function AboutScreen({ onBack, menuItems }) {
         <div className="fade-up-2" style={{ marginTop:56 }}>
           <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", flexWrap:"wrap", gap:8, marginBottom:24 }}>
             <div>
-              <SectionLabel>From our community</SectionLabel>
-              <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.ink }}>Magic in the making</h3>
+              <SectionLabel light>From our community</SectionLabel>
+              <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.warmWhite }}>Magic in the making</h3>
             </div>
             <a
               href="https://www.facebook.com/share/1BZD8axBSD/?mibextid=wwXIfr"
               target="_blank" rel="noopener noreferrer"
-              style={{ fontSize:13, color:T.gold, textDecoration:"none", whiteSpace:"nowrap" }}
+              style={{ fontSize:13, color:T.goldLight, textDecoration:"none", whiteSpace:"nowrap" }}
             >
               Follow us on Facebook →
             </a>
@@ -458,7 +524,7 @@ function AboutScreen({ onBack, menuItems }) {
           <div className="post-carousel">
             {FB_POSTS.map(post => (
               <div key={post.id} className="post-card">
-                <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.18)`, borderRadius:16, overflow:"hidden", display:"flex", flexDirection:"column", height:"100%" }}>
+                <div style={{ background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, overflow:"hidden", display:"flex", flexDirection:"column", height:"100%" }}>
                   <img
                     src={post.image}
                     alt=""
@@ -484,6 +550,7 @@ function AboutScreen({ onBack, menuItems }) {
         </div>
 
       </div>
+      <Footer menuItems={menuItems} dark/>
     </div>
   );
 }
@@ -532,6 +599,7 @@ function TermsScreen({ onBack, menuItems }) {
           </div>
         </div>
       </div>
+      <Footer menuItems={menuItems}/>
     </div>
   );
 }
@@ -582,6 +650,7 @@ function PrivacyScreen({ onBack, menuItems }) {
           </div>
         </div>
       </div>
+      <Footer menuItems={menuItems}/>
     </div>
   );
 }
@@ -642,17 +711,15 @@ function AuthScreen({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:T.midnight, display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden" }}>
+    <div style={{ minHeight:"100vh", background:"linear-gradient(180deg, #0d1b2a 0%, #121a30 55%, #181637 100%)", display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden" }}>
       <Stars count={90}/>
-      <div style={{ position:"absolute", inset:0, pointerEvents:"none", background:`radial-gradient(ellipse 70% 50% at 20% 80%, rgba(91,130,100,0.1) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 80% 20%, rgba(201,147,58,0.07) 0%, transparent 55%)` }}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none", background:`radial-gradient(ellipse 60% 45% at 50% 22%, rgba(232,201,122,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 45% at 25% 85%, rgba(201,147,58,0.06) 0%, transparent 60%)` }}/>
 
       <div style={{ position:"relative", zIndex:2, width:"100%", maxWidth:420 }}>
-        <div className="fade-up" style={{ textAlign:"center", marginBottom:36 }}>
-          <div style={{ fontSize:32, marginBottom:8 }}>✦</div>
-          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:700, color:T.warmWhite }}>
-            Mystical <span style={{ color:T.goldLight }}>Messages</span>
-          </div>
-          <div style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:6 }}>
+        <div className="fade-up" style={{ textAlign:"center", marginBottom:32 }}>
+          <img src="/logo-badge.webp" alt="Mystical Messages" width="900" height="742" style={{ display:"block", width:"min(190px, 62%)", height:"auto", margin:"0 auto 14px", filter:"drop-shadow(0 12px 30px rgba(0,0,0,0.5))" }}/>
+          <div style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:15, letterSpacing:"0.02em", color:"rgba(255,255,255,0.62)" }}>
             {mode === "login" ? "Welcome back" : "Create your parent account"}
           </div>
         </div>
@@ -804,12 +871,14 @@ function SetupScreen({ user, onComplete, onGoToTerms, onGoToPrivacy }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:T.midnight, display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden" }}>
-      <Stars count={60}/>
+    <div style={{ minHeight:"100vh", background:NIGHT_BG, display:"flex", alignItems:"center", justifyContent:"center", padding:24, position:"relative", overflow:"hidden" }}>
+      <Stars count={70}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div aria-hidden="true" style={{ position:"absolute", inset:0, pointerEvents:"none", background:"radial-gradient(ellipse 60% 45% at 50% 20%, rgba(232,201,122,0.12) 0%, transparent 60%)" }}/>
       <div style={{ position:"relative", zIndex:2, width:"100%", maxWidth:460 }}>
         <div className="fade-up" style={{ textAlign:"center", marginBottom:32 }}>
           <div style={{ fontSize:40, marginBottom:12 }}>✨</div>
-          <DisplayTitle light style={{ marginBottom:10 }}>Almost ready!</DisplayTitle>
+          <DisplayTitle light style={{ marginBottom:10, fontFamily:"'Cinzel Decorative','Playfair Display', serif" }}>Almost ready!</DisplayTitle>
           <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", lineHeight:1.7 }}>
             One last step. We need your phone number — that's where all the magic arrives.
           </p>
@@ -887,9 +956,9 @@ if (typeof window !== "undefined") {
 }
 
 const OH_CRAP_DEFAULTS = [
-  { id:"tooth_emergency", emoji:"🦷", label:"Lost Tooth!", sub:"Tooth Fairy is on her way", charSlug:"tooth_fairy" },
   { id:"santa_watching",  emoji:"🎅", label:"Santa's Watching", sub:"Instant naughty/nice check", charSlug:"santa" },
-  { id:"bunny_alert",     emoji:"🐰", label:"Easter Bunny Alert", sub:"Bunny sends a heads-up", charSlug:"easter_bunny" },
+  { id:"tooth_emergency", emoji:"🦷", label:"Lost Tooth!!!", sub:"Her flight path’s jammed — landing tomorrow night", charSlug:"tooth_fairy" },
+  { id:"bunny_alert",     emoji:"🐰", label:"No Eggs Yet?!", sub:"Bunny hopped off course — baskets land this afternoon!", charSlug:"easter_bunny" },
   { id:"wishlist",        emoji:"📝", label:"Wish List Confirmed", sub:"Santa got the list!", charSlug:"santa" },
 ];
 
@@ -1045,11 +1114,14 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:"linear-gradient(180deg, #0d1b2a 0%, #121a30 55%, #181637 100%)" }}>
+      <Stars count={70}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div aria-hidden="true" style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:680, maxWidth:"120%", height:440, background:"radial-gradient(ellipse at center, rgba(232,201,122,0.14), rgba(232,201,122,0) 62%)", pointerEvents:"none", zIndex:0 }}/>
       {/* Nav wrapper is the sticky anchor; dropdown uses position:absolute relative to it */}
       <div style={{ position:"sticky", top:0, zIndex:50 }}>
         <nav style={{ background:T.midnight, padding:"14px 28px", display:"flex", alignItems:"center", justifyContent:"space-between", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.warmWhite }}>
+          <div style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:16, fontWeight:700, color:T.warmWhite, whiteSpace:"nowrap" }}>
             ✦ <span style={{ color:T.goldLight }}>Mystical</span> Messages
           </div>
           <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"nowrap" }}>
@@ -1090,13 +1162,15 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
       </div>
 
       <style>{`@media (max-width: 768px) { .dash-content { padding-bottom: 80px !important; } }`}</style>
-      <div className="dash-content" style={{ flex:1, maxWidth:860, margin:"0 auto", width:"100%", padding:"32px 24px 20px" }}>
+      <div className="dash-content" style={{ position:"relative", zIndex:2, flex:1, maxWidth:860, margin:"0 auto", width:"100%", padding:"28px 24px 20px" }}>
+
+        <img src="/logo-badge.webp" alt="Mystical Messages" width="900" height="742" style={{ display:"block", width:"min(150px, 44%)", height:"auto", margin:"2px auto 22px", filter:"drop-shadow(0 10px 26px rgba(0,0,0,0.5))" }}/>
 
         <div className="fade-up" style={{ marginBottom:32 }}>
-          <SectionLabel>Welcome back</SectionLabel>
-          <DisplayTitle>Good {partOfDay}, {userName} ✦</DisplayTitle>
+          <SectionLabel light>Welcome back</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Good {partOfDay}, {userName} ✦</DisplayTitle>
           {children.length > 0 && (
-            <p style={{ fontSize:14, color:T.muted, marginTop:6, fontFamily:"'Lora', serif", fontStyle:"italic" }}>
+            <p style={{ fontSize:14, color:"rgba(244,238,226,0.6)", marginTop:6, fontFamily:"'Lora', serif", fontStyle:"italic" }}>
               {selectedChild?.name} is waiting for a little magic {magicWhen}.
             </p>
           )}
@@ -1104,13 +1178,13 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
 
         {children.length > 1 && (
           <div className="fade-up" style={{ marginBottom:24, display:"flex", gap:8, flexWrap:"wrap" }}>
-            <span style={{ fontSize:13, color:T.muted, alignSelf:"center" }}>Sending for:</span>
+            <span style={{ fontSize:13, color:"rgba(244,238,226,0.55)", alignSelf:"center" }}>Sending for:</span>
             {children.map(child => (
               <button key={child.id} onClick={() => setSelectedChild(child)} style={{
                 padding:"6px 14px", borderRadius:100, fontSize:13, cursor:"pointer",
-                border:`1.5px solid ${selectedChild?.id===child.id ? T.gold : "rgba(201,147,58,0.2)"}`,
-                background: selectedChild?.id===child.id ? T.goldPale : "transparent",
-                color: selectedChild?.id===child.id ? T.gold : T.muted,
+                border:`1.5px solid ${selectedChild?.id===child.id ? T.goldLight : "rgba(232,201,122,0.28)"}`,
+                background: selectedChild?.id===child.id ? "rgba(232,201,122,0.14)" : "transparent",
+                color: selectedChild?.id===child.id ? T.goldLight : "rgba(244,238,226,0.6)",
                 fontWeight: selectedChild?.id===child.id ? 600 : 400,
               }}>{child.avatar || "🧒"} {child.name}</button>
             ))}
@@ -1122,7 +1196,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
             <span style={{ fontSize:20 }}>📱</span>
             <div>
               <div style={{ fontSize:14, fontWeight:600, color:T.danger }}>No phone number on file</div>
-              <div style={{ fontSize:13, color:T.muted }}>Messages need a destination. Add your phone number in Account Settings to start sending.</div>
+              <div style={{ fontSize:13, color:"rgba(244,238,226,0.6)" }}>Messages need a destination. Add your phone number in Account Settings to start sending.</div>
             </div>
           </div>
         )}
@@ -1137,10 +1211,10 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         <div className="fade-up-1" style={{ marginBottom:36 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
             <div>
-              <SectionLabel>Emergency Magic</SectionLabel>
-              <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink }}>🚨 Oh-Crap!! Buttons</h3>
+              <SectionLabel light>Emergency Magic</SectionLabel>
+              <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:19, fontWeight:700, color:T.warmWhite }}>🚨 Oh-Crap!! Buttons</h3>
             </div>
-            <span style={{ fontSize:12, color:T.muted, fontStyle:"italic" }}>One tap. Magic in seconds.</span>
+            <span style={{ fontSize:12, color:"rgba(244,238,226,0.5)", fontStyle:"italic" }}>One tap. Magic in seconds.</span>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(150px, 1fr))", gap:12 }}>
             {OH_CRAP_DEFAULTS.map(btn => {
@@ -1148,14 +1222,15 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
               return (
                 <button key={btn.id} onClick={() => sendOhCrap(btn)} disabled={!!ohCrapSending} style={{
                   background: isSending ? `rgba(201,147,58,0.1)` : T.warmWhite,
-                  border:`1.5px solid ${isSending ? T.gold : "rgba(201,147,58,0.18)"}`,
-                  borderRadius:14, padding:"18px 20px", cursor: ohCrapSending ? "not-allowed" : "pointer",
+                  border:`2px solid ${isSending ? T.gold : "rgba(201,147,58,0.5)"}`,
+                  boxShadow:"0 8px 24px rgba(0,0,0,0.3)",
+                  borderRadius:14, padding:"16px 18px", cursor: ohCrapSending ? "not-allowed" : "pointer",
                   display:"flex", alignItems:"center", gap:14, textAlign:"left", transition:"all 0.2s",
                 }}
                   onMouseEnter={e => { if(!ohCrapSending) { e.currentTarget.style.borderColor=T.gold; e.currentTarget.style.transform="translateY(-1px)"; }}}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor=isSending?T.gold:"rgba(201,147,58,0.18)"; e.currentTarget.style.transform="translateY(0)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor=isSending?T.gold:"rgba(201,147,58,0.5)"; e.currentTarget.style.transform="translateY(0)"; }}
                 >
-                  <span style={{ fontSize:28, flexShrink:0 }}>{isSending ? "⏳" : btn.emoji}</span>
+                  <EmojiBadge emoji={isSending ? "⏳" : btn.emoji} size={46}/>
                   <div style={{ minWidth:0 }}>
                     <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:3 }}>{btn.label}</div>
                     <div style={{ fontSize:12, color:T.muted }}>{btn.sub}</div>
@@ -1167,8 +1242,8 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         </div>
 
         <div className="fade-up-2" style={{ marginBottom:36 }}>
-          <SectionLabel>Send a Message</SectionLabel>
-          <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink, marginBottom:16 }}>Choose a character</h3>
+          <SectionLabel light>Send a Message</SectionLabel>
+          <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:19, fontWeight:700, color:T.warmWhite, marginBottom:16 }}>Choose a character</h3>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:12 }}>
             {characters.map(char => {
               const unlocked = canUse(char);
@@ -1180,13 +1255,14 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
                   setComposing(!selected);
                   setMsgText("");
                 }} style={{
-                  background: selected ? `rgba(201,147,58,0.08)` : unlocked ? T.warmWhite : T.cream,
-                  border:`1.5px solid ${selected ? T.gold : "rgba(201,147,58,0.15)"}`,
+                  background: selected ? `rgba(201,147,58,0.14)` : T.warmWhite,
+                  border:`2px solid ${selected ? T.gold : "rgba(201,147,58,0.5)"}`,
+                  boxShadow:"0 8px 24px rgba(0,0,0,0.3)",
                   borderRadius:14, padding:"20px 12px", cursor:"pointer",
-                  textAlign:"center", transition:"all 0.2s", opacity: unlocked ? 1 : 0.6, position:"relative",
+                  textAlign:"center", transition:"all 0.2s", opacity: unlocked ? 1 : 0.92, position:"relative",
                 }}>
                   {!unlocked && <div style={{ position:"absolute", top:8, right:8, background:T.gold, color:T.midnight, fontSize:9, fontWeight:700, padding:"2px 6px", borderRadius:100 }}>UPGRADE</div>}
-                  <div style={{ fontSize:32, marginBottom:8 }}>{char.emoji}</div>
+                  <EmojiBadge emoji={char.emoji} size={56} soft={!unlocked} style={{ display:"flex", margin:"0 auto 10px" }}/>
                   <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4 }}>{char.name}</div>
                   {selected && <div style={{ marginTop:8, fontSize:11, color:T.gold, fontWeight:600 }}>Selected ✓</div>}
                 </button>
@@ -1195,9 +1271,9 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
           </div>
 
           {composing && activeChar && (
-            <div style={{ marginTop:16, background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.3)`, borderRadius:16, padding:24, animation:"fadeUp 0.3s ease" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-                <span style={{ fontSize:22 }}>{activeChar.emoji}</span>
+            <div style={{ marginTop:16, background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 10px 28px rgba(0,0,0,0.32)", borderRadius:16, padding:24, animation:"fadeUp 0.3s ease" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                <EmojiBadge emoji={activeChar.emoji} size={40}/>
                 <div>
                   <div style={{ fontSize:14, fontWeight:600, color:T.ink }}>Message from {activeChar.name}</div>
                   <div style={{ fontSize:12, color:T.muted }}>To: {selectedChild?.name ? `${selectedChild.name}'s` : "your"} parent phone (you)</div>
@@ -1238,20 +1314,20 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         <div className="fade-up-3">
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
             <div>
-              <SectionLabel>History</SectionLabel>
-              <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink }}>Recent messages</h3>
+              <SectionLabel light>History</SectionLabel>
+              <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:19, fontWeight:700, color:T.warmWhite }}>Recent messages</h3>
             </div>
-            <span style={{ fontSize:13, color:T.gold, cursor:"pointer" }} onClick={onGoToHistory}>View all →</span>
+            <span style={{ fontSize:13, color:T.goldLight, cursor:"pointer" }} onClick={onGoToHistory}>View all →</span>
           </div>
           {recentMessages.length === 0 ? (
-            <div style={{ textAlign:"center", padding:"32px 24px", color:T.muted, background:T.warmWhite, borderRadius:16, border:"1px solid rgba(201,147,58,0.12)" }}>
+            <div style={{ textAlign:"center", padding:"32px 24px", color:T.muted, background:T.warmWhite, borderRadius:16, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)" }}>
               <div style={{ fontSize:32, marginBottom:8 }}>✨</div>
               <div style={{ fontFamily:"'Playfair Display', serif", fontSize:16, color:T.ink }}>No messages yet</div>
               <div style={{ fontSize:13, marginTop:4 }}>Your first magical moment will appear here.</div>
             </div>
           ) : recentMessages.map((msg,i) => (
-            <div key={msg.id} style={{ background:T.warmWhite, border:"1px solid rgba(201,147,58,0.12)", borderRadius:12, padding:"16px 18px", display:"flex", alignItems:"center", gap:14, marginBottom:10 }}>
-              <span style={{ fontSize:24, flexShrink:0 }}>{msg.characters?.emoji}</span>
+            <div key={msg.id} style={{ background:T.warmWhite, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:12, padding:"14px 16px", display:"flex", alignItems:"center", gap:14, marginBottom:10 }}>
+              <EmojiBadge emoji={msg.characters?.emoji} size={42}/>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:3 }}>
                   <span style={{ fontSize:13, fontWeight:600, color:T.ink }}>{msg.characters?.name}</span>
@@ -1267,7 +1343,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
         </div>
       </div>
 
-      <Footer onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms} onGoToPrivacy={onGoToPrivacy}/>
+      <Footer onGoToAbout={onGoToAbout} onGoToTerms={onGoToTerms} onGoToPrivacy={onGoToPrivacy} dark/>
 
       {showMomentModal && (
         <MagicShareModal variant="moment" onShare={handleShareMoment} onDismiss={handleDismissMoment}/>
@@ -1326,7 +1402,7 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "m
         {/* FRONT */}
         <div style={{
           position:"absolute", inset:0, backfaceVisibility:"hidden",
-          background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`,
+          background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)",
           borderRadius:16, display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center", padding:"24px 16px", gap:6,
         }}>
@@ -1346,7 +1422,7 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "m
         <div style={{
           position:"absolute", inset:0, backfaceVisibility:"hidden",
           transform:"rotateY(180deg)",
-          background:T.midnight, borderRadius:16,
+          background:"#16233d", border:"1.5px solid rgba(232,201,122,0.32)", borderRadius:16,
           display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center",
           padding:"28px 20px", gap:16, textAlign:"center",
@@ -1357,10 +1433,11 @@ function BadgeFlipCard({ badge, isFlipped, onFlip, onScrollTo, billingCycle = "m
           <button
             onClick={e => { e.stopPropagation(); onScrollTo(); }}
             style={{
-              background:"transparent", border:`1.5px solid rgba(201,147,58,0.45)`,
-              color:"#e8b96a", borderRadius:8, padding:"10px 14px",
-              fontSize:12, fontWeight:500, cursor:"pointer",
-              fontFamily:"'DM Sans',sans-serif", width:"100%",
+              background:T.gold, border:"none",
+              color:T.midnight, borderRadius:8, padding:"11px 14px",
+              fontSize:14, fontWeight:700, cursor:"pointer",
+              fontFamily:"'Playfair Display', serif", width:"100%",
+              boxShadow:"0 4px 14px rgba(201,147,58,0.35)",
             }}
           >
             {badge.scrollCta}
@@ -1417,16 +1494,17 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
   );
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:NIGHT_BG }}>
+      <NightSky/>
       <PageNav onBack={onBack} title="Account" menuItems={menuItems}/>
-      <div style={{ maxWidth:560, margin:"0 auto", padding:"32px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:560, margin:"0 auto", padding:"32px 24px 80px" }}>
 
         <div className="fade-up" style={{ marginBottom:28 }}>
-          <DisplayTitle>Account Settings</DisplayTitle>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Account Settings</DisplayTitle>
         </div>
 
         {/* ── Email ── */}
-        <Card style={{ marginBottom:16 }}>
+        <Card dark style={{ marginBottom:16 }}>
           {field("Email Address",
             emailSent ? (
               <p style={{ fontSize:14, color:T.gold }}>✓ Confirmation sent — check your new inbox to confirm the change.</p>
@@ -1443,7 +1521,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         </Card>
 
         {/* ── Phone ── */}
-        <Card style={{ marginBottom:16 }}>
+        <Card dark style={{ marginBottom:16 }}>
           {field("Phone Number",
             <>
               <p style={{ fontSize:13, color:T.muted, marginBottom:12, fontFamily:"'Lora',serif" }}>This is where your magic messages are delivered.</p>
@@ -1456,7 +1534,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         </Card>
 
         {/* ── Password ── */}
-        <Card style={{ marginBottom:16 }}>
+        <Card dark style={{ marginBottom:16 }}>
           {field("Password",
             resetSent ? (
               <p style={{ fontSize:14, color:T.gold }}>✓ Reset link sent — check {session.user.email}</p>
@@ -1470,7 +1548,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         </Card>
 
         {/* ── Plan ── */}
-        <Card>
+        <Card dark>
           {field("Current Plan",
             <>
               <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:12 }}>
@@ -1488,6 +1566,7 @@ function AccountScreen({ session, profile, onBack, menuItems, onProfileUpdated, 
         </Card>
 
       </div>
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -1530,17 +1609,20 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
 
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:"linear-gradient(180deg, #0d1b2a 0%, #121a30 55%, #181637 100%)" }}>
+      <Stars count={70}/>
+      <GoldSparkles marks={DASH_SPARKLES}/>
+      <div aria-hidden="true" style={{ position:"absolute", top:0, left:"50%", transform:"translateX(-50%)", width:680, maxWidth:"120%", height:440, background:"radial-gradient(ellipse at center, rgba(232,201,122,0.14), rgba(232,201,122,0) 62%)", pointerEvents:"none", zIndex:0 }}/>
       <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
 
-      <div style={{ maxWidth:900, margin:"0 auto", padding:"40px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:900, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:40 }}>
-          <SectionLabel>Account & Billing</SectionLabel>
-          <DisplayTitle>Your subscription</DisplayTitle>
+          <SectionLabel light>Account & Billing</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Your subscription</DisplayTitle>
 
           {currentPlan === "free" && (
-            <div style={{ marginTop:20, background:"rgba(201,147,58,0.07)", border:`1.5px solid rgba(201,147,58,0.25)`, borderRadius:16, padding:"18px 22px", display:"flex", alignItems:"center", gap:14 }}>
-              <div style={{ fontSize:28, flexShrink:0 }}>✨</div>
+            <div style={{ marginTop:20, background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, padding:"18px 22px", display:"flex", alignItems:"center", gap:14 }}>
+              <EmojiBadge emoji="✨" size={44} soft/>
               <p style={{ fontFamily:"'Lora',serif", fontSize:14, color:T.body, lineHeight:1.7, margin:0 }}>
                 Choose a plan to keep the magic going — then from $1.99/mo, or send a single message for $0.99. The badges up ahead will help you find your fit.
               </p>
@@ -1548,9 +1630,9 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
           )}
 
           {currentPlan !== "free" && (
-            <div style={{ marginTop:20, background:T.warmWhite, border:`1.5px solid ${T.gold}`, borderRadius:16, padding:"20px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
+            <div style={{ marginTop:20, background:T.warmWhite, border:`2px solid ${T.gold}`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, padding:"20px 22px", display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
-                <div style={{ width:44, height:44, borderRadius:"50%", background:T.goldPale, border:`1.5px solid rgba(201,147,58,0.3)`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>🌠</div>
+                <EmojiBadge emoji="🌠" size={44}/>
                 <div>
                   <div style={{ fontSize:16, fontWeight:700, color:T.ink, fontFamily:"'Playfair Display', serif" }}>{currentPlan.charAt(0).toUpperCase()+currentPlan.slice(1)} Plan</div>
                   <div style={{ fontSize:13, color:T.muted }}>Managed via Stripe · Cancel anytime</div>
@@ -1566,7 +1648,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
 
         {/* ── Billing Cycle Toggle ── */}
         <div className="fade-up-1" style={{ display:"flex", justifyContent:"center", marginBottom:36 }}>
-          <div style={{ background:T.midnight, borderRadius:100, padding:4, display:"inline-flex", gap:2 }}>
+          <div style={{ background:"#16233d", border:"1px solid rgba(232,201,122,0.22)", borderRadius:100, padding:4, display:"inline-flex", gap:2 }}>
             <button
               onClick={() => setBillingCycle("monthly")}
               style={{ padding:"9px 26px", borderRadius:100, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, transition:"all 0.2s",
@@ -1590,8 +1672,8 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
         {/* ── Badge Flip Cards ── */}
         <div className="fade-up-2" style={{ marginBottom:48 }}>
           <div style={{ marginBottom:20 }}>
-            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:6 }}>Which level of magic fits your family?</h3>
-            <p style={{ fontSize:13, color:T.muted }}>Tap a badge to see what each plan is all about.</p>
+            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.warmWhite, marginBottom:6 }}>Which level of magic fits your family?</h3>
+            <p style={{ fontSize:13, color:"rgba(244,238,226,0.55)" }}>Tap a badge to see what each plan is all about.</p>
           </div>
           <div className="badge-grid">
             {BADGE_DATA.map(badge => (
@@ -1620,7 +1702,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
         </div>
 
         <div className="fade-up-3" style={{ marginBottom:48 }}>
-          <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:20 }}>All plans</h3>
+          <h3 style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:700, color:T.warmWhite, marginBottom:20 }}>All plans</h3>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:14 }}>
             {PLANS.map(plan => {
               const isCurrent = currentPlan === plan.id;
@@ -1629,33 +1711,33 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
               const displayPeriod = showAnnual ? plan.periodAnnual : plan.periodMonthly;
               return (
                 <div key={plan.id} id={`plan-card-${plan.id}`} style={{
-                  background: isCurrent ? T.midnight : T.warmWhite,
-                  border:`1.5px solid ${isCurrent ? T.gold : "rgba(201,147,58,0.15)"}`,
+                  background: T.warmWhite,
+                  border:`2px solid ${isCurrent ? T.gold : "rgba(201,147,58,0.5)"}`,
                   borderRadius:16, padding:"28px 20px", position:"relative",
-                  boxShadow: isCurrent ? "0 12px 40px rgba(0,0,0,0.15)" : "none",
+                  boxShadow: isCurrent ? "0 0 0 3px rgba(232,201,122,0.2), 0 12px 34px rgba(0,0,0,0.4)" : "0 8px 24px rgba(0,0,0,0.3)",
                 }}>
                   {plan.badge && <div style={{ position:"absolute", top:-11, left:"50%", transform:"translateX(-50%)", background:T.gold, color:T.midnight, fontSize:10, fontWeight:700, padding:"3px 12px", borderRadius:100, whiteSpace:"nowrap" }}>{plan.badge}</div>}
-                  <div style={{ fontSize:11, fontWeight:500, letterSpacing:"0.15em", textTransform:"uppercase", color: isCurrent ? T.goldLight : T.gold, marginBottom:6 }}>{plan.tier}</div>
-                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:700, color: isCurrent ? T.warmWhite : T.ink, lineHeight:1 }}>{displayPrice}</div>
-                  <div style={{ fontSize:13, color: isCurrent ? "rgba(255,255,255,0.4)" : T.muted, marginBottom: showAnnual && plan.savingsAnnual ? 4 : 18 }}>{displayPeriod}</div>
+                  <div style={{ fontSize:11, fontWeight:500, letterSpacing:"0.15em", textTransform:"uppercase", color: T.gold, marginBottom:6 }}>{plan.tier}</div>
+                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:32, fontWeight:700, color: T.ink, lineHeight:1 }}>{displayPrice}</div>
+                  <div style={{ fontSize:13, color: T.muted, marginBottom: showAnnual && plan.savingsAnnual ? 4 : 18 }}>{displayPeriod}</div>
                   {showAnnual && plan.savingsAnnual && (
                     <div style={{ fontSize:11, fontWeight:700, color:"#4a8c6e", background:"rgba(74,140,110,0.1)", display:"inline-block", padding:"2px 8px", borderRadius:100, marginBottom:14 }}>Save {plan.savingsAnnual}</div>
                   )}
-                  <div style={{ height:1, background: isCurrent ? "rgba(255,255,255,0.1)" : "rgba(201,147,58,0.15)", marginBottom:16 }}/>
+                  <div style={{ height:1, background:"rgba(201,147,58,0.18)", marginBottom:16 }}/>
                   <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
                     {plan.features.map((f,i) => (
-                      <li key={i} style={{ display:"flex", gap:8, fontSize:12, color: isCurrent ? "rgba(255,255,255,0.65)" : T.body, lineHeight:1.4 }}>
+                      <li key={i} style={{ display:"flex", gap:8, fontSize:12, color: T.body, lineHeight:1.4 }}>
                         <span style={{ color:T.gold, flexShrink:0, fontSize:10, marginTop:2 }}>✦</span>{f}
                       </li>
                     ))}
                   </ul>
                   <button onClick={() => !isCurrent && checkout(plan.id)} disabled={isCurrent || loadingPlan === plan.id} style={{
-                    width:"100%", padding:"11px 0", borderRadius:8, fontSize:13, fontWeight:500,
+                    width:"100%", padding:"11px 0", borderRadius:8, fontSize:14, fontWeight:700,
                     cursor: isCurrent ? "default" : "pointer", transition:"all 0.2s",
                     background: isCurrent ? "rgba(201,147,58,0.15)" : "transparent",
-                    border: isCurrent ? "none" : "1.5px solid rgba(201,147,58,0.3)",
-                    color: isCurrent ? T.goldLight : T.gold,
-                    fontFamily:"'DM Sans', sans-serif",
+                    border: isCurrent ? "1.5px solid rgba(201,147,58,0.3)" : "1.5px solid rgba(201,147,58,0.3)",
+                    color: T.gold,
+                    fontFamily:"'Playfair Display', serif",
                     display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                   }}>
                     {loadingPlan === plan.id ? <><Spinner color={T.gold} track="rgba(201,147,58,0.25)" size={15}/> Summoning…</> : isCurrent ? "Current Plan" : plan.cta}
@@ -1668,12 +1750,12 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
 
         {/* ── Invite code ── */}
         <div className="fade-up-4" style={{ marginBottom:40 }}>
-          <div style={{ background:T.warmWhite, border:`1.5px solid rgba(201,147,58,0.2)`, borderRadius:16, padding:"24px 26px" }}>
+          <div style={{ background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, padding:"24px 26px" }}>
             <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:700, color:T.ink, marginBottom:4 }}>Have an invite code?</div>
             <p style={{ fontSize:13, color:T.muted, marginBottom:16, fontFamily:"'Lora',serif" }}>Enter it below to extend your free trial — no payment needed.</p>
             <button
               onClick={onRedeemCode}
-              style={{ padding:"11px 20px", borderRadius:8, background:T.gold, color:T.midnight, border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.2s" }}
+              style={{ padding:"11px 22px", borderRadius:8, background:T.gold, color:T.midnight, border:"none", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"'Playfair Display', serif", transition:"all 0.2s" }}
             >
               Redeem code ✦
             </button>
@@ -1682,7 +1764,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
 
         <div style={{ textAlign:"center", display:"flex", justifyContent:"center", gap:24, flexWrap:"wrap" }}>
           {["🔒 Stripe Secure","❌ Cancel anytime","📱 Messages to your phone only"].map(t => (
-            <span key={t} style={{ fontSize:12, color:T.muted }}>{t}</span>
+            <span key={t} style={{ fontSize:12, color:"rgba(244,238,226,0.5)" }}>{t}</span>
           ))}
         </div>
       </div>
@@ -1701,6 +1783,7 @@ function BillingScreen({ profile, session, onBack, onRedeemCode, menuItems }) {
         </div>
       )}
 
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -1762,13 +1845,14 @@ function ChildProfileScreen({ session, onBack, menuItems }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:NIGHT_BG }}>
+      <NightSky/>
       <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
-      <div style={{ maxWidth:720, margin:"0 auto", padding:"40px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:720, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:32 }}>
-          <SectionLabel>Family Setup</SectionLabel>
-          <DisplayTitle>Child Profiles</DisplayTitle>
-          <p style={{ fontSize:14, color:T.muted, marginTop:8, fontFamily:"'Lora',serif", fontStyle:"italic" }}>
+          <SectionLabel light>Family Setup</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Child Profiles</DisplayTitle>
+          <p style={{ fontSize:14, color:"rgba(244,238,226,0.6)", marginTop:8, fontFamily:"'Lora',serif", fontStyle:"italic" }}>
             Add each child to personalise messages with their name and belief level.
           </p>
         </div>
@@ -1777,11 +1861,11 @@ function ChildProfileScreen({ session, onBack, menuItems }) {
           {children.map(child => {
             const belief = BELIEF_LEVELS.find(b => b.id === child.belief_level);
             return (
-              <div key={child.id} style={{ background:T.warmWhite, border:"1.5px solid rgba(201,147,58,0.15)", borderRadius:16, padding:"20px 22px", display:"flex", alignItems:"center", gap:16, transition:"border-color 0.2s" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor="rgba(201,147,58,0.3)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor="rgba(201,147,58,0.15)"}
+              <div key={child.id} style={{ background:T.warmWhite, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:16, padding:"18px 20px", display:"flex", alignItems:"center", gap:16, transition:"border-color 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.borderColor=T.gold}
+                onMouseLeave={e => e.currentTarget.style.borderColor="rgba(201,147,58,0.5)"}
               >
-                <div style={{ width:56, height:56, borderRadius:"50%", background:T.cream, border:"1.5px solid rgba(201,147,58,0.2)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, flexShrink:0 }}>{child.avatar}</div>
+                <EmojiBadge emoji={child.avatar} size={56}/>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4, flexWrap:"wrap" }}>
                     <span style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.ink }}>{child.name}</span>
@@ -1800,14 +1884,14 @@ function ChildProfileScreen({ session, onBack, menuItems }) {
         </div>
 
         {editing === null && (
-          <button onClick={openNew} style={{ width:"100%", padding:18, borderRadius:16, border:"2px dashed rgba(201,147,58,0.3)", background:"transparent", color:T.gold, fontSize:14, fontWeight:500, cursor:"pointer", transition:"all 0.2s" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor=T.gold; e.currentTarget.style.background=T.goldPale; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(201,147,58,0.3)"; e.currentTarget.style.background="transparent"; }}
+          <button onClick={openNew} style={{ width:"100%", padding:18, borderRadius:16, border:"2px dashed rgba(232,201,122,0.4)", background:"transparent", color:T.goldLight, fontSize:14, fontWeight:500, cursor:"pointer", transition:"all 0.2s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor=T.goldLight; e.currentTarget.style.background="rgba(232,201,122,0.08)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor="rgba(232,201,122,0.4)"; e.currentTarget.style.background="transparent"; }}
           >+ Add a child</button>
         )}
 
         {editing !== null && (
-          <div style={{ background:T.warmWhite, border:`1.5px solid ${T.gold}`, borderRadius:20, padding:28, animation:"fadeUp 0.3s ease", marginTop:8 }}>
+          <div style={{ background:T.warmWhite, border:`2px solid ${T.gold}`, boxShadow:"0 10px 28px rgba(0,0,0,0.32)", borderRadius:20, padding:28, animation:"fadeUp 0.3s ease", marginTop:8 }}>
             <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:700, color:T.ink, marginBottom:22 }}>
               {editing === "new" ? "Add a child" : `Edit ${form.name}`}
             </h3>
@@ -1873,6 +1957,7 @@ function ChildProfileScreen({ session, onBack, menuItems }) {
         </div>
       )}
 
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -1912,15 +1997,16 @@ function HistoryScreen({ session, onBack, menuItems }) {
   });
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:NIGHT_BG }}>
+      <NightSky/>
       <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
-      <div style={{ maxWidth:720, margin:"0 auto", padding:"40px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:720, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:28 }}>
-          <SectionLabel>Memories</SectionLabel>
-          <DisplayTitle>Message History</DisplayTitle>
+          <SectionLabel light>Memories</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Message History</DisplayTitle>
         </div>
 
-        <div className="fade-up-1" style={{ display:"flex", gap:0, background:T.warmWhite, border:"1px solid rgba(201,147,58,0.15)", borderRadius:14, overflow:"hidden", marginBottom:24 }}>
+        <div className="fade-up-1" style={{ display:"flex", gap:0, background:T.warmWhite, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:14, overflow:"hidden", marginBottom:24 }}>
           {[{ label:"Total sent", value:messages.length },{ label:"Characters", value: new Set(messages.map(m=>m.characters?.slug)).size },].map((s,i) => (
             <div key={i} style={{ flex:1, padding:"16px 20px", textAlign:"center", borderRight: i<1 ? "1px solid rgba(201,147,58,0.12)" : "none" }}>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, fontWeight:700, color:T.gold }}>{s.value}</div>
@@ -1937,7 +2023,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
           </div>
           <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
             {FILTERS.map(f => (
-              <button key={f.id} onClick={() => setFilter(f.id)} style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:`1.5px solid ${filter===f.id ? T.gold : "rgba(201,147,58,0.2)"}`, background: filter===f.id ? T.goldPale : "transparent", color: filter===f.id ? T.gold : T.muted, fontWeight: filter===f.id ? 600 : 400 }}>{f.emoji} {f.label}</button>
+              <button key={f.id} onClick={() => setFilter(f.id)} style={{ padding:"7px 14px", borderRadius:100, fontSize:13, cursor:"pointer", border:`1.5px solid ${filter===f.id ? T.goldLight : "rgba(232,201,122,0.28)"}`, background: filter===f.id ? "rgba(232,201,122,0.14)" : "transparent", color: filter===f.id ? T.goldLight : "rgba(244,238,226,0.6)", fontWeight: filter===f.id ? 600 : 400 }}>{f.emoji} {f.label}</button>
             ))}
           </div>
         </div>
@@ -1945,16 +2031,16 @@ function HistoryScreen({ session, onBack, menuItems }) {
         {loading ? (
           <div style={{ textAlign:"center", padding:48 }}><Spinner/></div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign:"center", padding:"48px 24px", color:T.muted }}>
+          <div style={{ textAlign:"center", padding:"48px 24px", color:"rgba(244,238,226,0.6)" }}>
             <div style={{ fontSize:36, marginBottom:12 }}>🔮</div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:T.ink }}>No messages found</div>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:T.warmWhite }}>No messages found</div>
           </div>
         ) : filtered.map((msg,i) => {
           const isOpen = expanded === msg.id;
           return (
-            <div key={msg.id} style={{ background:T.warmWhite, border:`1.5px solid ${isOpen ? T.gold : "rgba(201,147,58,0.15)"}`, borderRadius:14, overflow:"hidden", marginBottom:10, animation:`fadeUp 0.4s ${i*0.04}s ease both` }}>
-              <button onClick={() => setExpanded(isOpen ? null : msg.id)} style={{ width:"100%", background:"none", border:"none", cursor:"pointer", padding:"16px 18px", display:"flex", alignItems:"center", gap:14, textAlign:"left" }}>
-                <span style={{ fontSize:26, flexShrink:0 }}>{msg.characters?.emoji}</span>
+            <div key={msg.id} style={{ background:T.warmWhite, border:`2px solid ${isOpen ? T.gold : "rgba(201,147,58,0.5)"}`, boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:14, overflow:"hidden", marginBottom:10, animation:`fadeUp 0.4s ${i*0.04}s ease both` }}>
+              <button onClick={() => setExpanded(isOpen ? null : msg.id)} style={{ width:"100%", background:"none", border:"none", cursor:"pointer", padding:"14px 16px", display:"flex", alignItems:"center", gap:14, textAlign:"left" }}>
+                <EmojiBadge emoji={msg.characters?.emoji} size={42}/>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:3 }}>{msg.characters?.name}</div>
                   <div style={{ fontSize:13, color:T.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{msg.body}</div>
@@ -1980,6 +2066,7 @@ function HistoryScreen({ session, onBack, menuItems }) {
           );
         })}
       </div>
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -2063,12 +2150,13 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
   const STEPS = ["Character","Message","Schedule"];
 
   return (
-    <div style={{ minHeight:"100vh", background:T.parchment }}>
+    <div style={{ minHeight:"100vh", position:"relative", overflow:"hidden", background:NIGHT_BG }}>
+      <NightSky/>
       <PageNav onBack={onBack} title="Messages" menuItems={menuItems}/>
-      <div style={{ maxWidth:680, margin:"0 auto", padding:"40px 24px 80px" }}>
+      <div style={{ position:"relative", zIndex:1, maxWidth:680, margin:"0 auto", padding:"40px 24px 80px" }}>
         <div className="fade-up" style={{ marginBottom:32 }}>
-          <SectionLabel>Plan ahead</SectionLabel>
-          <DisplayTitle>Schedule a Message</DisplayTitle>
+          <SectionLabel light>Plan ahead</SectionLabel>
+          <DisplayTitle light style={{ fontFamily:"'Cinzel Decorative','Playfair Display', serif", fontSize:"clamp(24px,4.4vw,32px)" }}>Schedule a Message</DisplayTitle>
         </div>
 
         {getEffectivePlan(profile) === "free" && (
@@ -2083,8 +2171,8 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
             return (
               <div key={s} style={{ display:"flex", alignItems:"center", flex: i<2 ? 1 : "none" }}>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-                  <div style={{ width:32, height:32, borderRadius:"50%", background: done?T.success:active?T.gold:T.cream, border:`2px solid ${done?T.success:active?T.gold:"rgba(201,147,58,0.2)"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color: done||active?"#fff":T.muted }}>{done?"✓":num}</div>
-                  <span style={{ fontSize:11, color:active?T.gold:T.muted, fontWeight:active?600:400 }}>{s}</span>
+                  <div style={{ width:32, height:32, borderRadius:"50%", background: done?T.success:active?T.gold:"rgba(255,255,255,0.08)", border:`2px solid ${done?T.success:active?T.gold:"rgba(232,201,122,0.28)"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color: done||active?"#20140a":"rgba(244,238,226,0.6)" }}>{done?"✓":num}</div>
+                  <span style={{ fontSize:11, color:active?T.goldLight:"rgba(244,238,226,0.55)", fontWeight:active?600:400 }}>{s}</span>
                 </div>
                 {i<2 && <div style={{ flex:1, height:2, background: done?T.success:"rgba(201,147,58,0.15)", margin:"0 8px", marginBottom:20 }}/>}
               </div>
@@ -2094,19 +2182,19 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
 
         {step===1 && (
           <div style={{ animation:"fadeUp 0.35s ease" }}>
-            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.ink, marginBottom:16 }}>Who is sending this message?</h3>
+            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.warmWhite, marginBottom:16 }}>Who is sending this message?</h3>
             {characters.length === 0 ? (
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, padding:"40px 24px", color:T.muted, fontFamily:"'Lora',serif", fontSize:14 }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, padding:"40px 24px", color:"rgba(244,238,226,0.6)", fontFamily:"'Lora',serif", fontSize:14 }}>
                 <Spinner color={T.gold} track="rgba(201,147,58,0.25)"/> Summoning the characters ✨
               </div>
             ) : (
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
               {characters.map(char => (
-                <button key={char.id} onClick={() => { setSelectedChar(char); setStep(2); }} style={{ padding:"22px 18px", borderRadius:16, textAlign:"center", cursor:"pointer", border:"1.5px solid rgba(201,147,58,0.15)", background:T.warmWhite, transition:"all 0.2s" }}
+                <button key={char.id} onClick={() => { setSelectedChar(char); setStep(2); }} style={{ padding:"22px 18px", borderRadius:16, textAlign:"center", cursor:"pointer", border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", background:T.warmWhite, transition:"all 0.2s" }}
                   onMouseEnter={e => e.currentTarget.style.borderColor=T.gold}
-                  onMouseLeave={e => e.currentTarget.style.borderColor="rgba(201,147,58,0.15)"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor="rgba(201,147,58,0.5)"}
                 >
-                  <div style={{ fontSize:36, marginBottom:10 }}>{char.emoji}</div>
+                  <EmojiBadge emoji={char.emoji} size={56} style={{ display:"flex", margin:"0 auto 10px" }}/>
                   <div style={{ fontSize:14, fontWeight:600, color:T.ink }}>{char.name}</div>
                 </button>
               ))}
@@ -2117,15 +2205,15 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
 
         {step===2 && selectedChar && (
           <div style={{ animation:"fadeUp 0.35s ease" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20 }}>
-              <span style={{ fontSize:28 }}>{selectedChar.emoji}</span>
+            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+              <EmojiBadge emoji={selectedChar.emoji} size={44}/>
               <div>
-                <div style={{ fontSize:15, fontWeight:600, color:T.ink }}>Message from {selectedChar.name}</div>
-                <div style={{ fontSize:13, color:T.muted }}>To: your phone</div>
+                <div style={{ fontSize:15, fontWeight:600, color:T.warmWhite }}>Message from {selectedChar.name}</div>
+                <div style={{ fontSize:13, color:"rgba(244,238,226,0.55)" }}>To: your phone</div>
               </div>
             </div>
             <div style={{ marginBottom:14 }}>
-              <div style={{ fontSize:12, color:T.muted, fontWeight:500, marginBottom:8 }}>Quick templates:</div>
+              <div style={{ fontSize:12, color:"rgba(244,238,226,0.6)", fontWeight:500, marginBottom:8 }}>Quick templates:</div>
               <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                 {getTemplates(selectedChar.slug).map((t,i) => (
                   <button key={i} onClick={() => setMsgText(t.replace("{child}", selectedChild?.name||"there"))} style={{ fontSize:12, padding:"6px 12px", borderRadius:100, border:"1px solid rgba(201,147,58,0.25)", background:T.parchment, color:T.body, cursor:"pointer" }}>{t.replace("{child}",selectedChild?.name||"there").slice(0,38)}…</button>
@@ -2134,7 +2222,7 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
             </div>
             <textarea value={msgText} onChange={e => setMsgText(e.target.value)} placeholder={`Write your message as ${selectedChar.name}…`} rows={5}
               style={{ width:"100%", padding:14, borderRadius:12, border:"1.5px solid rgba(201,147,58,0.2)", fontSize:14, color:T.ink, background:T.warmWhite, resize:"vertical", fontFamily:"'Lora',serif", lineHeight:1.65, outline:"none" }}/>
-            <div style={{ fontSize:12, color:T.muted, textAlign:"right", marginTop:5 }}>{msgText.length}/320</div>
+            <div style={{ fontSize:12, color:"rgba(244,238,226,0.55)", textAlign:"right", marginTop:5 }}>{msgText.length}/320</div>
             <div style={{ display:"flex", gap:10, marginTop:16 }}>
               <Btn onClick={() => setStep(3)} disabled={!msgText.trim()}>Next: Set delivery time →</Btn>
               <Btn variant="outline" onClick={() => setStep(1)}>← Back</Btn>
@@ -2144,8 +2232,8 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
 
         {step===3 && (
           <div style={{ animation:"fadeUp 0.35s ease" }}>
-            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.ink, marginBottom:20 }}>When should it arrive on your phone?</h3>
-            <Card style={{ marginBottom:16 }}>
+            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.warmWhite, marginBottom:20 }}>When should it arrive on your phone?</h3>
+            <Card dark style={{ marginBottom:16 }}>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
                 <div>
                   <label style={{ fontSize:13, fontWeight:500, color:T.body, display:"block", marginBottom:6 }}>Date</label>
@@ -2168,8 +2256,8 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
               </div>
             </Card>
             {schedDate && (
-              <div style={{ padding:"14px 18px", borderRadius:12, marginBottom:16, background:"rgba(201,147,58,0.06)", border:"1px solid rgba(201,147,58,0.2)", display:"flex", gap:10, alignItems:"center", animation:"fadeUp 0.2s ease" }}>
-                <span style={{ fontSize:18 }}>{selectedChar?.emoji}</span>
+              <div style={{ padding:"14px 18px", borderRadius:12, marginBottom:16, background:T.warmWhite, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", display:"flex", gap:12, alignItems:"center", animation:"fadeUp 0.2s ease" }}>
+                <EmojiBadge emoji={selectedChar?.emoji} size={38}/>
                 <div>
                   <div style={{ fontSize:13, fontWeight:600, color:T.ink }}>{selectedChar?.name} → Your phone</div>
                   <div style={{ fontSize:12, color:T.muted }}>Scheduled for {new Date(schedDate).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"})} at {schedTime}</div>
@@ -2186,12 +2274,12 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
         {upcoming.length > 0 && (
           <div style={{ marginTop:48 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-              <div><SectionLabel>On Deck</SectionLabel><h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.ink }}>Scheduled messages</h3></div>
-              <span style={{ fontSize:12, color:T.muted }}>{upcoming.length} queued</span>
+              <div><SectionLabel light>On Deck</SectionLabel><h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:700, color:T.warmWhite }}>Scheduled messages</h3></div>
+              <span style={{ fontSize:12, color:"rgba(244,238,226,0.55)" }}>{upcoming.length} queued</span>
             </div>
             {upcoming.map((msg,i) => (
-              <div key={msg.id} style={{ background:T.warmWhite, border:"1.5px solid rgba(201,147,58,0.15)", borderRadius:14, padding:"16px 18px", display:"flex", alignItems:"center", gap:14, marginBottom:10, animation:`fadeUp 0.4s ${i*0.07}s ease both` }}>
-                <span style={{ fontSize:24, flexShrink:0 }}>{msg.characters?.emoji}</span>
+              <div key={msg.id} style={{ background:T.warmWhite, border:"2px solid rgba(201,147,58,0.5)", boxShadow:"0 8px 24px rgba(0,0,0,0.3)", borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", gap:14, marginBottom:10, animation:`fadeUp 0.4s ${i*0.07}s ease both` }}>
+                <EmojiBadge emoji={msg.characters?.emoji} size={42}/>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontSize:14, fontWeight:600, color:T.ink, marginBottom:3 }}>{msg.characters?.name}</div>
                   <div style={{ fontSize:13, color:T.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{msg.body}</div>
@@ -2224,6 +2312,7 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
         </div>
       )}
 
+      <Footer menuItems={menuItems} dark/>
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
     </div>
   );
@@ -2244,9 +2333,9 @@ function getTemplates(slug) {
 
 function getOhCrapTemplate(btnId, childName) {
   const t = {
-    tooth_emergency: `Hello ${childName}! 🧚‍♀️ Word just reached me that a very brave little one lost a tooth tonight — and what a beauty it is! My flight path is completely full this evening, but a tooth this special absolutely cannot be missed. Tuck it safely under your pillow tomorrow night and I promise to visit before morning. Sweet dreams! 💫`,
+    tooth_emergency: `Hello ${childName}! 🧚 Word just reached me that a very brave little one lost a tooth tonight — and what a beauty it is! My flight path is completely jammed this evening, but a tooth this special cannot be missed. Tuck it safely under your pillow and I'll be there tomorrow night, before morning light. Sweet dreams! 💫`,
     santa_watching:  `Ho ho ho, ${childName}! 🎅 A little elf just sent me a message about what is happening at your house right now. Remember — I see everything, and the nice list is still open. Sweet dreams! ⭐`,
-    bunny_alert:     `Hippity hoppity, ${childName}! 🐰 I heard you were looking for me. I am hopping as fast as I can — big things are coming your way very soon! 🥚🌸`,
+    bunny_alert:     `Hippity hoppity, ${childName}! 🐰 Word reached my burrow that you're looking for me — and oh dear, I've hopped a little off course this morning! But don't you worry: I'm bounding your way right now, and your basket will be prepped and ready this afternoon. Keep your eyes peeled! 🥚🌸`,
     wishlist:        `Ho ho ho, ${childName}! 🎅 Great news from the North Pole — your wish list arrived safely in my mailroom just a little while ago! Mrs. Claus has already logged it in the Big Book and I have had a chance to look it over myself. The elves are taking notes as we speak. Keep being wonderful and we will take care of the rest! ⭐🎄`,
   };
   return t[btnId] || `A little magic is coming your way, ${childName}! ✨`;
