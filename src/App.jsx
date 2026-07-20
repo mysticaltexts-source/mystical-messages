@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase, callFunction } from "./lib/supabase.js";
 
 /* ─── TEST MODE ─── */
@@ -1027,6 +1027,8 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   const [sending, setSending]       = useState(false);
   const [ohCrapSending, setOhCrapSending] = useState(null);
   const [ohCrapConfirm, setOhCrapConfirm] = useState(null); // selected oh-crap btn, or null when overlay closed
+  const composerRef = useRef(null);          // the inline custom-message composer, for scroll-into-view
+  const scrollToComposer = useRef(false);    // set when the composer should be scrolled to after it opens
   const [showMomentModal, setShowMomentModal] = useState(false);
   const [showCommunityModal, setShowCommunityModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1058,6 +1060,15 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, [ohCrapConfirm]);
+
+  // When the composer is opened from the overlay it lives further down the page,
+  // so bring it into view once it has rendered. (Card taps open it in place.)
+  useEffect(() => {
+    if (composing && activeChar && scrollToComposer.current) {
+      scrollToComposer.current = false;
+      composerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [composing, activeChar]);
 
   async function loadData() {
     const { data: chars } = await supabase.from("characters").select("*").is("parent_id", null).eq("is_active", true);
@@ -1118,7 +1129,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   // Overlay secondary action: reuse the character-card composer flow, then close.
   function ohCrapCreateOwn() {
     const char = characters.find(c => c.slug === ohCrapConfirm.charSlug);
-    if (char) openComposer(char);
+    if (char) { scrollToComposer.current = true; openComposer(char); }
     setOhCrapConfirm(null);
   }
 
@@ -1358,7 +1369,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
           </div>
 
           {composing && activeChar && (
-            <div style={{ marginTop:16, background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 10px 28px rgba(0,0,0,0.32)", borderRadius:16, padding:24, animation:"fadeUp 0.3s ease" }}>
+            <div ref={composerRef} style={{ marginTop:16, background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 10px 28px rgba(0,0,0,0.32)", borderRadius:16, padding:24, animation:"fadeUp 0.3s ease" }}>
               <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
                 <EmojiBadge emoji={activeChar.emoji} size={40}/>
                 <div>
