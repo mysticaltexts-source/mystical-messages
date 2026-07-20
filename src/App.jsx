@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase, callFunction } from "./lib/supabase.js";
 
 /* ─── TEST MODE ─── */
@@ -962,6 +962,58 @@ const OH_CRAP_DEFAULTS = [
   { id:"wishlist",        emoji:"📝", label:"Wish List Confirmed", sub:"Santa got the list!", charSlug:"santa" },
 ];
 
+/* Confirmation overlay for Oh-Crap!! buttons. Renders as a fixed full-screen
+   layer on top of the still-mounted dashboard so closing preserves scroll.
+   The preview is built from getOhCrapTemplate — the SAME source sendOhCrap
+   uses — so preview and sent message can never drift apart. */
+function OhCrapConfirmOverlay({ btn, childName, sending, onSend, onCreateOwn, onClose }) {
+  const message = getOhCrapTemplate(btn.id, childName);
+  return (
+    <div role="dialog" aria-modal="true" onClick={onClose}
+      style={{ position:"fixed", inset:0, zIndex:200, background:"rgba(8,12,24,0.72)",
+        backdropFilter:"blur(3px)", WebkitBackdropFilter:"blur(3px)",
+        display:"flex", alignItems:"flex-end", justifyContent:"center" }}>
+      <div onClick={e => e.stopPropagation()}
+        style={{ width:"100%", maxWidth:440, maxHeight:"92vh", overflowY:"auto",
+          background:T.warmWhite, borderRadius:"20px 20px 0 0",
+          border:`2px solid rgba(201,147,58,0.5)`, borderBottom:"none",
+          boxShadow:"0 -12px 40px rgba(0,0,0,0.45)",
+          padding:"22px 20px calc(22px + env(safe-area-inset-bottom))", position:"relative" }}>
+
+        <button onClick={onClose} aria-label="Close" style={{ position:"absolute", top:12, right:12,
+          width:36, height:36, borderRadius:"50%", border:"1px solid rgba(201,147,58,0.3)",
+          background:T.parchment, color:T.muted, fontSize:20, lineHeight:1, cursor:"pointer",
+          display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
+
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14, paddingRight:34 }}>
+          <EmojiBadge emoji={btn.emoji} size={46}/>
+          <div style={{ minWidth:0 }}>
+            <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:700, color:T.ink }}>{btn.label}</div>
+            <div style={{ fontSize:12.5, color:T.muted, lineHeight:1.45 }}>Here's exactly what will be texted to your phone if you hit send.</div>
+          </div>
+        </div>
+
+        <div style={{ background:T.parchment, border:"1.5px solid rgba(201,147,58,0.25)",
+          borderRadius:14, padding:"16px", marginBottom:18, fontFamily:"'Lora', serif",
+          fontSize:15, lineHeight:1.65, color:T.ink, whiteSpace:"pre-wrap" }}>
+          {message}
+        </div>
+
+        <Btn onClick={onSend} loading={sending} style={{ width:"100%", padding:"15px 24px", fontSize:16 }}>
+          ✦ Send the Magic Now
+        </Btn>
+
+        <button onClick={onCreateOwn} disabled={sending} style={{ width:"100%", marginTop:12,
+          padding:"13px 24px", borderRadius:8, background:"transparent",
+          border:"1px solid rgba(201,147,58,0.28)", color:T.muted, fontSize:14, fontWeight:500,
+          cursor: sending ? "not-allowed" : "pointer", opacity: sending ? 0.5 : 0.8 }}>
+          Let me create my own message
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoToSchedule, onGoToProfiles, onGoToAbout, onGoToTerms, onGoToPrivacy, onGoToAccount, onLogout }) {
   const [characters, setCharacters] = useState([]);
   const [children, setChildren]     = useState([]);
@@ -974,6 +1026,9 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
   const [toast, setToast]           = useState(null);
   const [sending, setSending]       = useState(false);
   const [ohCrapSending, setOhCrapSending] = useState(null);
+  const [ohCrapConfirm, setOhCrapConfirm] = useState(null); // selected oh-crap btn, or null when overlay closed
+  const composerRef = useRef(null);          // the inline custom-message composer, for scroll-into-view
+  const scrollToComposer = useRef(false);    // set when the composer should be scrolled to after it opens
   const [showMomentModal, setShowMomentModal] = useState(false);
   const [showCommunityModal, setShowCommunityModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -997,6 +1052,23 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
       setShowCommunityModal(true);
     }
   }, []);
+
+  // Lock background scroll while the oh-crap confirm overlay is open; restore on close.
+  useEffect(() => {
+    if (!ohCrapConfirm) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [ohCrapConfirm]);
+
+  // When the composer is opened from the overlay it lives further down the page,
+  // so bring it into view once it has rendered. (Card taps open it in place.)
+  useEffect(() => {
+    if (composing && activeChar && scrollToComposer.current) {
+      scrollToComposer.current = false;
+      composerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [composing, activeChar]);
 
   async function loadData() {
     const { data: chars } = await supabase.from("characters").select("*").is("parent_id", null).eq("is_active", true);
@@ -1033,6 +1105,32 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
     if (TEST_MODE) return true;
     if (plan === "free") return false; // no active trial / paid plan → sending is locked
     return (PLAN_RANK[plan] || 0) >= (PLAN_RANK[char.required_plan] || 0);
+  }
+
+  // Opens a character's custom-message composer. Reused by both the character
+  // cards and the overlay's "Let me create my own message" action.
+  function openComposer(char) {
+    setActiveChar(char);
+    setComposing(true);
+    setMsgText("");
+  }
+
+  // Oh-crap tap: run the same guards as sendOhCrap, then open the confirm
+  // overlay instead of sending. Guards stay up front so a child mashing a
+  // button is routed to billing/settings and never reaches "Send the Magic Now."
+  function openOhCrapConfirm(btn) {
+    const char = characters.find(c => c.slug === btn.charSlug);
+    if (!char) { setToast("Character not found. Please contact support."); return; }
+    if (!canUse(char)) { onGoToBilling(); return; }
+    if (!profile?.phone_number) { setToast("Please add your phone number in settings first."); return; }
+    setOhCrapConfirm(btn);
+  }
+
+  // Overlay secondary action: reuse the character-card composer flow, then close.
+  function ohCrapCreateOwn() {
+    const char = characters.find(c => c.slug === ohCrapConfirm.charSlug);
+    if (char) { scrollToComposer.current = true; openComposer(char); }
+    setOhCrapConfirm(null);
   }
 
   async function sendOhCrap(btn) {
@@ -1074,6 +1172,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
       }
       logEvent(session.user.id, "message_sent", { character: char.slug, is_ohcrap: true, flagged: !!flagReason });
       setToast(TEST_MODE ? `[TEST] ${btn.emoji} ${btn.label} — no SMS sent` : `${btn.emoji} ${btn.label} message sent to your phone!`);
+      setOhCrapConfirm(null); // close the confirm overlay on success (error path leaves it open to retry)
       localStorage.setItem("mm_pending_share", "true");
       setShowMomentModal(true);
       loadData();
@@ -1220,7 +1319,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
             {OH_CRAP_DEFAULTS.map(btn => {
               const isSending = ohCrapSending === btn.id;
               return (
-                <button key={btn.id} onClick={() => sendOhCrap(btn)} disabled={!!ohCrapSending} style={{
+                <button key={btn.id} onClick={() => openOhCrapConfirm(btn)} disabled={!!ohCrapSending} style={{
                   background: isSending ? `rgba(201,147,58,0.1)` : T.warmWhite,
                   border:`2px solid ${isSending ? T.gold : "rgba(201,147,58,0.5)"}`,
                   boxShadow:"0 8px 24px rgba(0,0,0,0.3)",
@@ -1251,9 +1350,8 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
               return (
                 <button key={char.id} onClick={() => {
                   if (!unlocked) { onGoToBilling(); return; }
-                  setActiveChar(selected ? null : char);
-                  setComposing(!selected);
-                  setMsgText("");
+                  if (selected) { setActiveChar(null); setComposing(false); setMsgText(""); return; }
+                  openComposer(char);
                 }} style={{
                   background: selected ? `rgba(201,147,58,0.14)` : T.warmWhite,
                   border:`2px solid ${selected ? T.gold : "rgba(201,147,58,0.5)"}`,
@@ -1271,7 +1369,7 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
           </div>
 
           {composing && activeChar && (
-            <div style={{ marginTop:16, background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 10px 28px rgba(0,0,0,0.32)", borderRadius:16, padding:24, animation:"fadeUp 0.3s ease" }}>
+            <div ref={composerRef} style={{ marginTop:16, background:T.warmWhite, border:`2px solid rgba(201,147,58,0.5)`, boxShadow:"0 10px 28px rgba(0,0,0,0.32)", borderRadius:16, padding:24, animation:"fadeUp 0.3s ease" }}>
               <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
                 <EmojiBadge emoji={activeChar.emoji} size={40}/>
                 <div>
@@ -1350,6 +1448,17 @@ function DashboardScreen({ session, profile, onGoToBilling, onGoToHistory, onGoT
       )}
       {showCommunityModal && (
         <MagicShareModal variant="community" onShare={handleShareMoment} onDismiss={handleDismissCommunity}/>
+      )}
+
+      {ohCrapConfirm && (
+        <OhCrapConfirmOverlay
+          btn={ohCrapConfirm}
+          childName={selectedChild?.name || "there"}
+          sending={ohCrapSending === ohCrapConfirm.id}
+          onSend={() => sendOhCrap(ohCrapConfirm)}
+          onCreateOwn={ohCrapCreateOwn}
+          onClose={() => setOhCrapConfirm(null)}
+        />
       )}
 
       {toast && <Toast message={toast} onDone={() => setToast(null)}/>}
