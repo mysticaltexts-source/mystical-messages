@@ -95,7 +95,7 @@ Auth is email/password via `supabase.auth`. Row-level security is enforced serve
 
 Edge Functions handle SMS delivery (`send-message`) and Stripe checkout (`create-checkout-session`). These run in Supabase's Deno runtime, not in this repo.
 
-**Scheduled messages:** the Schedule screen saves rows with `status = 'scheduled'` and `scheduled_for` (UTC). The `send-scheduled-messages` Edge Function, triggered every minute by `pg_cron`, claims due rows via `claim_due_messages()` (scheduled → sending), re-checks the content filter, expired-trial block, character plan and phone number, sends via Twilio, and marks the same row `sent` or `failed`. Failures are never auto-retried. Rows over 6 hours late are marked failed ("missed"). `FLAGGED_TERMS` is duplicated in that function — keep it in sync with `App.jsx`. Setup SQL: `supabase/migrations/20261004000000_scheduled_sender.sql`, then `supabase/scheduled_sender_cron.sql` (run by hand; needs your project values).
+**Scheduled messages:** the Schedule screen saves rows with `status = 'scheduled'` and `scheduled_for` (UTC). The `send-scheduled-messages` Edge Function, triggered every minute by `pg_cron` (authenticated with its own `SCHEDULER_SECRET`), claims due rows via `claim_due_messages()` (scheduled → sending), re-checks the content filter, expired-trial block, character plan and phone number, sends via Twilio, and marks the same row `sent` or `failed`. Failures are never auto-retried. Rows over 6 hours late are marked failed ("missed"). `FLAGGED_TERMS` is duplicated in that function — keep it in sync with `App.jsx`. Setup SQL: `supabase/migrations/20261004000000_scheduled_sender.sql`, then `supabase/scheduled_sender_cron.sql` (run by hand; needs your project values).
 
 ### Plan system
 

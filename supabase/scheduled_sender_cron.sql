@@ -5,7 +5,7 @@
 --    1. Database → Extensions: enable  pg_cron  and  pg_net
 --    2. Deploying the send-scheduled-messages Edge Function
 --    3. Replacing the three <PLACEHOLDERS> below
---       (CRON_SECRET must equal the CRON_SECRET in Edge Functions → Secrets;
+--       (<CRON_SECRET> here must equal the SCHEDULER_SECRET in Edge Functions → Secrets;
 --        ANON_KEY is the project's anon/public key)
 -- ============================================================
 
