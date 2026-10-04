@@ -36,16 +36,18 @@ Add `VITE_TEST_MODE=true` to skip Twilio SMS calls entirely during development (
    ```
    Then commit, push, and redeploy.
 
-### Twilio / SMS (do when Twilio brand/10DLC approval arrives)
+### Twilio / SMS — DONE (brand/10DLC approved; live sends and scheduled sends confirmed working Oct 2026)
+
+Kept for reference (e.g. if the project is rebuilt). `VITE_TEST_MODE` must stay deleted in Vercel.
 
 **There are two Supabase projects.** The live app connects to `mysticaltexts-source/mystic...` (not "mysticaltexts -Claude v2.0"). All steps below apply to the **source project**.
 
 2. **DELETE `VITE_TEST_MODE`** from Vercel → your project → Settings → Environment Variables (do not set it to false or empty — delete it entirely), then trigger a redeploy
-3. **Update the Twilio FROM number** in the `send-message` Edge Function code — it is hardcoded in the function body (not stored as a secret). In Supabase → Edge Functions → `send-message` → open the editor and replace the placeholder FROM number with your approved, brand-registered number (e.g. `+1XXXXXXXXXX`)
+3. **Set each character's Twilio sender number** in the `characters` table (`twilio_number` column, e.g. `+1XXXXXXXXXX`). `send-message` and `send-scheduled-messages` both send `From: character.twilio_number` — it is not hardcoded in either function
 4. **Verify these secrets exist** in Supabase → Edge Functions → Secrets on the source project (they are already set — just confirm values are production, not test):
    - `TWILIO_ACCOUNT_SID` — production Account SID (starts with `AC`)
    - `TWILIO_AUTH_TOKEN` — production Auth Token
-5. **Redeploy** the `send-message` Edge Function after editing the FROM number
+5. No redeploy is needed when only `twilio_number` values change (they are read from the database at send time)
 6. Send a test message from the dashboard to confirm delivery
 
 ## Architecture
