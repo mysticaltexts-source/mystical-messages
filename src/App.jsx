@@ -2226,10 +2226,9 @@ function ScheduleScreen({ session, profile, onGoToBilling, onBack, menuItems }) 
     setSaving(true);
     try {
       const scheduledFor = new Date(`${schedDate}T${schedTime}`).toISOString();
-      // NOTE: scheduled rows are not auto-sent yet (no pg_cron / processor exists).
-      // When one is built, it MUST re-check the effective plan at fire time —
-      // reuse the getEffectivePlan("free") guard from send-message — because a
-      // trial can expire between scheduling and the send.
+      // Scheduled rows are sent by the send-scheduled-messages Edge Function
+      // (pg_cron, every minute). It re-checks the plan, content filter and
+      // expired-trial block at send time, since a trial can expire in between.
       await supabase.from("messages").insert({
         parent_id: session.user.id,
         child_id: selectedChild?.id || null,
