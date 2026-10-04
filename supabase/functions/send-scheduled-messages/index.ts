@@ -4,7 +4,8 @@
 //  What it does: Sends messages saved with status 'scheduled' whose time
 //                has arrived, then marks each one 'sent' or 'failed'.
 //  Triggered by: pg_cron every minute (see supabase/scheduled_sender_cron.sql).
-//                Protected by the shared CRON_SECRET header.
+//                Protected by its own SCHEDULER_SECRET header (separate from
+//                the CRON_SECRET used by send-trial-reminders).
 //  Safety rules:
 //    - Rows are claimed atomically (scheduled → sending), so nothing sends twice.
 //    - Failures are final; there are no automatic retries (a retry after an
@@ -16,7 +17,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const CRON_SECRET = Deno.env.get("CRON_SECRET");
+const SCHEDULER_SECRET = Deno.env.get("SCHEDULER_SECRET");
 
 const BATCH_SIZE        = 50;
 const MISSED_AFTER_MS   = 6 * 60 * 60 * 1000;  // older than 6h → "missed", not sent
@@ -52,7 +53,7 @@ function effectivePlan(profile: any): string {
 
 serve(async (req) => {
   // ── Auth: shared secret, so only our cron can trigger this ──
-  if (!CRON_SECRET || req.headers.get("x-cron-secret") !== CRON_SECRET) {
+  if (!SCHEDULER_SECRET || req.headers.get("x-cron-secret") !== SCHEDULER_SECRET) {
     return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
   }
 
