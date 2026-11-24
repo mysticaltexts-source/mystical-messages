@@ -14,6 +14,25 @@ async function logEvent(userId, event, metadata = {}) {
   } catch (_) {}
 }
 
+/* ─── SIGNUP ATTRIBUTION ─── */
+// Reads the first-touch source saved by /mm-attribution.js (UTM tags, other-site
+// referrer, in-app browser). Returns only non-empty text values; never throws.
+// These go into signUp's user metadata, and the handle_new_user() database
+// trigger copies them onto the profiles row.
+const ATTRIBUTION_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "first_referrer", "in_app_browser"];
+function getAttribution() {
+  const out = {};
+  try {
+    const saved = JSON.parse(localStorage.getItem("mm_attribution") || "null");
+    if (saved && typeof saved === "object") {
+      for (const k of ATTRIBUTION_KEYS) {
+        if (typeof saved[k] === "string" && saved[k]) out[k] = saved[k].slice(0, 200);
+      }
+    }
+  } catch (_) {}
+  return out;
+}
+
 /* ─── MESSAGE SCREENING ─── */
 const FLAGGED_TERMS = [
   // Profanity
@@ -697,7 +716,7 @@ function AuthScreen({ onGoToAbout, onGoToTerms, onGoToPrivacy }) {
         const { error } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
-          options: { data: { full_name: form.name } },
+          options: { data: { ...getAttribution(), full_name: form.name } },
         });
         if (error) throw error;
         setServerError("Check your email to confirm your account, then log in.");
